@@ -39,11 +39,12 @@ if __name__ == '__main__':
             'limit': min(count, MAX_LIMIT),
             'after': after,
             'show': 'all',
+            't': 'year',
         }
 
         # Request top posts in JSON format
         r = requests.get(
-            'http://www.reddit.com/r/{}/hot.json'.format(args.subreddit),
+            'http://www.reddit.com/r/{}/top.json'.format(args.subreddit),
             headers={'user-agent': agent['useragent']},
             params=params
         )
