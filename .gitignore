@@ -9,4 +9,4 @@
 .idea
 
 # Recommender Bot
-agent.json
+*.json
