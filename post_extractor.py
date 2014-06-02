@@ -17,11 +17,6 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    if os.path.exists('agent.json'):
-        agent = json.load(open('agent.json', 'r'))
-    else:
-        raise ValueError('Unable to retrieve agent.json')
-
     # Create the save path if it does not exist
     if not os.path.exists(args.out):
         os.mkdir(args.out)
@@ -46,7 +41,7 @@ if __name__ == '__main__':
         # Request top posts in JSON format
         r = requests.get(
             'http://www.reddit.com/r/{}/top.json'.format(args.subreddit),
-            headers={'user-agent': agent['useragent']},
+            headers={'user-agent': 'postextractor'},
             params=params
         )
 
@@ -71,4 +66,5 @@ if __name__ == '__main__':
 
             i += 1
         else:
-            print 'An Error occurred: {}'
+            print 'An Error occurred'
+            break
