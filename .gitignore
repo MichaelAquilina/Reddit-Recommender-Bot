@@ -7,3 +7,6 @@
 
 # Pycharm
 .idea
+
+# Recommender Bot
+agent.json
