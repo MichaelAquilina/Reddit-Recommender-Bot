@@ -33,6 +33,7 @@ if __name__ == '__main__':
         params = {
             'limit': min(count, MAX_LIMIT),
             'after': after,
+            'show': 'all',
         }
 
         # Request top posts in JSON format
