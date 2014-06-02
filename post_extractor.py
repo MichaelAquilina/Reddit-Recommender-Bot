@@ -12,6 +12,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Downloads post data from a specified subreddit')
     parser.add_argument('subreddit', type=str, help='Name of the subreddit to retrieve posts from')
     parser.add_argument('--limit', type=int, default=25, help='Number of submissions to retrieve')
+    parser.add_argument('--out', type=str, default='', help='Path to store incoming JSON files')
 
     args = parser.parse_args()
 
@@ -19,6 +20,10 @@ if __name__ == '__main__':
         agent = json.load(open('agent.json', 'r'))
     else:
         raise ValueError('Unable to retrieve agent.json')
+
+    # Create the save path if it does not exist
+    if not os.path.exists(args.out):
+        os.mkdir(args.out)
 
     # Amount of requests required based on the limit specified
     count = args.limit
@@ -52,7 +57,9 @@ if __name__ == '__main__':
             after = submission_data['data']['after']
             count -= len(submission_data['data']['children'])
 
-            with open('{}.{}.json'.format(args.subreddit, i), 'w') as f:
+            save_path = os.path.join(args.out, '{}.{}.json'.format(args.subreddit, i))
+
+            with open(save_path, 'w') as f:
                 json.dump(submission_data, f, indent=4)
 
             i += 1
