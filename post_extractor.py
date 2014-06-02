@@ -101,7 +101,10 @@ if __name__ == '__main__':
 
                     # This should be threaded!
                     if not post['data']['is_self']:
-                        download_page(args.out, post['data']['url'])
+                        try:
+                            download_page(pages_dir, post['data']['url'])
+                        except requests.ConnectionError:
+                            pass
 
                 after = submission_data['data']['after']
                 count -= len(submission_data['data']['children'])
