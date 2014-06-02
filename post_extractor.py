@@ -53,6 +53,11 @@ if __name__ == '__main__':
         if r.ok:
             submission_data = r.json()
 
+            # Detect if no data is returned before continuing
+            if len(submission_data['data']['children']) == 0:
+                print 'The subreddit \'{}\' does not exist'.format(args.subreddit)
+                break
+
             for post in submission_data['data']['children']:
                 print post['data']['title']
 
