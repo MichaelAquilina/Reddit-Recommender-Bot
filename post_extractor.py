@@ -1,9 +1,44 @@
 import json
 import os
 import requests
+import urlparse
 
 # Max listing limit as specified by the devapi
 MAX_LIMIT = 100
+
+
+def download_page(save_dir, url):
+    """
+    Downloads from the specified url, ignoring all non-text content. Files are saved
+    to the specified save_dir and organised into folders according to the hostname. File
+    names are extracted from the path with '/' characters replaced by '_'
+    :param save_dir: Directory to save the downloaded file to.
+    :param url: url from which to download
+    """
+
+    # Check encoding information before downloading everything
+    req = requests.head(url)
+
+    # Only download text content, we don't want anything else
+    if req.ok and req.status_code == 200 and 'text' in req.headers['content-type']:
+        # Perform the actual download
+        req = requests.get(url)
+
+        url = urlparse.urlparse(url)
+        save_dir = os.path.join(save_dir, url.hostname)
+
+        if not os.path.exists(save_dir):
+            os.mkdir(save_dir)
+
+        file_name = url.path.strip('/').replace('/', '_')
+        file_path = os.path.join(save_dir, file_name)
+
+        if not file_path.endswith('.html'):
+            file_path += '.html'
+
+        with open(file_path, 'w') as f:
+            f.write(req.text.encode('utf8'))
+
 
 if __name__ == '__main__':
 
@@ -61,7 +96,7 @@ if __name__ == '__main__':
 
                     # This should be threaded!
                     if not post['data']['is_self']:
-                        download_page(post['data']['url'])
+                        download_page(args.out, post['data']['url'])
 
                 after = submission_data['data']['after']
                 count -= len(submission_data['data']['children'])
