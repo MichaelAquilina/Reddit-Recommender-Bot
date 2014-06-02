@@ -183,7 +183,8 @@ if __name__ == '__main__':
                 print 'An Error occurred'
                 break
 
-        print 'Waiting for the downloader threads to finish'
+        print '-----------------------------------------------'
+        print 'Waiting for the downloader threads to finish...'
 
         for d in downloaders:
             d.running = False
