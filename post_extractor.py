@@ -9,10 +9,11 @@ if __name__ == '__main__':
 
     import argparse
 
-    parser = argparse.ArgumentParser(description='Downloads post data from a specified subreddit')
+    parser = argparse.ArgumentParser(description='Downloads top post data from a specified subreddit')
     parser.add_argument('subreddit', type=str, help='Name of the subreddit to retrieve posts from')
     parser.add_argument('--limit', type=int, default=25, help='Number of submissions to retrieve')
     parser.add_argument('--out', type=str, default='', help='Path to store incoming JSON files')
+    parser.add_argument('--period', choices=('year', 'month', 'week', 'all'), default='all')
 
     args = parser.parse_args()
 
@@ -39,7 +40,7 @@ if __name__ == '__main__':
             'limit': min(count, MAX_LIMIT),
             'after': after,
             'show': 'all',
-            't': 'year',
+            't': args.period,
         }
 
         # Request top posts in JSON format
