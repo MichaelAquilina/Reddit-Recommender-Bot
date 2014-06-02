@@ -86,6 +86,11 @@ if __name__ == '__main__':
             if r.ok:
                 submission_data = r.json()
 
+                save_path = os.path.join(args.out, '{}.{}.json'.format(args.subreddit, i))
+
+                with open(save_path, 'w') as f:
+                    json.dump(submission_data, f, indent=4)
+
                 # Detect if no data is returned before continuing
                 if len(submission_data['data']['children']) == 0:
                     print 'The subreddit \'{}\' does not exist'.format(args.subreddit)
@@ -100,11 +105,6 @@ if __name__ == '__main__':
 
                 after = submission_data['data']['after']
                 count -= len(submission_data['data']['children'])
-
-                save_path = os.path.join(args.out, '{}.{}.json'.format(args.subreddit, i))
-
-                with open(save_path, 'w') as f:
-                    json.dump(submission_data, f, indent=4)
 
                 i += 1
             else:
