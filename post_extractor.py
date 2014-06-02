@@ -7,6 +7,26 @@ import urlparse
 MAX_LIMIT = 100
 
 
+def join_and_check(path, *paths):
+    """
+    Joins the specified path using os.path.join and ensures it exists. It then
+    checks to see if the specified path is a directory and if not raises a
+    ValueError specifying the issue.
+    :param path: path with which to join other paths
+    :param paths: further paths to join to the original path
+    :return: joint path
+    """
+    result = os.path.join(path, *paths)
+
+    if not os.path.exists(result):
+        os.mkdir(result)
+
+    if not os.path.isdir(result):
+        raise ValueError('{} is a file but needs to be a directory'.format(result))
+    else:
+        return result
+
+
 def download_page(save_dir, url):
     """
     Downloads from the specified url, ignoring all non-text content. Files are saved
@@ -86,7 +106,8 @@ if __name__ == '__main__':
             if r.ok:
                 submission_data = r.json()
 
-                save_path = os.path.join(args.out, '{}.{}.json'.format(args.subreddit, i))
+                save_dir = join_and_check(args.out, args.subreddit)
+                save_path = os.path.join(save_dir, '{}.{}.json'.format(args.subreddit, i))
 
                 with open(save_path, 'w') as f:
                     json.dump(submission_data, f, indent=4)
@@ -95,6 +116,8 @@ if __name__ == '__main__':
                 if len(submission_data['data']['children']) == 0:
                     print 'The subreddit \'{}\' does not exist'.format(args.subreddit)
                     break
+
+                pages_dir = join_and_check(args.out, 'pages')
 
                 for post in submission_data['data']['children']:
                     print post['data']['title']
