@@ -102,6 +102,7 @@ def download_page(save_dir, url):
 if __name__ == '__main__':
 
     import argparse
+    import progressbar
 
     parser = argparse.ArgumentParser(description='Downloads top post data from a specified subreddit')
     parser.add_argument('subreddit', type=str, help='Name of the subreddit to retrieve posts from')
@@ -192,6 +193,16 @@ if __name__ == '__main__':
 
         for d in downloaders:
             d.running = False
+
+        start = len(page_queue)
+        pb = progressbar.ProgressBar()
+        pb.start()
+
+        while page_queue:
+            pb.update((start - len(page_queue))/float(start) * 100)
+            time.sleep(0.1)
+
+        pb.finish()
 
         for d in downloaders:
             d.join()
