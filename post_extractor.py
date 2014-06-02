@@ -10,6 +10,10 @@ MAX_LIMIT = 100
 
 
 class PageDownloader(threading.Thread):
+    """
+    Worker thread that reads from a given page queue and downloads from the
+    specified urls using the page_download method.
+    """
 
     def __init__(self, page_queue, lock, pages_dir):
         self.running = True
