@@ -2,9 +2,43 @@ import json
 import os
 import requests
 import urlparse
+import threading
+import time
 
 # Max listing limit as specified by the devapi
 MAX_LIMIT = 100
+
+
+class PageDownloader(threading.Thread):
+
+    def __init__(self, page_queue, lock, pages_dir):
+        self.running = True
+        self.page_queue = page_queue
+        self.lock = lock
+        self.pages_dir = pages_dir
+        super(PageDownloader, self).__init__()
+
+    def run(self):
+        while self.page_queue or self.running:
+
+            self.lock.acquire()
+            if len(self.page_queue) > 0:
+
+                url = self.page_queue[0]
+                del self.page_queue[0]
+                self.lock.release()
+
+                try:
+                    download_page(self.pages_dir, url)
+                except requests.ConnectionError:
+                    pass
+                except requests.Timeout:
+                    pass
+            else:
+                self.lock.release()
+
+            # Thread should sleep
+            time.sleep(0.1)
 
 
 def join_and_check(path, *paths):
@@ -37,12 +71,13 @@ def download_page(save_dir, url):
     """
 
     # Check encoding information before downloading everything
-    req = requests.head(url)
+    req = requests.head(url, timeout=15)
 
     # Only download text content, we don't want anything else
     if req.ok and req.status_code == 200 and 'text' in req.headers['content-type']:
+
         # Perform the actual download
-        req = requests.get(url)
+        req = requests.get(url, timeout=15)
 
         url = urlparse.urlparse(url)
         save_dir = os.path.join(save_dir, url.hostname)
@@ -69,6 +104,7 @@ if __name__ == '__main__':
     parser.add_argument('--limit', type=int, default=25, help='Number of submissions to retrieve')
     parser.add_argument('--out', type=str, default='', help='Path to store incoming JSON files')
     parser.add_argument('--period', choices=('year', 'month', 'week', 'all'), default='all')
+    parser.add_argument('--threads', type=int, choices=range(1, 100), default=10)
 
     args = parser.parse_args()
 
@@ -79,12 +115,24 @@ if __name__ == '__main__':
     if not os.path.isdir(args.out):
         print 'Out parameter must be a directory'
     else:
+        # After pointer for retrieving next batch of submissions
+        after = None
+
+        # Setup downloader threads
+        page_queue = []
+        downloaders = []
+        lock = threading.Lock()
+        pages_dir = join_and_check(args.out, 'pages')
+
+        for i in xrange(args.threads):
+            d = PageDownloader(page_queue, lock, pages_dir)
+            downloaders.append(d)
+            d.start()
+
         # Amount of requests required based on the limit specified
         count = args.limit
         i = 0
-
-        # After pointer for retrieving next batch of submissions
-        after = None
+        index = 0
 
         while count:
 
@@ -117,17 +165,15 @@ if __name__ == '__main__':
                     print 'The subreddit \'{}\' does not exist'.format(args.subreddit)
                     break
 
-                pages_dir = join_and_check(args.out, 'pages')
-
                 for post in submission_data['data']['children']:
-                    print post['data']['title']
+                    print u'{}: {}'.format(index, post['data']['title'])
+                    index += 1
 
                     # This should be threaded!
                     if not post['data']['is_self']:
-                        try:
-                            download_page(pages_dir, post['data']['url'])
-                        except requests.ConnectionError:
-                            pass
+                        lock.acquire()
+                        page_queue.append(post['data']['url'])
+                        lock.release()
 
                 after = submission_data['data']['after']
                 count -= len(submission_data['data']['children'])
@@ -136,3 +182,11 @@ if __name__ == '__main__':
             else:
                 print 'An Error occurred'
                 break
+
+        print 'Waiting for the downloader threads to finish'
+
+        for d in downloaders:
+            d.running = False
+
+        for d in downloaders:
+            d.join()
