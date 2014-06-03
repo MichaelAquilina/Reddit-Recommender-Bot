@@ -94,7 +94,8 @@ def download_page(save_dir, url):
         if not os.path.exists(save_dir):
             os.mkdir(save_dir)
 
-        file_name = url.path.strip('/').replace('/', '_')
+        # Standard html encoding for urls
+        file_name = url.path.strip('/').replace('/', '%2F')
 
         if file_name == '':
             file_name = 'index.html'
