@@ -77,7 +77,7 @@ def download_page(save_dir, url):
     """
 
     # Check encoding information before downloading everything
-    req = requests.head(url, timeout=5)
+    req = requests.head(url, timeout=15)
 
     # Only download text content, we don't want anything else
     if req.ok and \
@@ -86,7 +86,7 @@ def download_page(save_dir, url):
        'text' in req.headers['content-type']:
 
         # Perform the actual download
-        req = requests.get(url, timeout=5)
+        req = requests.get(url, timeout=15)
 
         url = urlparse.urlparse(url)
         save_dir = os.path.join(save_dir, url.hostname)
