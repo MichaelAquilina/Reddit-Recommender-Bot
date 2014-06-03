@@ -174,7 +174,6 @@ if __name__ == '__main__':
                     print u'{}: {}'.format(index, post['data']['title'])
                     index += 1
 
-                    # This should be threaded!
                     if not post['data']['is_self']:
                         lock.acquire()
                         page_queue.append(post['data']['url'])
@@ -194,6 +193,7 @@ if __name__ == '__main__':
         for d in downloaders:
             d.running = False
 
+        # Use a progress bar to let the user know how far long the process is
         start = len(page_queue)
         pb = progressbar.ProgressBar()
         pb.start()
@@ -204,5 +204,8 @@ if __name__ == '__main__':
 
         pb.finish()
 
+        print 'Almost ready...waiting for final downloads to complete'
+
+        # Wait for all the threads to finish before completing
         for d in downloaders:
             d.join()
