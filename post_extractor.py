@@ -6,6 +6,7 @@ import requests
 import urlparse
 import threading
 import time
+import logging
 
 # Max listing limit as specified by the devapi
 MAX_LIMIT = 100
@@ -36,10 +37,12 @@ class PageDownloader(threading.Thread):
 
                 try:
                     download_page(self.pages_dir, url)
-                except requests.ConnectionError:
-                    pass
-                except requests.Timeout:
-                    pass
+                except requests.ConnectionError as e:
+                    logging.warn('Unable to connect to: %s (%s)', url, e.message)
+                except requests.Timeout as e:
+                    logging.warn('Received a timeout from: %s (%s)', url, e.message)
+                except Exception as e:
+                    logging.error('A generic error has occurred while downloading: %s %s', url, e.message)
             else:
                 self.lock.release()
 
@@ -179,7 +182,7 @@ if __name__ == '__main__':
 
                 # Detect if no data is returned before continuing
                 if len(submission_data['data']['children']) == 0:
-                    print 'The subreddit \'{}\' does not exist'.format(args.subreddit)
+                    logging.warn('The subreddit \'%s\' does not exist', args.subreddit)
                     break
 
                 for post in submission_data['data']['children']:
@@ -196,7 +199,7 @@ if __name__ == '__main__':
 
                 i += 1
             else:
-                print 'An Error occurred'
+                logging.error('An error has occurred while communicating with the Reddit API')
                 break
 
         print '-----------------------------------------------'
