@@ -95,6 +95,10 @@ def download_page(save_dir, url):
             os.mkdir(save_dir)
 
         file_name = url.path.strip('/').replace('/', '_')
+
+        if file_name == '':
+            file_name = 'index.html'
+
         file_path = os.path.join(save_dir, file_name)
 
         if not file_path.endswith('.html'):
