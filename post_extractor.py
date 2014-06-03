@@ -203,7 +203,7 @@ if __name__ == '__main__':
         for d in downloaders:
             d.running = False
 
-        # Use a progress bar to let the user know how far long the process is
+        # Use a progress bar to let the user know how far along the process is
         start = len(page_queue)
         pb = progressbar.ProgressBar()
         pb.start()
