@@ -59,7 +59,7 @@ def join_and_check(path, *paths):
     result = os.path.join(path, *paths)
 
     if not os.path.exists(result):
-        os.mkdir(result)
+        os.makedirs(result)
 
     if not os.path.isdir(result):
         raise ValueError('{} is a file but needs to be a directory'.format(result))
@@ -149,6 +149,9 @@ if __name__ == '__main__':
         i = 0
         index = 0
 
+        # Determine the save directory
+        save_dir = join_and_check(args.out, 'subreddits', args.subreddit)
+
         while count:
 
             # Request data
@@ -169,7 +172,6 @@ if __name__ == '__main__':
             if r.ok:
                 submission_data = r.json()
 
-                save_dir = join_and_check(args.out, args.subreddit)
                 save_path = os.path.join(save_dir, '{}.{}.json'.format(args.subreddit, i))
 
                 with open(save_path, 'w') as f:
