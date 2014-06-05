@@ -123,6 +123,7 @@ if __name__ == '__main__':
     parser.add_argument('--out', type=str, default='', help='Path to store incoming JSON files')
     parser.add_argument('--period', choices=('year', 'month', 'week', 'all'), default='year')
     parser.add_argument('--threads', type=int, default=10)
+    parser.add_argument('--filter', type=str, choices=('top', 'controversial'), default='top')
 
     args = parser.parse_args()
 
@@ -167,7 +168,7 @@ if __name__ == '__main__':
 
             # Request top posts in JSON format
             r = requests.get(
-                'http://www.reddit.com/r/{}/top.json'.format(args.subreddit),
+                'http://www.reddit.com/r/{}/{}.json'.format(args.subreddit, args.filter),
                 headers={'user-agent': 'postextractor'},
                 params=params
             )
