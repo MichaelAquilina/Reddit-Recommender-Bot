@@ -215,7 +215,7 @@ if __name__ == '__main__':
         pb.start()
 
         while page_queue:
-            pb.update((start - len(page_queue))/float(start) * 100)
+            pb.update((start - len(page_queue)) / float(start) * 100)
             time.sleep(0.1)
 
         pb.finish()
