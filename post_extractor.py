@@ -8,7 +8,7 @@ import threading
 import time
 import logging
 
-# Max listing limit as specified by the devapi
+# Max listing limit as specified by the reddit devapi
 MAX_LIMIT = 100
 
 
