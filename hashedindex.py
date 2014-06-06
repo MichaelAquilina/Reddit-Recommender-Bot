@@ -1,3 +1,7 @@
+from __future__ import division
+from math import log10
+
+
 class HashedIndex(object):
     """
     InvertedIndex structure in the form of a hash list implemention.
@@ -59,3 +63,16 @@ class HashedIndex(object):
 
     def get_documents(self):
         return self._documents
+
+    def get_tfidf(self, term, document):
+        """
+        Returns the Term-Frequency Inverse-Document-Frequency value for the given
+        term in the specified document.
+        """
+        n = len(self._documents)
+        tf = self.get_term_frequency(term, document)
+
+        # Add 1 to document frequency to prevent divide by 0
+        df = 1 + self.get_document_frequency(term)
+
+        return tf * log10(n/df)

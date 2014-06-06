@@ -1,5 +1,8 @@
+from __future__ import division
+
 import unittest
 
+from math import log10
 from hashedindex import HashedIndex
 
 
@@ -73,3 +76,16 @@ class HashedIndexTest(unittest.TestCase):
         assert self.index.get_documents() == {'document1.txt', 'document2.txt', 'document3.txt'}
 
         assert 'doesnotexist.txt' not in self.index.get_documents()
+
+    def test_get_tfidf(self):
+        # Valid TFIDF Value
+        assert self.index.get_tfidf('word', 'document1.txt') == 3 * log10(2/3)
+
+        # No presence in document
+        assert self.index.get_tfidf('malta', 'document2.txt') == 0
+
+        # High weighted term
+        assert self.index.get_tfidf('malta', 'document1.txt') == 5 * log10(2/2)
+
+        # Non-existent term should have no weight
+        assert self.index.get_tfidf('doesnotexist', 'document1.txt') == 0
