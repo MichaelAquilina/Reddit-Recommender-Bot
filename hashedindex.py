@@ -1,4 +1,7 @@
 class HashedIndex(object):
+    """
+    InvertedIndex structure in the form of a hash list implemention.
+    """
 
     def __init__(self):
         self._terms = {}
@@ -10,6 +13,9 @@ class HashedIndex(object):
         return term.lower() in self._terms
 
     def add_term_occurrence(self, term, document):
+        """
+        Adds an occurrence of the term in the specified document.
+        """
         term_l = term.lower()
         document_l = document.lower()
 
@@ -22,6 +28,9 @@ class HashedIndex(object):
         self._terms[term_l][document] += 1
 
     def get_term_frequency(self, term, document):
+        """
+        Returns the frequency of the term specified in the document.
+        """
         term_l = term.lower()
         document_l = document.lower()
 
@@ -34,6 +43,9 @@ class HashedIndex(object):
         return self._terms[term_l][document_l]
 
     def get_document_frequency(self, term):
+        """
+        Returns the number of documents the specified term appears in.
+        """
         term_l = term.lower()
 
         if term_l not in self._terms:
