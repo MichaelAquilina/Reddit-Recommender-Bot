@@ -5,6 +5,7 @@ class HashedIndex(object):
 
     def __init__(self):
         self._terms = {}
+        self._documents = set()
 
     def __getitem__(self, term):
         return self._terms[term.lower()]
@@ -24,6 +25,9 @@ class HashedIndex(object):
 
         if document_l not in self._terms[term_l]:
             self._terms[term_l][document_l] = 0
+
+        if document_l not in self._documents:
+            self._documents.add(document_l)
 
         self._terms[term_l][document] += 1
 
@@ -52,3 +56,6 @@ class HashedIndex(object):
             return 0
         else:
             return len(self._terms[term_l])
+
+    def get_documents(self):
+        return self._documents

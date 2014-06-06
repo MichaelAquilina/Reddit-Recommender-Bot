@@ -65,3 +65,11 @@ class HashedIndexTest(unittest.TestCase):
         assert self.index.get_document_frequency('phone') == 1
 
         assert self.index.get_document_frequency('doesnotexist') == 0
+
+    def test_get_documents(self):
+        assert self.index.get_documents() == {'document1.txt', 'document2.txt'}
+
+        self.index.add_term_occurrence('test', 'document3.txt')
+        assert self.index.get_documents() == {'document1.txt', 'document2.txt', 'document3.txt'}
+
+        assert 'doesnotexist.txt' not in self.index.get_documents()
