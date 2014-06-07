@@ -1,10 +1,11 @@
 from __future__ import division
+
 from math import log10
 
 
 class HashedIndex(object):
     """
-    InvertedIndex structure in the form of a hash list implemention.
+    InvertedIndex structure in the form of a hash list implementation.
     """
 
     def __init__(self):
@@ -75,4 +76,4 @@ class HashedIndex(object):
         # Add 1 to document frequency to prevent divide by 0
         df = 1 + self.get_document_frequency(term)
 
-        return tf * log10(n/df)
+        return tf * log10(n / df)
