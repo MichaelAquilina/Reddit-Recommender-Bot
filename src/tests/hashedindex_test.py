@@ -18,8 +18,12 @@ class HashedIndexTest(unittest.TestCase):
         for i in xrange(3):
             self.index.add_term_occurrence('word', 'document1.txt')
 
-        for i in xrange(5):
+        for i in xrange(3):
             self.index.add_term_occurrence('malta', 'document1.txt')
+
+        # Document names should also be case insensitive
+        for i in xrange(2):
+            self.index.add_term_occurrence('malta', 'DocumenT1.txt')
 
         for i in xrange(4):
             self.index.add_term_occurrence('phone', 'document2.txt')

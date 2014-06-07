@@ -39,7 +39,7 @@ class HashedIndex(object):
         if document_l not in self._documents:
             self._documents.add(document_l)
 
-        self._terms[term_l][document] += 1
+        self._terms[term_l][document_l] += 1
 
     def get_term_frequency(self, term, document):
         """
