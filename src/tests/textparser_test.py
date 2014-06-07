@@ -13,14 +13,14 @@ def test_word_tokenize():
 
     # Digits
     assert generator_cmp(word_tokenize('gumball800 is cool'), ['gumball800', 'is', 'cool'])
-    assert generator_cmp(word_tokenize('90 + ten'), ['90', 'ten'])
+    assert generator_cmp(word_tokenize('90 + ten'), ['90', '+', 'ten'])
 
     # Remove Case Test
     assert generator_cmp(word_tokenize('Hello WORLD', remove_case=True), ['hello', 'world'])
 
     # Punctuation Test
-    assert generator_cmp(word_tokenize('My! #name **is@ &Michael!'), ['My', 'name', 'is', 'Michael'])
+    assert generator_cmp(word_tokenize('My name is Michael!'), ['My', 'name', 'is', 'Michael!'])
 
     # Corner cases
-    assert generator_cmp(word_tokenize('empty +@@ punctuation'), ['empty', 'punctuation'])
-    assert generator_cmp(word_tokenize('This shouldn\'t fail'), ['This', 'shouldnt', 'fail'])
+    assert generator_cmp(word_tokenize('empty +@@ punctuation'), ['empty', '+@@', 'punctuation'])
+    assert generator_cmp(word_tokenize('This shouldn\'t fail'), ['This', 'shouldn\'t', 'fail'])

@@ -1,6 +1,6 @@
-from string import ascii_letters, whitespace, digits
+from string import ascii_letters, whitespace, digits, punctuation
 
-ascii_letters_digits = ascii_letters + digits
+_accepted = frozenset(ascii_letters + digits + punctuation)
 
 
 def word_tokenize(text, remove_case=False):
@@ -12,7 +12,7 @@ def word_tokenize(text, remove_case=False):
             if s_buffer:
                 yield s_buffer
             s_buffer = ''
-        elif c in ascii_letters_digits:
+        elif c in _accepted:
             if remove_case:
                 s_buffer += c.lower()
             else:
