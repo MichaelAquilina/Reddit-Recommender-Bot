@@ -67,6 +67,9 @@ class HashedIndex(object):
         else:
             return len(self._terms[term_l])
 
+    def get_terms(self):
+        return self._terms.keys()
+
     def get_documents(self):
         return self._documents
 

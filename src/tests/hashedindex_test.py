@@ -68,6 +68,14 @@ class HashedIndexTest(unittest.TestCase):
 
         assert self.index.get_document_frequency('doesnotexist') == 0
 
+    def test_get_terms(self):
+        assert unordered_list_cmp(self.index.get_terms(), ['word', 'malta', 'phone'])
+
+        self.index.add_term_occurrence('test', 'document3.txt')
+        assert unordered_list_cmp(self.index.get_terms(), ['word', 'malta', 'phone', 'test'])
+
+        assert 'doesnotexist' not in self.index.get_terms()
+
     def test_get_documents(self):
         assert self.index.get_documents() == {'document1.txt', 'document2.txt'}
 
