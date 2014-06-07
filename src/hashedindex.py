@@ -23,6 +23,9 @@ class HashedIndex(object):
             len(self._terms), len(self._documents)
         )
 
+    def __eq__(self, other):
+        return self.items() == other.items() and self.documents() == other.documents()
+
     def add_term_occurrence(self, term, document):
         """
         Adds an occurrence of the term in the specified document.
