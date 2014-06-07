@@ -93,6 +93,11 @@ class HashedIndex(object):
         return tf * log10(n / df)
 
     def save(self, path, compressed=False):
+        """
+        Saves the state of the HashedIndex as a JSON formatted
+        file to the specified path. The optional use of bz2
+        compression is also available.
+        """
         import json
 
         if compressed:
@@ -105,6 +110,11 @@ class HashedIndex(object):
         fp.close()
 
     def load(self, path, compressed=False):
+        """
+        Loads a HashedIndex state from a JSON formatted file that
+        was previously saved. If the file was compressed using bz2,
+        the compressed flag must be set to True.
+        """
         import json
         self._documents = set()
 
