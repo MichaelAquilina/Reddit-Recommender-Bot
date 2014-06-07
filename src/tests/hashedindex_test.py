@@ -1,6 +1,7 @@
 from __future__ import division
 
 import unittest
+import tempfile
 
 from hashedindex import HashedIndex
 
@@ -107,3 +108,14 @@ class HashedIndexTest(unittest.TestCase):
 
         # Non-existent term should have no weight
         assert self.index.get_tfidf('doesnotexist', 'document1.txt') == 0
+
+    def test_save_load(self):
+        # Note mktemp is deprecated but this still works
+        path = tempfile.mktemp()
+        self.index.save(path)
+
+        index2 = HashedIndex()
+        index2.load(path)
+
+        assert self.index == index2
+

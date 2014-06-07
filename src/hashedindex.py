@@ -91,3 +91,21 @@ class HashedIndex(object):
         df = 1 + self.get_document_frequency(term)
 
         return tf * log10(n / df)
+
+    def save(self, path):
+        import json
+        with open(path, 'w') as f:
+            json.dump(self._terms, f, indent=5)
+
+    def load(self, path):
+        import json
+        self._documents = set()
+
+        with open(path, 'r') as f:
+            self._terms = json.load(f)
+
+        # Need to search for the documents
+        # Not the most efficient but definitely the simplest
+        for item in self._terms.values():
+            for document in item.keys():
+                self._documents.add(document)
