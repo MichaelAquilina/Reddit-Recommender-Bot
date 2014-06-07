@@ -18,6 +18,11 @@ class HashedIndex(object):
     def __contains__(self, term):
         return term.lower() in self._terms
 
+    def __repr__(self):
+        return '<HashedIndex: {} terms, {} documents>'.format(
+            len(self._terms), len(self._documents)
+        )
+
     def add_term_occurrence(self, term, document):
         """
         Adds an occurrence of the term in the specified document.
