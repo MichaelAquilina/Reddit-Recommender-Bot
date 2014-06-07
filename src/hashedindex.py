@@ -67,11 +67,14 @@ class HashedIndex(object):
         else:
             return len(self._terms[term_l])
 
-    def get_terms(self):
+    def terms(self):
         return self._terms.keys()
 
-    def get_documents(self):
+    def documents(self):
         return self._documents
+
+    def items(self):
+        return self._terms
 
     def get_tfidf(self, term, document):
         """

@@ -69,20 +69,27 @@ class HashedIndexTest(unittest.TestCase):
         assert self.index.get_document_frequency('doesnotexist') == 0
 
     def test_get_terms(self):
-        assert unordered_list_cmp(self.index.get_terms(), ['word', 'malta', 'phone'])
+        assert unordered_list_cmp(self.index.terms(), ['word', 'malta', 'phone'])
 
         self.index.add_term_occurrence('test', 'document3.txt')
-        assert unordered_list_cmp(self.index.get_terms(), ['word', 'malta', 'phone', 'test'])
+        assert unordered_list_cmp(self.index.terms(), ['word', 'malta', 'phone', 'test'])
 
-        assert 'doesnotexist' not in self.index.get_terms()
+        assert 'doesnotexist' not in self.index.terms()
+
+    def test_get_items(self):
+        assert self.index.items() == {
+            'word': {'document1.txt': 3, 'document2.txt': 2},
+            'malta': {'document1.txt': 5},
+            'phone': {'document2.txt': 4}
+        }
 
     def test_get_documents(self):
-        assert self.index.get_documents() == {'document1.txt', 'document2.txt'}
+        assert self.index.documents() == {'document1.txt', 'document2.txt'}
 
         self.index.add_term_occurrence('test', 'document3.txt')
-        assert self.index.get_documents() == {'document1.txt', 'document2.txt', 'document3.txt'}
+        assert self.index.documents() == {'document1.txt', 'document2.txt', 'document3.txt'}
 
-        assert 'doesnotexist.txt' not in self.index.get_documents()
+        assert 'doesnotexist.txt' not in self.index.documents()
 
     def test_get_tfidf(self):
         # Test Inverse Document Frequency
