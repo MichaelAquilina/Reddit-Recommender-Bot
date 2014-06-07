@@ -5,7 +5,7 @@ import unittest
 from hashedindex import HashedIndex
 
 
-def list_cmp(list1, list2):
+def unordered_list_cmp(list1, list2):
     # Check lengths first for slight improvement in performance
     return len(list1) == len(list2) and sorted(list1) == sorted(list2)
 
@@ -28,9 +28,9 @@ class HashedIndexTest(unittest.TestCase):
             self.index.add_term_occurrence('word', 'document2.txt')
 
     def test_getitem(self):
-        assert list_cmp(self.index['word'].keys(), ['document1.txt', 'document2.txt'])
-        assert list_cmp(self.index['malta'].keys(), ['document1.txt'])
-        assert list_cmp(self.index['phone'].keys(), ['document2.txt'])
+        assert unordered_list_cmp(self.index['word'].keys(), ['document1.txt', 'document2.txt'])
+        assert unordered_list_cmp(self.index['malta'].keys(), ['document1.txt'])
+        assert unordered_list_cmp(self.index['phone'].keys(), ['document2.txt'])
 
         # Case Insensitive check
         assert self.index['word'] == self.index['WoRD']
