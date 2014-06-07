@@ -119,3 +119,12 @@ class HashedIndexTest(unittest.TestCase):
 
         assert self.index == index2
 
+    def test_save_load_compressed(self):
+        path = tempfile.mktemp()
+        self.index.save(path, compressed=True)
+
+        index2 = HashedIndex()
+        index2.load(path, compressed=True)
+
+        assert self.index == index2
+

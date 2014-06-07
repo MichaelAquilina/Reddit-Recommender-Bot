@@ -92,17 +92,30 @@ class HashedIndex(object):
 
         return tf * log10(n / df)
 
-    def save(self, path):
+    def save(self, path, compressed=False):
         import json
-        with open(path, 'w') as f:
-            json.dump(self._terms, f, indent=5)
 
-    def load(self, path):
+        if compressed:
+            import bz2
+            fp = bz2.BZ2File(path, 'w')
+        else:
+            fp = open(path, 'w')
+
+        json.dump(self._terms, fp, indent=5)
+        fp.close()
+
+    def load(self, path, compressed=False):
         import json
         self._documents = set()
 
-        with open(path, 'r') as f:
-            self._terms = json.load(f)
+        if compressed:
+            import bz2
+            fp = bz2.BZ2File(path, mode='r')
+        else:
+            fp = open(path, 'r')
+
+        self._terms = json.load(fp)
+        fp.close()
 
         # Need to search for the documents
         # Not the most efficient but definitely the simplest
