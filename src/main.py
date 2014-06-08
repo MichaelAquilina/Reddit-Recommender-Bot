@@ -7,6 +7,7 @@ import hashedindex
 import textparser
 
 from HTMLParser import HTMLParser
+from unicodedata import normalize
 
 _parser = HTMLParser()
 
@@ -18,6 +19,10 @@ def post_process(token):
     # TODO: Check if email, url, date etc...
     # Based on type you should parse accordingly
     # Try conflate things to reduce space and decrease noise
+
+    # Normalize any unicode characters to ascii equivalent
+    # https://docs.python.org/2/library/unicodedata.html#unicodedata.normalize
+    token = normalize('NFKD', token).encode('ascii', 'ignore')
 
     # Need to specify a bunch of characters to remove here
     token = token.replace(u'\'', '')
