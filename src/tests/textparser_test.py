@@ -7,23 +7,24 @@ def generator_cmp(gen, list1):
 
 
 def test_word_tokenize():
-    # Ensure unicode encoding is always used for results
+    assert generator_cmp(word_tokenize('Hello cruel world'), ['Hello', 'cruel', 'world'])
+    assert generator_cmp(word_tokenize(''), [])
+    assert generator_cmp(word_tokenize('empty +@@ punctuation'), ['empty', '+@@', 'punctuation'])
+    assert generator_cmp(word_tokenize('This shouldn\'t fail'), ['This', 'shouldn\'t', 'fail'])
+
+
+def test_word_tokenize_type():
     assert all(type(s) is unicode for s in word_tokenize('Hello', 'World'))
 
-    assert generator_cmp(word_tokenize('Hello cruel world'), ['Hello', 'cruel', 'world'])
-    assert generator_cmp(word_tokenize('New\nLine\rTest'), ['New', 'Line', 'Test'])
-    assert generator_cmp(word_tokenize(''), [])
 
-    # Digits
+def test_word_tokenize_digits():
     assert generator_cmp(word_tokenize('gumball800 is cool'), ['gumball800', 'is', 'cool'])
     assert generator_cmp(word_tokenize('90 + ten'), ['90', '+', 'ten'])
 
-    # Remove Case Test
+
+def test_word_tokenize_remove_case():
     assert generator_cmp(word_tokenize('Hello WORLD', remove_case=True), ['hello', 'world'])
 
-    # Punctuation Test
-    assert generator_cmp(word_tokenize('My name is Michael!'), ['My', 'name', 'is', 'Michael!'])
 
-    # Corner cases
-    assert generator_cmp(word_tokenize('empty +@@ punctuation'), ['empty', '+@@', 'punctuation'])
-    assert generator_cmp(word_tokenize('This shouldn\'t fail'), ['This', 'shouldn\'t', 'fail'])
+def test_word_tokenize_punctuation():
+    assert generator_cmp(word_tokenize('My name is Michael!'), ['My', 'name', 'is', 'Michael!'])
