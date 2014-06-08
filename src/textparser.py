@@ -1,6 +1,16 @@
+import unicodedata
+
 from string import ascii_letters, whitespace, digits, punctuation
 
 _accepted = frozenset(ascii_letters + digits + punctuation)
+
+
+def normalize_unicode(text):
+    """
+    Normalize any unicode characters to ascii equivalent
+    https://docs.python.org/2/library/unicodedata.html#unicodedata.normalize
+    """
+    return unicodedata.normalize('NFKD', text).encode('ascii', 'ignore')
 
 
 def word_tokenize(text, remove_case=False):

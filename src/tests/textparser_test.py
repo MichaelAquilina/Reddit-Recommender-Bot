@@ -1,9 +1,18 @@
-from textparser import word_tokenize
+# ~*~ coding:utf-8 ~*~
+
+from textparser import *
 
 
 def generator_cmp(gen, list1):
     # Compares a generator to a list for equality
     return list(gen) == list1
+
+
+def test_normalize_unicode():
+    assert normalize_unicode(u'Klüft skräms inför på fédéral électoral große') == \
+        'Kluft skrams infor pa federal electoral groe'
+
+    assert normalize_unicode(u'don’t') == 'dont'
 
 
 def test_word_tokenize():

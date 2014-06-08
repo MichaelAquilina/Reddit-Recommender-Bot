@@ -8,7 +8,6 @@ import textparser
 
 from HTMLParser import HTMLParser
 from string import punctuation
-from unicodedata import normalize
 
 _parser = HTMLParser()
 
@@ -22,9 +21,7 @@ def post_process(token):
     # Based on type you should parse accordingly
     # Try conflate things to reduce space and decrease noise
 
-    # Normalize any unicode characters to ascii equivalent
-    # https://docs.python.org/2/library/unicodedata.html#unicodedata.normalize
-    token = normalize('NFKD', token).encode('ascii', 'ignore')
+    token = textparser.normalize_unicode(token)
 
     # Strip all punctuation from the edges of the string
     token = token.strip(punctuation)
