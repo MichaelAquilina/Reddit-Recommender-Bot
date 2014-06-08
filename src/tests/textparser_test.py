@@ -7,6 +7,9 @@ def generator_cmp(gen, list1):
 
 
 def test_word_tokenize():
+    # Ensure unicode encoding is always used for results
+    assert all(type(s) is unicode for s in word_tokenize('Hello', 'World'))
+
     assert generator_cmp(word_tokenize('Hello cruel world'), ['Hello', 'cruel', 'world'])
     assert generator_cmp(word_tokenize('New\nLine\rTest'), ['New', 'Line', 'Test'])
     assert generator_cmp(word_tokenize(''), [])
