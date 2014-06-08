@@ -14,7 +14,7 @@ def test_word_tokenize():
 
 
 def test_word_tokenize_type():
-    assert all(type(s) is unicode for s in word_tokenize('Hello', 'World'))
+    assert all(type(s) is unicode for s in word_tokenize('Hello World'))
 
 
 def test_word_tokenize_digits():
