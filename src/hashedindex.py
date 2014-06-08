@@ -106,7 +106,10 @@ class HashedIndex(object):
         else:
             fp = open(path, 'w')
 
-        json.dump(self._terms, fp, indent=5)
+        json.dump({
+            'documents': list(self._documents),
+            'terms': self._terms,
+        }, fp, indent=5)
         fp.close()
 
     def load(self, path, compressed=False):
@@ -116,7 +119,6 @@ class HashedIndex(object):
         the compressed flag must be set to True.
         """
         import json
-        self._documents = set()
 
         if compressed:
             import bz2
@@ -124,11 +126,8 @@ class HashedIndex(object):
         else:
             fp = open(path, 'r')
 
-        self._terms = json.load(fp)
+        data = json.load(fp)
         fp.close()
 
-        # Need to search for the documents
-        # Not the most efficient but definitely the simplest
-        for item in self._terms.values():
-            for document in item.keys():
-                self._documents.add(document)
+        self._documents = set(data['documents'])
+        self._terms = data['terms']
