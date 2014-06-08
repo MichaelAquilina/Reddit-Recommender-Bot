@@ -7,6 +7,7 @@ import hashedindex
 import textparser
 
 from HTMLParser import HTMLParser
+from string import punctuation
 from unicodedata import normalize
 
 _parser = HTMLParser()
@@ -25,8 +26,7 @@ def post_process(token):
     token = normalize('NFKD', token).encode('ascii', 'ignore')
 
     # Need to specify a bunch of characters to remove here
-    token = token.replace(u'\'', '')
-    token = token.replace(u'’', '')
+    token = token.strip(punctuation)
 
     # TODO: Stemmer (Porter or Lancaster)
     return token
