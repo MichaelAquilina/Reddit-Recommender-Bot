@@ -14,6 +14,7 @@ _parser = HTMLParser()
 
 
 # Helper function that performs post-processing on tokens
+# Should probably write a test for this and move it to textparser
 def post_process(token):
     token = _parser.unescape(token)
 
@@ -25,7 +26,7 @@ def post_process(token):
     # https://docs.python.org/2/library/unicodedata.html#unicodedata.normalize
     token = normalize('NFKD', token).encode('ascii', 'ignore')
 
-    # Need to specify a bunch of characters to remove here
+    # Strip all punctuation from the edges of the string
     token = token.strip(punctuation)
 
     # TODO: Stemmer (Porter or Lancaster)
