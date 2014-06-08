@@ -14,6 +14,7 @@ _parser = HTMLParser()
 
 # Helper function that performs post-processing on tokens
 # Should probably write a test for this and move it to textparser
+# TODO: Profile, this is probably going to be a major performance bottleneck
 def post_process(token):
     token = _parser.unescape(token)
 
@@ -25,6 +26,8 @@ def post_process(token):
 
     # Strip all punctuation from the edges of the string
     token = token.strip(punctuation)
+
+    token = token.replace('\'', '')
 
     # TODO: Stemmer (Porter or Lancaster)
     return token
