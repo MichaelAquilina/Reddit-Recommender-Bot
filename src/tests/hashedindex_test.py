@@ -89,10 +89,10 @@ class HashedIndexTest(unittest.TestCase):
         }
 
     def test_get_documents(self):
-        assert self.index.documents() == {'document1.txt', 'document2.txt'}
+        assert unordered_list_cmp(self.index.documents(), ['document1.txt', 'document2.txt'])
 
         self.index.add_term_occurrence('test', 'document3.txt')
-        assert self.index.documents() == {'document1.txt', 'document2.txt', 'document3.txt'}
+        assert unordered_list_cmp(self.index.documents(), ['document1.txt', 'document2.txt', 'document3.txt'])
 
         assert 'doesnotexist.txt' not in self.index.documents()
 
@@ -108,6 +108,48 @@ class HashedIndexTest(unittest.TestCase):
 
         # Non-existent term should have no weight
         assert self.index.get_tfidf('doesnotexist', 'document1.txt') == 0
+
+    def test_generate_feature_matrix_tfidf(self):
+        features = self.index.terms()
+        instances = self.index.documents()
+
+        matrix = self.index.generate_feature_matrix(mode='tfidf')
+
+        assert matrix[instances.index('document1.txt'), features.index('malta')] \
+            == self.index.get_tfidf('malta', 'document1.txt')
+
+        assert matrix[instances.index('document2.txt'), features.index('word')] \
+            == self.index.get_tfidf('word', 'document2.txt')
+
+        assert matrix[instances.index('document2.txt'), features.index('phone')] \
+            == self.index.get_tfidf('phone', 'document2.txt')
+
+        assert matrix[instances.index('document1.txt'), features.index('word')] \
+            == self.index.get_tfidf('word', 'document1.txt')
+
+        # Zero Cases
+        assert matrix[instances.index('document2.txt'), features.index('malta')] == 0
+        assert matrix[instances.index('document1.txt'), features.index('phone')] == 0
+
+    def test_generate_feature_matrix_count(self):
+        # Extract the feature and document indices
+        features = self.index.terms()
+        instances = self.index.documents()
+
+        matrix = self.index.generate_feature_matrix(mode='count')
+
+        # Correct matrix dimensions
+        assert matrix.shape == (2, 3)
+
+        # Ensure this method of addressing data works
+        assert matrix[instances.index('document1.txt'), features.index('malta')] == 5
+        assert matrix[instances.index('document2.txt'), features.index('word')] == 2
+        assert matrix[instances.index('document1.txt'), features.index('word')] == 3
+        assert matrix[instances.index('document2.txt'), features.index('phone')] == 4
+
+        # Zero cases
+        assert matrix[instances.index('document2.txt'), features.index('malta')] == 0
+        assert matrix[instances.index('document1.txt'), features.index('phone')] == 0
 
     def test_save_load(self):
         # Note mktemp is deprecated but this still works

@@ -1,5 +1,7 @@
 from __future__ import division
 
+import numpy as np
+
 from math import log10
 
 
@@ -74,7 +76,7 @@ class HashedIndex(object):
         return self._terms.keys()
 
     def documents(self):
-        return self._documents
+        return list(self._documents)
 
     def items(self):
         return self._terms
@@ -91,6 +93,27 @@ class HashedIndex(object):
         df = 1 + self.get_document_frequency(term)
 
         return tf * log10(n / df)
+
+    def generate_feature_matrix(self, mode='tfidf'):
+        """
+        Returns a feature numpy matrix representing the terms and
+        documents in this Inverted Index using the tf-idf weighting
+        scheme by default. The term counts in each document can
+        alternatively be used by specifying scheme='count'
+
+        The size of the matrix is equal to m x n where m is
+        the number of documents and n is the number of terms.
+        """
+        result = np.zeros((len(self._documents), len(self._terms)))
+
+        for i, doc in enumerate(self._documents):
+            for j, term in enumerate(self._terms):
+                if mode == 'tfidf':
+                    result[i, j] = self.get_tfidf(term, doc)
+                else:
+                    result[i, j] = self.get_term_frequency(term, doc)
+
+        return result
 
     def save(self, path, compressed=False):
         """
