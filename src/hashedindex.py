@@ -93,13 +93,13 @@ class HashedIndex(object):
         Returns the Term-Frequency Inverse-Document-Frequency value for the given
         term in the specified document.
         """
-        n = len(self._documents)
         tf = self.get_term_frequency(term, document, _lower=_lower)
 
         # Speeds up performance by avoiding extra calculations
         if tf != 0.0:
             # Add 1 to document frequency to prevent divide by 0
             df = 1 + self.get_document_frequency(term, _lower=_lower)
+            n = len(self._documents)
 
             return tf * log10(n / df)
         else:
