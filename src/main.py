@@ -30,6 +30,7 @@ def post_process(token):
     # Strip all punctuation from the edges of the string
     token = token.strip(punctuation)
 
+    # Aggressively strip the following punctuation
     token = token.replace('\'', '')
 
     if token in _stopwords:
@@ -51,6 +52,7 @@ if __name__ == '__main__':
         for p in os.listdir(path):
             abs_path = os.path.join(path, p)
 
+            # Depth-First-Search
             if os.path.isdir(abs_path):
                 search_dir(abs_path)
             else:
