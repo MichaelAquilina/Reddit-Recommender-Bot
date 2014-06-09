@@ -51,6 +51,7 @@ if __name__ == '__main__':
     def search_dir(path):
         for p in os.listdir(path):
             abs_path = os.path.join(path, p)
+            rel_path = os.path.relpath(abs_path, target_dir)
 
             # Depth-First-Search
             if os.path.isdir(abs_path):
@@ -69,7 +70,7 @@ if __name__ == '__main__':
                     for split_token in token.split('/'):
                         post_processed_token = post_process(split_token)
                         if post_processed_token:
-                            index.add_term_occurrence(post_processed_token, p)
+                            index.add_term_occurrence(post_processed_token, rel_path)
 
     # Recursive search on the target directory
     search_dir(target_dir)
