@@ -23,6 +23,8 @@ class PageDownloader(threading.Thread):
         self.page_queue = page_queue
         self.lock = lock
         self.pages_dir = pages_dir
+        self.total_downloaded = 0
+        self.total_failed = 0
         super(PageDownloader, self).__init__()
 
     def run(self):
@@ -36,13 +38,16 @@ class PageDownloader(threading.Thread):
                 self.lock.release()
 
                 try:
-                    download_page(self.pages_dir, url)
+                    self.total_downloaded += download_page(self.pages_dir, url)
                 except requests.ConnectionError as e:
                     logging.warn('Unable to connect to: %s (%s)', url, e.message)
+                    self.total_failed += 1
                 except requests.Timeout as e:
                     logging.warn('Received a timeout from: %s (%s)', url, e.message)
+                    self.total_failed += 1
                 except Exception as e:
                     logging.error('A generic error has occurred while downloading: %s %s', url, e.message)
+                    self.total_failed += 1
             else:
                 self.lock.release()
 
@@ -120,6 +125,10 @@ def download_page(save_dir, url):
         with open(file_path, 'w') as fp:
             fp.write(req.text.encode('utf8'))
 
+        return 1
+    else:
+        return 0
+
 
 if __name__ == '__main__':
 
@@ -164,6 +173,7 @@ if __name__ == '__main__':
 
         # Determine the save directory
         save_dir = join_and_check(args.out, 'subreddits', args.subreddit)
+        total_valid = 0
 
         while count:
 
@@ -200,6 +210,8 @@ if __name__ == '__main__':
                     index += 1
 
                     if not post['data']['is_self']:
+                        total_valid += 1
+
                         lock.acquire()
                         page_queue.append(post['data']['url'])
                         lock.release()
@@ -231,6 +243,14 @@ if __name__ == '__main__':
 
         print 'Almost ready...waiting for final downloads to complete'
 
+        total_downloaded = 0
+        total_failed = 0
+
         # Wait for all the threads to finish before completing
         for d in downloaders:
             d.join()
+            total_downloaded += d.total_downloaded
+            total_failed += d.total_failed
+
+        print 'Completed. %d/%d succeeded (%d requested)' % (total_downloaded, total_valid, args.limit)
+        print '(%d failed)' % (total_failed)
