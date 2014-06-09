@@ -92,24 +92,33 @@ def download_page(save_dir, url):
         req = requests.get(url, timeout=15)
 
         url = urlparse.urlparse(url)
-        save_dir = os.path.join(save_dir, url.hostname)
+        page_save_dir = os.path.join(save_dir, url.hostname)
 
-        if not os.path.exists(save_dir):
-            os.mkdir(save_dir)
+        if not os.path.exists(page_save_dir):
+            os.mkdir(page_save_dir)
 
-        # Standard html encoding for urls
-        file_name = url.path.strip('/').replace('/', '%2F')
+        # Create subdirs according to the url path
+        url_path = url.path.strip('/')
+        path_index = url_path.rfind('/')
+        if path_index != -1:
+            sub_path = url_path[:path_index].lstrip('/')
+            page_save_dir = os.path.join(page_save_dir, sub_path)
 
+            if not os.path.exists(page_save_dir):
+                os.makedirs(page_save_dir)
+
+            file_name = url_path[path_index:].strip('/')
+        else:
+            file_name = url_path
+
+        # Root page directories are "index.html"
         if file_name == '':
             file_name = 'index.html'
 
-        file_path = os.path.join(save_dir, file_name)
+        file_path = os.path.join(page_save_dir, file_name)
 
-        if not file_path.endswith('.html'):
-            file_path += '.html'
-
-        with open(file_path, 'w') as f:
-            f.write(req.text.encode('utf8'))
+        with open(file_path, 'w') as fp:
+            fp.write(req.text.encode('utf8'))
 
 
 if __name__ == '__main__':
