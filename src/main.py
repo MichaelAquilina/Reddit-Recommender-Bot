@@ -58,7 +58,12 @@ if __name__ == '__main__':
                 text = nltk.clean_html(html_text)
 
                 for token in textparser.word_tokenize(text, remove_case=True):
-                    index.add_term_occurrence(post_process(token), p)
+
+                    # Handle "or" case represented by "/"
+                    for split_token in token.split('/'):
+                        post_processed_token = post_process(split_token)
+                        if post_processed_token:
+                            index.add_term_occurrence(post_processed_token, p)
 
     # Recursive search on the target directory
     search_dir(target_dir)
