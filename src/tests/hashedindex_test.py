@@ -109,6 +109,9 @@ class HashedIndexTest(unittest.TestCase):
         # Non-existent term should have no weight
         assert self.index.get_tfidf('doesnotexist', 'document1.txt') == 0
 
+    def test_generate_feature_matrix_default(self):
+        assert (self.index.generate_feature_matrix() == self.index.generate_feature_matrix(mode='tfidf')).all()
+
     def test_generate_feature_matrix_tfidf(self):
         features = self.index.terms()
         instances = self.index.documents()
