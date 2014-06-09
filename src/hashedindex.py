@@ -99,6 +99,7 @@ class HashedIndex(object):
         compression is also available.
         """
         import json
+        import datetime
 
         if compressed:
             import bz2
@@ -107,6 +108,14 @@ class HashedIndex(object):
             fp = open(path, 'w')
 
         json.dump({
+            # Store meta-data for analytical purposes
+            'meta': {
+                'data-structure': 'HashedIndex',
+                'date': '{}'.format(datetime.datetime.now()),
+                'terms': len(self._terms),
+                'documents': len(self._documents),
+            },
+            # Actual HashedIndex data
             'documents': list(self._documents),
             'terms': self._terms,
         }, fp, indent=5)
