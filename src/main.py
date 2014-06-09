@@ -80,4 +80,11 @@ if __name__ == '__main__':
     print 'Runtime = {}'.format(runtime)
     print index
 
+    t0 = time.time()
+    feature_matrix = index.generate_feature_matrix(mode='tfidf')
+    print feature_matrix
+
+    runtime = time.time() - t0
+    print 'Runtime = {}'.format(runtime)
+
     index.save('/home/michaela/index.json', compressed=False)
