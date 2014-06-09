@@ -46,12 +46,16 @@ class HashedIndex(object):
 
         self._terms[term_l][document_l] += 1
 
-    def get_term_frequency(self, term, document):
+    def get_term_frequency(self, term, document, _lower=True):
         """
         Returns the frequency of the term specified in the document.
         """
-        term_l = term.lower()
-        document_l = document.lower()
+        if _lower:
+            term_l = term.lower()
+            document_l = document.lower()
+        else:
+            term_l = term
+            document_l = document
 
         if term_l not in self._terms:
             return 0
@@ -61,11 +65,14 @@ class HashedIndex(object):
 
         return self._terms[term_l][document_l]
 
-    def get_document_frequency(self, term):
+    def get_document_frequency(self, term, _lower=True):
         """
         Returns the number of documents the specified term appears in.
         """
-        term_l = term.lower()
+        if _lower:
+            term_l = term.lower()
+        else:
+            term_l = term
 
         if term_l not in self._terms:
             return 0
@@ -81,18 +88,18 @@ class HashedIndex(object):
     def items(self):
         return self._terms
 
-    def get_tfidf(self, term, document):
+    def get_tfidf(self, term, document, _lower=True):
         """
         Returns the Term-Frequency Inverse-Document-Frequency value for the given
         term in the specified document.
         """
         n = len(self._documents)
-        tf = self.get_term_frequency(term, document)
+        tf = self.get_term_frequency(term, document, _lower=_lower)
 
         # Speeds up performance by avoiding extra calculations
         if tf != 0.0:
             # Add 1 to document frequency to prevent divide by 0
-            df = 1 + self.get_document_frequency(term)
+            df = 1 + self.get_document_frequency(term, _lower=_lower)
 
             return tf * log10(n / df)
         else:
@@ -110,12 +117,13 @@ class HashedIndex(object):
         """
         result = np.zeros((len(self._documents), len(self._terms)))
 
+        # Specify _lower=False flag because doc and term are guaranteed to be lowered
         for i, doc in enumerate(self._documents):
             for j, term in enumerate(self._terms):
                 if mode == 'tfidf':
-                    result[i, j] = self.get_tfidf(term, doc)
+                    result[i, j] = self.get_tfidf(term, doc, _lower=False)
                 else:
-                    result[i, j] = self.get_term_frequency(term, doc)
+                    result[i, j] = self.get_term_frequency(term, doc, _lower=False)
 
         return result
 
