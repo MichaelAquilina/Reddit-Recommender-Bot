@@ -8,7 +8,7 @@ import threading
 import time
 import logging
 
-# Max listing limit as specified by the reddit devapi
+# Max listing limit as specified by the Reddit devapi
 MAX_LIMIT = 100
 
 
@@ -18,11 +18,11 @@ class PageDownloader(threading.Thread):
     specified urls using the page_download method.
     """
 
-    def __init__(self, page_queue, lock, pages_dir):
+    def __init__(self, target_queue, queue_lock, target_dir):
         self.running = True
-        self.page_queue = page_queue
-        self.lock = lock
-        self.pages_dir = pages_dir
+        self.page_queue = target_queue
+        self.lock = queue_lock
+        self.pages_dir = target_dir
         self.total_downloaded = 0
         self.total_failed = 0
         super(PageDownloader, self).__init__()
@@ -75,12 +75,12 @@ def join_and_check(path, *paths):
         return result
 
 
-def download_page(save_dir, url):
+def download_page(target_dir, url):
     """
     Downloads from the specified url, ignoring all non-text content. Files are saved
     to the specified save_dir and organised into folders according to the hostname. File
     names are extracted from the path with '/' characters replaced by '_'
-    :param save_dir: Directory to save the downloaded file to.
+    :param target_dir: Directory to save the downloaded file to.
     :param url: url from which to download
     """
 
@@ -97,7 +97,7 @@ def download_page(save_dir, url):
         req = requests.get(url, timeout=15)
 
         url = urlparse.urlparse(url)
-        page_save_dir = os.path.join(save_dir, url.hostname)
+        page_save_dir = os.path.join(target_dir, url.hostname)
 
         if not os.path.exists(page_save_dir):
             os.mkdir(page_save_dir)
@@ -253,4 +253,4 @@ if __name__ == '__main__':
             total_failed += d.total_failed
 
         print 'Completed. %d/%d succeeded (%d requested)' % (total_downloaded, total_valid, args.limit)
-        print '(%d failed)' % (total_failed)
+        print '(%d failed)' % total_failed
