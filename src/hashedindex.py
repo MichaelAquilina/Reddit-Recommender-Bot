@@ -89,10 +89,14 @@ class HashedIndex(object):
         n = len(self._documents)
         tf = self.get_term_frequency(term, document)
 
-        # Add 1 to document frequency to prevent divide by 0
-        df = 1 + self.get_document_frequency(term)
+        # Speeds up performance by avoiding extra calculations
+        if tf != 0.0:
+            # Add 1 to document frequency to prevent divide by 0
+            df = 1 + self.get_document_frequency(term)
 
-        return tf * log10(n / df)
+            return tf * log10(n / df)
+        else:
+            return 0.0
 
     def generate_feature_matrix(self, mode='tfidf'):
         """
