@@ -12,6 +12,7 @@ from string import punctuation
 
 _parser = HTMLParser()
 _stopwords = frozenset(nltk.corpus.stopwords.words())
+_stemmer = nltk.LancasterStemmer()   # Can swap for PorterStemmer
 
 
 # Helper function that performs post-processing on tokens
@@ -31,12 +32,10 @@ def post_process(token):
 
     token = token.replace('\'', '')
 
-    # TODO: Stemmer (Porter or Lancaster)
-
     if token in _stopwords:
         return None
     else:
-        return token
+        return _stemmer.stem(token)
 
 if __name__ == '__main__':
 
