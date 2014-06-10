@@ -39,11 +39,24 @@ def test_word_tokenize_punctuation():
     assert generator_cmp(word_tokenize('My name is Michael!'), ['My', 'name', 'is', 'Michael!'])
 
 
-def test_isnumeric():
+def test_isnumeric_not_words():
     assert not isnumeric('notanumber')
     assert not isnumeric('80eight')
 
-    assert isnumeric('8934')  # Integer
+
+def test_isnumeric_not_time():
+    assert not isnumeric('11:45:27')
+    assert not isnumeric('15:34')
+
+
+def test_isnumeric_integer():
+    assert isnumeric('8934')
     assert isnumeric('-434')  # Negative Integer
-    assert isnumeric('98.34')  # Floating point
-    assert isnumeric('90e-01')  # Scientific Notation
+
+
+def test_isnumeric_floating_point():
+    assert isnumeric('98.34')
+
+
+def test_isnumeric_scientific_notation():
+    assert isnumeric('90e-01')
