@@ -37,3 +37,13 @@ def test_word_tokenize_remove_case():
 
 def test_word_tokenize_punctuation():
     assert generator_cmp(word_tokenize('My name is Michael!'), ['My', 'name', 'is', 'Michael!'])
+
+
+def test_isnumeric():
+    assert not isnumeric('notanumber')
+    assert not isnumeric('80eight')
+
+    assert isnumeric('8934')  # Integer
+    assert isnumeric('-434')  # Negative Integer
+    assert isnumeric('98.34')  # Floating point
+    assert isnumeric('90e-01')  # Scientific Notation

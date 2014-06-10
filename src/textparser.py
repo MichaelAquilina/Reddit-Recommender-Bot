@@ -32,3 +32,12 @@ def word_tokenize(text, remove_case=False):
 
     if s_buffer:
         yield s_buffer
+
+
+def isnumeric(text):
+    try:
+        float(text)
+    except ValueError:
+        return False
+    else:
+        return True
