@@ -54,6 +54,12 @@ class HashedIndexTest(unittest.TestCase):
         # Non-Existent check
         assert 'doesnotexist' not in self.index
 
+    def test_get_total_term_frequency(self):
+        assert self.index.get_total_term_frequency('word') == 5
+        assert self.index.get_total_term_frequency('Malta') == 5
+        assert self.index.get_total_term_frequency('doesnotexist') == 0
+        assert self.index.get_total_term_frequency('PhonE') == 4
+
     def test_get_term_frequency(self):
         # Check Existing cases
         assert self.index.get_term_frequency('word', 'document1.txt') == 3

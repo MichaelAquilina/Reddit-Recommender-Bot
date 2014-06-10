@@ -46,6 +46,14 @@ class HashedIndex(object):
 
         self._terms[term_l][document_l] += 1
 
+    def get_total_term_frequency(self, term):
+        term_l = term.lower()
+
+        if term_l not in self._terms:
+            return 0
+
+        return sum(self._terms[term_l].values())
+
     def get_term_frequency(self, term, document, _lower=True):
         """
         Returns the frequency of the term specified in the document.
