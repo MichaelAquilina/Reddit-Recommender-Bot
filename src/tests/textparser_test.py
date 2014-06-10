@@ -56,7 +56,11 @@ def test_isnumeric_integer():
 
 def test_isnumeric_floating_point():
     assert isnumeric('98.34')
+    assert isnumeric('-20.345')
 
 
 def test_isnumeric_scientific_notation():
     assert isnumeric('90e-01')
+    assert isnumeric('42E-10')
+
+    assert isnumeric('32e10')
