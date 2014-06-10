@@ -172,4 +172,3 @@ class HashedIndexTest(unittest.TestCase):
         index2.load(path, compressed=True)
 
         assert self.index == index2
-
