@@ -41,6 +41,7 @@ def post_process(token):
 if __name__ == '__main__':
 
     import time
+    from pympler.asizeof import asizeof
 
     index = hashedindex.HashedIndex()
 
@@ -80,9 +81,13 @@ if __name__ == '__main__':
     print 'Runtime = {}'.format(runtime)
     print index
 
+    print 'HashedIndex size = {}'.format(asizeof(index))
+
     t0 = time.time()
     feature_matrix = index.generate_feature_matrix(mode='tfidf')
+
     print feature_matrix
+    print 'Feature matrix size = {}'.format(asizeof(feature_matrix))
 
     runtime = time.time() - t0
     print 'Runtime = {}'.format(runtime)
