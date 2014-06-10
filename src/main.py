@@ -10,15 +10,19 @@ import textparser
 from HTMLParser import HTMLParser
 from string import punctuation
 
+
+# Stemmer interface which returns token unchanged
+class NullStemmer(object):
+
+    def stem(self, x):
+        return x
+
 _parser = HTMLParser()
 _stopwords = frozenset(nltk.corpus.stopwords.words())
-_stemmer = nltk.LancasterStemmer()   # Can swap for PorterStemmer
 
 
 # Helper function that performs post-processing on tokens
-# Should probably write a test for this and move it to textparser
-# TODO: Profile, this is probably going to be a major performance bottleneck
-def post_process(token):
+def post_process(token, stemmer=NullStemmer()):
     token = _parser.unescape(token)
 
     # TODO: Check if email, url, date etc...
@@ -36,7 +40,7 @@ def post_process(token):
     if token in _stopwords:
         return None
     else:
-        return _stemmer.stem(token)
+        return stemmer.stem(token)
 
 if __name__ == '__main__':
 
