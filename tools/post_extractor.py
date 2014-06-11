@@ -195,7 +195,7 @@ if __name__ == '__main__':
             if r.ok:
                 submission_data = r.json()
 
-                save_path = os.path.join(save_dir, '{}.{}.json'.format(args.subreddit, i))
+                save_path = os.path.join(save_dir, '{}.{}.{}.json'.format(args.subreddit, args.filter, i))
 
                 with open(save_path, 'w') as f:
                     json.dump(submission_data, f, indent=4)
