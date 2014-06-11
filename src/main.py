@@ -100,4 +100,4 @@ if __name__ == '__main__':
     runtime = time.time() - t0
     print 'Runtime = {}'.format(runtime)
 
-    index.save('/home/michaela/index.json', compressed=False)
+    index.save('/home/michaela/index.json', compressed=False, comment='Using {}'.format(stemmer))

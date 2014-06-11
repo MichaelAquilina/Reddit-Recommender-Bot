@@ -136,11 +136,12 @@ class HashedIndex(object):
 
         return result
 
-    def save(self, path, compressed=False):
+    def save(self, path, compressed=False, comment=''):
         """
         Saves the state of the HashedIndex as a JSON formatted
         file to the specified path. The optional use of bz2
-        compression is also available.
+        compression is also available. A text comment can be
+        optionally saved along with the meta-data.
         """
         import json
         import datetime
@@ -158,6 +159,7 @@ class HashedIndex(object):
                 'date': '{}'.format(datetime.datetime.now()),
                 'terms': len(self._terms),
                 'documents': len(self._documents),
+                'comment': comment,
             },
             # Actual HashedIndex data
             'documents': list(self._documents),
