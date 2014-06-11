@@ -100,7 +100,6 @@ class HashedIndex(object):
         """
         Returns the Term-Frequency Inverse-Document-Frequency value for the given
         term in the specified document.
-        Guarantees to return a value in the range [0, 1]
         """
         tf = self.get_term_frequency(term, document, _lower=_lower)
 
