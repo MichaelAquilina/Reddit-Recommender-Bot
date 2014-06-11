@@ -17,6 +17,9 @@ class NullStemmer(object):
     def stem(self, x):
         return x
 
+    def __str__(self):
+        return '<NullStemmer>'
+
 _parser = HTMLParser()
 _stopwords = frozenset(nltk.corpus.stopwords.words())
 
@@ -48,6 +51,7 @@ if __name__ == '__main__':
     from pympler.asizeof import asizeof
 
     index = hashedindex.HashedIndex()
+    stemmer = NullStemmer()
 
     target_dir = '/home/michaela/Examples'
 
@@ -73,7 +77,7 @@ if __name__ == '__main__':
 
                     # Handle "or" case represented by "/"
                     for split_token in token.split('/'):
-                        post_processed_token = post_process(split_token)
+                        post_processed_token = post_process(split_token, stemmer=stemmer)
                         if post_processed_token:
                             index.add_term_occurrence(post_processed_token, rel_path)
 
