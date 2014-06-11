@@ -185,3 +185,5 @@ class HashedIndex(object):
 
         self._documents = set(data['documents'])
         self._terms = data['terms']
+
+        return data['meta']

@@ -182,3 +182,15 @@ class HashedIndexTest(unittest.TestCase):
         index2.load(path, compressed=True)
 
         assert self.index == index2
+
+    def test_save_load_meta(self):
+        path = tempfile.mktemp()
+        self.index.save(path, comment='Testing Comment')
+
+        index2 = HashedIndex()
+        meta = index2.load(path)
+
+        assert meta['comment'] == 'Testing Comment'
+        assert meta['data-structure'] == str(self.index)
+        assert meta['documents'] == len(self.index._documents)
+        assert meta['terms'] == len(self.index._terms)
