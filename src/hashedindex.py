@@ -154,7 +154,7 @@ class HashedIndex(object):
         json.dump({
             # Store meta-data for analytical purposes
             'meta': {
-                'data-structure': 'HashedIndex',
+                'data-structure': str(self),
                 'date': '{}'.format(datetime.datetime.now()),
                 'terms': len(self._terms),
                 'documents': len(self._documents),
