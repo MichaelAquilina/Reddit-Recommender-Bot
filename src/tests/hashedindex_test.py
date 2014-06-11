@@ -102,17 +102,21 @@ class HashedIndexTest(unittest.TestCase):
 
         assert 'doesnotexist.txt' not in self.index.documents()
 
-    def test_get_tfidf(self):
+    def test_get_tfidf_relation(self):
         # Test Inverse Document Frequency
         self.assertLess(
             self.index.get_tfidf('word', 'document1.txt'),
             self.index.get_tfidf('malta', 'document1.txt')
         )
 
-        # No presence in document
+    def test_get_tfidf_non_negative(self):
+        matrix = self.index.generate_feature_matrix(mode='tfidf')
+        assert (matrix >= 0).all()
+
+    def test_get_tfidf_empty_document(self):
         assert self.index.get_tfidf('malta', 'document2.txt') == 0
 
-        # Non-existent term should have no weight
+    def test_get_tfidf_empty_term(self):
         assert self.index.get_tfidf('doesnotexist', 'document1.txt') == 0
 
     def test_generate_feature_matrix_default(self):

@@ -107,7 +107,7 @@ class HashedIndex(object):
         if tf != 0.0:
             # Add 1 to document frequency to prevent divide by 0
             df = 1 + self.get_document_frequency(term, _lower=_lower)
-            n = len(self._documents)
+            n = 1 + len(self._documents)
 
             return tf * log10(n / df)
         else:
