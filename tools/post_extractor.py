@@ -108,8 +108,8 @@ if __name__ == '__main__':
         # Target directory to save the downloaded pages
         pages_dir = join_and_check(args.out, 'pages')
 
-        i = 0
-        index = 0
+        file_index = 0  # Current Index of json file to be saved
+        post_index = 0  # Current Index of post being processed
 
         # Determine the save directory
         save_dir = join_and_check(args.out, 'subreddits', args.subreddit)
@@ -135,7 +135,7 @@ if __name__ == '__main__':
                 # Data returned is in JSON format
                 subreddit_data = r.json()
 
-                save_path = os.path.join(save_dir, '{}.{}.{}.json'.format(args.subreddit, args.filter, i))
+                save_path = os.path.join(save_dir, '{}.{}.{}.json'.format(args.subreddit, args.filter, file_index))
 
                 with open(save_path, 'w') as f:
                     json.dump(subreddit_data, f, indent=4)
@@ -151,7 +151,7 @@ if __name__ == '__main__':
                         break
 
                     print u'{}: {}'.format(args.limit - page_count + 1, post['data']['title'])
-                    index += 1
+                    post_index += 1
 
                     if not post['data']['is_self']:
                         url = post['data']['url']
@@ -169,7 +169,7 @@ if __name__ == '__main__':
 
                 after = subreddit_data['data']['after']
 
-                i += 1
+                file_index += 1
             else:
                 print 'An error has occurred while communicating with the Reddit API'
                 break
