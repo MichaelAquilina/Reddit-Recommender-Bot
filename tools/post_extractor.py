@@ -173,3 +173,5 @@ if __name__ == '__main__':
             else:
                 print 'An error has occurred while communicating with the Reddit API'
                 break
+
+        print 'Successfully downloaded %s HTML pages' % args.limit
