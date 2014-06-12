@@ -51,8 +51,8 @@ class PageDownloader(threading.Thread):
             else:
                 self.lock.release()
 
-            # Thread should sleep
-            time.sleep(0.1)
+                # Thread should sleep
+                time.sleep(0.01)
 
 
 def join_and_check(path, *paths):
