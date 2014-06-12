@@ -173,7 +173,6 @@ if __name__ == '__main__':
 
         # Determine the save directory
         save_dir = join_and_check(args.out, 'subreddits', args.subreddit)
-        total_valid = 0
 
         while count:
 
@@ -210,8 +209,6 @@ if __name__ == '__main__':
                     index += 1
 
                     if not post['data']['is_self']:
-                        total_valid += 1
-
                         lock.acquire()
                         page_queue.append(post['data']['url'])
                         lock.release()
@@ -252,5 +249,5 @@ if __name__ == '__main__':
             total_downloaded += d.total_downloaded
             total_failed += d.total_failed
 
-        print 'Completed. %d/%d succeeded (%d requested)' % (total_downloaded, total_valid, args.limit)
+        print '(%d total downloaded)' % total_downloaded
         print '(%d failed)' % total_failed
