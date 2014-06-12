@@ -38,7 +38,7 @@ def download_page(target_dir, page_url, timeout=15):
     if req.ok and \
        req.status_code == 200 and \
        'content-type' in req.headers and \
-       'text' in req.headers['content-type']:
+       'text/html' in req.headers['content-type']:
 
         # Perform the actual download
         req = requests.get(page_url, timeout=timeout)
