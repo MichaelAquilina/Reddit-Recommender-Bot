@@ -167,6 +167,7 @@ if __name__ == '__main__':
                         else:
                             page_count -= success
 
+                # Set the after token for the next batch of data to download
                 after = subreddit_data['data']['after']
 
                 file_index += 1
