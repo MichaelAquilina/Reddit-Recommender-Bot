@@ -137,8 +137,8 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Downloads top post data from a specified subreddit')
     parser.add_argument('subreddit', type=str, help='Name of the subreddit to retrieve posts from')
+    parser.add_argument('out', type=str, help='Path to store incoming JSON files')
     parser.add_argument('--limit', type=int, default=25, help='Number of submissions to retrieve')
-    parser.add_argument('--out', type=str, default='', help='Path to store incoming JSON files')
     parser.add_argument('--period', choices=('year', 'month', 'week', 'all'), default='year')
     parser.add_argument('--threads', type=int, default=10)
     parser.add_argument('--filter', type=str, choices=('top', 'controversial'), default='top')
