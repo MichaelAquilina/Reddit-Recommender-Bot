@@ -150,11 +150,15 @@ if __name__ == '__main__':
                     if page_count <= 0:
                         break
 
-                    print u'{}: {}'.format(args.limit - page_count + 1, post['data']['title'])
                     post_index += 1
 
                     if not post['data']['is_self']:
+
                         url = post['data']['url']
+                        title = post['data']['title']
+
+                        print u'{}: {} ({})'.format(args.limit - page_count + 1, title, url)
+
                         try:
                             success = download_page(pages_dir, url, timeout=15)
                         except requests.ConnectionError:
