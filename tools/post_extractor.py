@@ -4,48 +4,11 @@ import json
 import os
 import requests
 import urlparse
-import threading
 import time
 import logging
 
 # Max listing limit as specified by the Reddit devapi
 MAX_LIMIT = 100
-
-
-class _PageDownloader(threading.Thread):
-    """
-    Worker thread that reads from a given page queue and downloads from the
-    specified urls using the page_download method. This class is very coupled with
-    the content of this script and wont work outside this module.
-    """
-
-    def __init__(self):
-        self.running = True
-        super(_PageDownloader, self).__init__()
-
-    def run(self):
-        while page_queue or self.running:
-
-            lock.acquire()
-            if len(page_queue) > 0:
-
-                url = page_queue[0]
-                del page_queue[0]
-                lock.release()
-
-                try:
-                    download_page(pages_dir, url)
-                except requests.ConnectionError as e:
-                    logging.warn('Unable to connect to: %s (%s)', url, e.message)
-                except requests.Timeout as e:
-                    logging.warn('Received a timeout from: %s (%s)', url, e.message)
-                except Exception as e:
-                    logging.error('A generic error has occurred while downloading: %s %s', url, e.message)
-            else:
-                lock.release()
-
-                # Thread should sleep
-                time.sleep(0.01)
 
 
 def join_and_check(path, *paths):
@@ -126,7 +89,6 @@ def download_page(target_dir, url):
 if __name__ == '__main__':
 
     import argparse
-    import progressbar
 
     parser = argparse.ArgumentParser(description='Downloads top post data from a specified subreddit')
     parser.add_argument('subreddit', type=str, help='Name of the subreddit to retrieve posts from')
@@ -148,35 +110,23 @@ if __name__ == '__main__':
         # After pointer for retrieving next batch of submissions
         after = None
 
-        # Producer-Consumer queue for threads
-        page_queue = []
+        # Amount of requests required based on the limit specified
+        page_count = args.limit
 
         # Target directory to save the downloaded pages
         pages_dir = join_and_check(args.out, 'pages')
 
-        # Synchronisation mechanism
-        lock = threading.Lock()
-
-        # Setup downloader threads
-        downloaders = []
-        for i in xrange(args.threads):
-            d = _PageDownloader()
-            downloaders.append(d)
-            d.start()
-
-        # Amount of requests required based on the limit specified
-        count = args.limit
         i = 0
         index = 0
 
         # Determine the save directory
         save_dir = join_and_check(args.out, 'subreddits', args.subreddit)
 
-        while count:
+        while page_count:
 
             # Request data
             params = {
-                'limit': min(count, MAX_LIMIT),
+                'limit': MAX_LIMIT,
                 'after': after,
                 'show': 'all',
                 't': args.period,
@@ -190,54 +140,44 @@ if __name__ == '__main__':
             )
 
             if r.ok:
-                submission_data = r.json()
+                # Data returned is in JSON format
+                subreddit_data = r.json()
 
                 save_path = os.path.join(save_dir, '{}.{}.{}.json'.format(args.subreddit, args.filter, i))
 
                 with open(save_path, 'w') as f:
-                    json.dump(submission_data, f, indent=4)
+                    json.dump(subreddit_data, f, indent=4)
 
                 # Detect if no data is returned before continuing
-                if len(submission_data['data']['children']) == 0:
+                if len(subreddit_data['data']['children']) == 0:
                     logging.warn('The subreddit \'%s\' does not exist', args.subreddit)
                     break
 
-                for post in submission_data['data']['children']:
-                    print u'{}: {}'.format(index, post['data']['title'])
+                for post in subreddit_data['data']['children']:
+
+                    if page_count <= 0:
+                        break
+
+                    print u'{}: {}'.format(args.limit - page_count + 1, post['data']['title'])
                     index += 1
 
                     if not post['data']['is_self']:
-                        lock.acquire()
-                        page_queue.append(post['data']['url'])
-                        lock.release()
+                        url = post['data']['url']
+                        try:
+                            success = download_page(pages_dir, url)
+                        except requests.ConnectionError:
+                            print 'Unable to connect to: %s' % url
+                        except requests.Timeout:
+                            print 'Timeout on: %s' % url
+                        except Exception as e:
+                            print 'A generic error occurred on: %s' % url
+                            print e.message
+                        else:
+                            page_count -= success
 
-                after = submission_data['data']['after']
-                count -= len(submission_data['data']['children'])
+                after = subreddit_data['data']['after']
 
                 i += 1
             else:
                 logging.error('An error has occurred while communicating with the Reddit API')
                 break
-
-        print '-----------------------------------------------'
-        print 'Waiting for the downloader threads to finish...'
-
-        for d in downloaders:
-            d.running = False
-
-        # Use a progress bar to let the user know how far along the process is
-        start = len(page_queue)
-        pb = progressbar.ProgressBar()
-        pb.start()
-
-        while page_queue:
-            pb.update((start - len(page_queue)) / float(start) * 100)
-            time.sleep(0.1)
-
-        pb.finish()
-
-        print 'Almost ready...waiting for final downloads to complete'
-
-        # Wait for all the threads to finish before completing
-        for d in downloaders:
-            d.join()
