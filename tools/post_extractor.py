@@ -4,7 +4,6 @@ import json
 import os
 import requests
 import urlparse
-import logging
 
 # Max listing limit as specified by the Reddit devapi
 MAX_LIMIT = 100
@@ -143,7 +142,7 @@ if __name__ == '__main__':
 
                 # Detect if no data is returned before continuing
                 if len(subreddit_data['data']['children']) == 0:
-                    logging.warn('The subreddit \'%s\' does not exist', args.subreddit)
+                    print 'The subreddit \'%s\' does not exist', args.subreddit
                     break
 
                 for post in subreddit_data['data']['children']:
@@ -172,5 +171,5 @@ if __name__ == '__main__':
 
                 i += 1
             else:
-                logging.error('An error has occurred while communicating with the Reddit API')
+                print 'An error has occurred while communicating with the Reddit API'
                 break
