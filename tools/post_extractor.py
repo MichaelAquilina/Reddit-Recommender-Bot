@@ -12,44 +12,37 @@ import logging
 MAX_LIMIT = 100
 
 
-class PageDownloader(threading.Thread):
+class _PageDownloader(threading.Thread):
     """
     Worker thread that reads from a given page queue and downloads from the
-    specified urls using the page_download method.
+    specified urls using the page_download method. This class is very coupled with
+    the content of this script and wont work outside this module.
     """
 
-    def __init__(self, target_queue, queue_lock, target_dir):
+    def __init__(self):
         self.running = True
-        self.page_queue = target_queue
-        self.lock = queue_lock
-        self.pages_dir = target_dir
-        self.total_downloaded = 0
-        self.total_failed = 0
-        super(PageDownloader, self).__init__()
+        super(_PageDownloader, self).__init__()
 
     def run(self):
-        while self.page_queue or self.running:
+        while page_queue or self.running:
 
-            self.lock.acquire()
-            if len(self.page_queue) > 0:
+            lock.acquire()
+            if len(page_queue) > 0:
 
-                url = self.page_queue[0]
-                del self.page_queue[0]
-                self.lock.release()
+                url = page_queue[0]
+                del page_queue[0]
+                lock.release()
 
                 try:
-                    self.total_downloaded += download_page(self.pages_dir, url)
+                    download_page(pages_dir, url)
                 except requests.ConnectionError as e:
                     logging.warn('Unable to connect to: %s (%s)', url, e.message)
-                    self.total_failed += 1
                 except requests.Timeout as e:
                     logging.warn('Received a timeout from: %s (%s)', url, e.message)
-                    self.total_failed += 1
                 except Exception as e:
                     logging.error('A generic error has occurred while downloading: %s %s', url, e.message)
-                    self.total_failed += 1
             else:
-                self.lock.release()
+                lock.release()
 
                 # Thread should sleep
                 time.sleep(0.01)
@@ -155,14 +148,19 @@ if __name__ == '__main__':
         # After pointer for retrieving next batch of submissions
         after = None
 
-        # Setup downloader threads
+        # Producer-Consumer queue for threads
         page_queue = []
-        downloaders = []
-        lock = threading.Lock()
+
+        # Target directory to save the downloaded pages
         pages_dir = join_and_check(args.out, 'pages')
 
+        # Synchronisation mechanism
+        lock = threading.Lock()
+
+        # Setup downloader threads
+        downloaders = []
         for i in xrange(args.threads):
-            d = PageDownloader(page_queue, lock, pages_dir)
+            d = _PageDownloader()
             downloaders.append(d)
             d.start()
 
@@ -240,14 +238,6 @@ if __name__ == '__main__':
 
         print 'Almost ready...waiting for final downloads to complete'
 
-        total_downloaded = 0
-        total_failed = 0
-
         # Wait for all the threads to finish before completing
         for d in downloaders:
             d.join()
-            total_downloaded += d.total_downloaded
-            total_failed += d.total_failed
-
-        print '(%d total downloaded)' % total_downloaded
-        print '(%d failed)' % total_failed
