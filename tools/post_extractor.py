@@ -4,7 +4,6 @@ import json
 import os
 import requests
 import urlparse
-import time
 import logging
 
 # Max listing limit as specified by the Reddit devapi
@@ -31,17 +30,10 @@ def join_and_check(path, *paths):
         return result
 
 
-def download_page(target_dir, url):
-    """
-    Downloads from the specified url, ignoring all non-text content. Files are saved
-    to the specified save_dir and organised into folders according to the hostname. File
-    names are extracted from the path with '/' characters replaced by '_'
-    :param target_dir: Directory to save the downloaded file to.
-    :param url: url from which to download
-    """
+def download_page(target_dir, page_url, timeout=15):
 
     # Check encoding information before downloading everything
-    req = requests.head(url, timeout=15)
+    req = requests.head(page_url, timeout=timeout)
 
     # Only download text content, we don't want anything else
     if req.ok and \
@@ -50,16 +42,17 @@ def download_page(target_dir, url):
        'text' in req.headers['content-type']:
 
         # Perform the actual download
-        req = requests.get(url, timeout=15)
+        req = requests.get(page_url, timeout=timeout)
 
-        url = urlparse.urlparse(url)
-        page_save_dir = os.path.join(target_dir, url.hostname)
+        page_url = urlparse.urlparse(page_url)
+        page_save_dir = os.path.join(target_dir, page_url.hostname)
 
         if not os.path.exists(page_save_dir):
             os.mkdir(page_save_dir)
 
         # Create subdirs according to the url path
-        url_path = url.path.strip('/')
+        url_path = page_url.path.strip('/')
+
         path_index = url_path.rfind('/')
         if path_index != -1:
             sub_path = url_path[:path_index].lstrip('/')
@@ -164,7 +157,7 @@ if __name__ == '__main__':
                     if not post['data']['is_self']:
                         url = post['data']['url']
                         try:
-                            success = download_page(pages_dir, url)
+                            success = download_page(pages_dir, url, timeout=15)
                         except requests.ConnectionError:
                             print 'Unable to connect to: %s' % url
                         except requests.Timeout:
