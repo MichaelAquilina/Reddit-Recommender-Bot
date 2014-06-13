@@ -29,7 +29,7 @@ def join_and_check(path, *paths):
         return result
 
 
-def download_page(target_dir, page_url, timeout=15):
+def download_html_page(target_dir, page_url, timeout=15):
 
     # Check encoding information before downloading everything
     req = requests.head(page_url, timeout=timeout)
@@ -160,7 +160,7 @@ if __name__ == '__main__':
                         print u'{}: {} ({})'.format(args.limit - page_count + 1, title, url)
 
                         try:
-                            success = download_page(pages_dir, url, timeout=15)
+                            success = download_html_page(pages_dir, url, timeout=15)
                         except requests.ConnectionError:
                             print 'Unable to connect to: %s' % url
                         except requests.Timeout:
