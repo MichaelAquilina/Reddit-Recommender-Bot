@@ -9,6 +9,25 @@ import urlparse
 MAX_LIMIT = 100
 
 
+class Url(object):
+    def __init__(self, url_string):
+        url_data = urlparse.urlparse(url_string.lower())
+        self.hostname = url_data.hostname
+        self.path = url_data.path
+
+        if 'www.' in self.hostname:
+            self.hostname = self.hostname.replace('www.', '')
+
+    def geturl(self):
+        return 'http://%s/%s' % (self.hostname, self.path)
+
+    def __eq__(self, other):
+        return self.hostname == other.hostname and self.path == other.path
+
+    def __hash__(self):
+        return hash(self.hostname) + hash(self.path)
+
+
 def join_and_check(path, *paths):
     """
     Joins the specified path using os.path.join and ensures it exists. It then
@@ -114,6 +133,9 @@ if __name__ == '__main__':
         # Determine the save directory
         save_dir = join_and_check(args.out, 'subreddits', args.subreddit)
 
+        # Keep track of visited pages to prevent duplicates
+        visited = set()
+
         while page_count:
 
             # Request data
@@ -154,22 +176,24 @@ if __name__ == '__main__':
 
                     if not post['data']['is_self']:
 
-                        url = post['data']['url']
+                        url = Url(post['data']['url'])
                         title = post['data']['title']
 
-                        print u'{}: {} ({})'.format(args.limit - page_count + 1, title, url)
+                        print u'{}: {} ({})'.format(args.limit - page_count + 1, title, url.geturl())
 
-                        try:
-                            success = download_html_page(pages_dir, url, timeout=15)
-                        except requests.ConnectionError:
-                            print 'Unable to connect to: %s' % url
-                        except requests.Timeout:
-                            print 'Timeout on: %s' % url
-                        except Exception as e:
-                            print 'A generic error occurred on: %s' % url
-                            print e.message
-                        else:
-                            page_count -= success
+                        if url not in visited:
+                            visited.add(url)
+                            try:
+                                success = download_html_page(pages_dir, url.geturl(), timeout=15)
+                            except requests.ConnectionError:
+                                print 'Unable to connect to: %s' % url
+                            except requests.Timeout:
+                                print 'Timeout on: %s' % url
+                            except Exception as e:
+                                print 'A generic error occurred on: %s' % url
+                                print e.message
+                            else:
+                                page_count -= success
 
                 # Set the after token for the next batch of data to download
                 after = subreddit_data['data']['after']
