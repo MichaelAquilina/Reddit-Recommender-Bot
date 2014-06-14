@@ -54,7 +54,7 @@ def join_and_check(path, *paths):
 def download_html_page(target_dir, page_url, timeout=15):
 
     # Check encoding information before downloading everything
-    req = requests.head(page_url, timeout=timeout)
+    req = requests.head(page_url, timeout=timeout, allow_redirects=True)
 
     # Only download text content, we don't want anything else
     if req.ok and \
@@ -63,7 +63,7 @@ def download_html_page(target_dir, page_url, timeout=15):
        'text/html' in req.headers['content-type']:
 
         # Perform the actual download
-        req = requests.get(page_url, timeout=timeout)
+        req = requests.get(page_url, timeout=timeout, allow_redirects=True)
 
         page_url = urlparse.urlparse(page_url)
         page_save_dir = os.path.join(target_dir, page_url.hostname)
