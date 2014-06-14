@@ -185,7 +185,7 @@ if __name__ == '__main__':
                         url = Url(post['data']['url'])
                         title = post['data']['title']
 
-                        print u'{}: {} ({})'.format(args.limit - page_count + 1, title, url.geturl())
+                        print u'[{}]: {} ({})'.format(args.limit - page_count + 1, title, url.geturl())
 
                         if url not in visited:
                             try:
