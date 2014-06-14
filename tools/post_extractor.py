@@ -165,13 +165,13 @@ if __name__ == '__main__':
 
                 save_path = os.path.join(save_dir, '{}.{}.{}.json'.format(args.subreddit, args.filter, file_index))
 
-                with open(save_path, 'w') as f:
-                    json.dump(subreddit_data, f, indent=4)
-
                 # Detect if no data is returned before continuing
                 if len(subreddit_data['data']['children']) == 0:
                     print 'The subreddit \'%s\' does not exist', args.subreddit
                     break
+
+                with open(save_path, 'w') as f:
+                    json.dump(subreddit_data, f, indent=4)
 
                 for post in subreddit_data['data']['children']:
 
