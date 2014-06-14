@@ -27,6 +27,9 @@ class Url(object):
     def __hash__(self):
         return hash(self.hostname) + hash(self.path)
 
+    def __repr__(self):
+        return '<Url: %s>' % self.geturl()
+
 
 def join_and_check(path, *paths):
     """
