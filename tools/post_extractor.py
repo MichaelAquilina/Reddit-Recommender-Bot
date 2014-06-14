@@ -19,7 +19,7 @@ class Url(object):
             self.hostname = self.hostname.replace('www.', '')
 
     def geturl(self):
-        return 'http://%s/%s' % (self.hostname, self.path)
+        return 'http://%s%s' % (self.hostname, self.path)
 
     def __eq__(self, other):
         return self.hostname == other.hostname and self.path == other.path
