@@ -188,7 +188,6 @@ if __name__ == '__main__':
                         print u'{}: {} ({})'.format(args.limit - page_count + 1, title, url.geturl())
 
                         if url not in visited:
-                            visited.add(url)
                             try:
                                 success = download_html_page(pages_dir, url.geturl(), timeout=15)
                             except requests.ConnectionError:
@@ -199,7 +198,9 @@ if __name__ == '__main__':
                                 print 'A generic error occurred on: %s' % url
                                 print e.message
                             else:
-                                page_count -= success
+                                if success:
+                                    visited.add(url)
+                                    page_count -= 1
 
                 # Set the after token for the next batch of data to download
                 after = subreddit_data['data']['after']
