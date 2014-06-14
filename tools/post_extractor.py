@@ -15,6 +15,9 @@ class Url(object):
         self.hostname = url_data.hostname
         self.path = url_data.path
 
+        if self.path == '':
+            self.path = '/'
+
         if 'www.' in self.hostname:
             self.hostname = self.hostname.replace('www.', '')
 
