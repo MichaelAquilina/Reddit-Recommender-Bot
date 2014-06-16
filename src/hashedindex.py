@@ -15,10 +15,10 @@ class HashedIndex(object):
         self._documents = set()
 
     def __getitem__(self, term):
-        return self._terms[term.lower()]
+        return self._terms[term]
 
     def __contains__(self, term):
-        return term.lower() in self._terms
+        return term in self._terms
 
     def __repr__(self):
         return '<HashedIndex: {} terms, {} documents>'.format(
@@ -32,60 +32,46 @@ class HashedIndex(object):
         """
         Adds an occurrence of the term in the specified document.
         """
-        term_l = term.lower()
-        document_l = document.lower()
 
-        if term_l not in self._terms:
-            self._terms[term_l] = {}
+        if term not in self._terms:
+            self._terms[term] = {}
 
-        if document_l not in self._terms[term_l]:
-            self._terms[term_l][document_l] = 0
+        if document not in self._terms[term]:
+            self._terms[term][document] = 0
 
-        if document_l not in self._documents:
-            self._documents.add(document_l)
+        if document not in self._documents:
+            self._documents.add(document)
 
-        self._terms[term_l][document_l] += 1
+        self._terms[term][document] += 1
 
     def get_total_term_frequency(self, term):
-        term_l = term.lower()
-
-        if term_l not in self._terms:
+        if term not in self._terms:
             return 0
 
-        return sum(self._terms[term_l].values())
+        return sum(self._terms[term].values())
 
-    def get_term_frequency(self, term, document, _lower=True):
+    def get_term_frequency(self, term, document):
         """
         Returns the frequency of the term specified in the document.
         """
-        if _lower:
-            term_l = term.lower()
-            document_l = document.lower()
-        else:
-            term_l = term
-            document_l = document
 
-        if term_l not in self._terms:
+        if term not in self._terms:
             return 0
 
-        if document_l not in self._terms[term_l]:
+        if document not in self._terms[term]:
             return 0
 
-        return self._terms[term_l][document_l]
+        return self._terms[term][document]
 
-    def get_document_frequency(self, term, _lower=True):
+    def get_document_frequency(self, term):
         """
         Returns the number of documents the specified term appears in.
         """
-        if _lower:
-            term_l = term.lower()
-        else:
-            term_l = term
 
-        if term_l not in self._terms:
+        if term not in self._terms:
             return 0
         else:
-            return len(self._terms[term_l])
+            return len(self._terms[term])
 
     def terms(self):
         return self._terms.keys()
@@ -96,17 +82,17 @@ class HashedIndex(object):
     def items(self):
         return self._terms
 
-    def get_tfidf(self, term, document, _lower=True):
+    def get_tfidf(self, term, document):
         """
         Returns the Term-Frequency Inverse-Document-Frequency value for the given
         term in the specified document.
         """
-        tf = self.get_term_frequency(term, document, _lower=_lower)
+        tf = self.get_term_frequency(term, document)
 
         # Speeds up performance by avoiding extra calculations
         if tf != 0.0:
             # Add 1 to document frequency to prevent divide by 0
-            df = 1 + self.get_document_frequency(term, _lower=_lower)
+            df = 1 + self.get_document_frequency(term)
             n = 1 + len(self._documents)
 
             return tf * log10(n / df)
@@ -125,13 +111,12 @@ class HashedIndex(object):
         """
         result = np.zeros((len(self._documents), len(self._terms)))
 
-        # Specify _lower=False flag because doc and term are guaranteed to be lowered
         for i, doc in enumerate(self._documents):
             for j, term in enumerate(self._terms):
                 if mode == 'tfidf':
-                    result[i, j] = self.get_tfidf(term, doc, _lower=False)
+                    result[i, j] = self.get_tfidf(term, doc)
                 else:
-                    result[i, j] = self.get_term_frequency(term, doc, _lower=False)
+                    result[i, j] = self.get_term_frequency(term, doc)
 
         return result
 

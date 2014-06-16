@@ -19,12 +19,8 @@ class HashedIndexTest(unittest.TestCase):
         for i in xrange(3):
             self.index.add_term_occurrence('word', 'document1.txt')
 
-        for i in xrange(3):
+        for i in xrange(5):
             self.index.add_term_occurrence('malta', 'document1.txt')
-
-        # Document names should also be case insensitive
-        for i in xrange(2):
-            self.index.add_term_occurrence('malta', 'DocumenT1.txt')
 
         for i in xrange(4):
             self.index.add_term_occurrence('phone', 'document2.txt')
@@ -37,11 +33,12 @@ class HashedIndexTest(unittest.TestCase):
         assert unordered_list_cmp(self.index['malta'].keys(), ['document1.txt'])
         assert unordered_list_cmp(self.index['phone'].keys(), ['document2.txt'])
 
-        # Case Insensitive check
-        assert self.index['word'] == self.index['WoRD']
-
+    def test_getitem_raises_keyerror(self):
         # Trying to get a term that does not exist should raise a key error
         self.assertRaises(KeyError, self.index.__getitem__, 'doesnotexist')
+
+        # Case Insensitive check
+        self.assertRaises(KeyError, self.index.__getitem__, 'wORd')
 
     def test_contains(self):
         assert 'word' in self.index
@@ -49,16 +46,21 @@ class HashedIndexTest(unittest.TestCase):
         assert 'phone' in self.index
 
         # Case Insensitive Check
-        assert 'WoRd' in self.index
+        assert 'WoRd' not in self.index
 
         # Non-Existent check
         assert 'doesnotexist' not in self.index
 
     def test_get_total_term_frequency(self):
         assert self.index.get_total_term_frequency('word') == 5
-        assert self.index.get_total_term_frequency('Malta') == 5
+        assert self.index.get_total_term_frequency('malta') == 5
         assert self.index.get_total_term_frequency('doesnotexist') == 0
-        assert self.index.get_total_term_frequency('PhonE') == 4
+        assert self.index.get_total_term_frequency('phone') == 4
+
+    def test_get_total_term_frequency_case(self):
+        assert self.index.get_total_term_frequency('WORD') == 0
+        assert self.index.get_total_term_frequency('Malta') == 0
+        assert self.index.get_total_term_frequency('phonE') == 0
 
     def test_get_term_frequency(self):
         # Check Existing cases
