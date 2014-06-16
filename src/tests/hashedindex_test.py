@@ -28,6 +28,14 @@ class HashedIndexTest(unittest.TestCase):
         for i in xrange(2):
             self.index.add_term_occurrence('word', 'document2.txt')
 
+    def test_case_sensitive_documents(self):
+        self.index.add_term_occurrence('word', 'Document2.txt')
+
+        assert self.index.get_term_frequency('word', 'document2.txt') == 2
+        assert self.index.get_term_frequency('word', 'Document2.txt') == 1
+
+        assert unordered_list_cmp(self.index.documents(), ['document1.txt', 'document2.txt', 'Document2.txt'])
+
     def test_getitem(self):
         assert unordered_list_cmp(self.index['word'].keys(), ['document1.txt', 'document2.txt'])
         assert unordered_list_cmp(self.index['malta'].keys(), ['document1.txt'])
