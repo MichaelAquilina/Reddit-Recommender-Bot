@@ -8,13 +8,16 @@ class Url(object):
         self.path = url_data.path
 
         # Normalise paths the way performed in browsers
-        self.path = self.path.rstrip('/')
+        if self.path == '' or self.path == '/':
+            self.path = '/'
+        else:
+            self.path = self.path.rstrip('/')
 
         if 'www.' in self.hostname:
             self.hostname = self.hostname.replace('www.', '')
 
     def geturl(self):
-        return 'http://%s%s' % (self.hostname, self.path)
+        return 'http://%s%s' % (self.hostname, self.path.rstrip('/'))
 
     def __eq__(self, other):
         return self.hostname == other.hostname and self.path == other.path

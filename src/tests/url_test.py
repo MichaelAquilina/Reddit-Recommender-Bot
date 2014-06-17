@@ -16,9 +16,9 @@ class UrlTest(unittest.TestCase):
         assert self.test3.hostname == 'my.domain.org'
 
     def test_normalize_path(self):
-        assert self.test1.path == ''
+        assert self.test1.path == '/'
         assert self.test2.path == '/some/path/example'
-        assert self.test3.path == ''
+        assert self.test3.path == '/'
 
     def test_geturl(self):
         assert self.test1.geturl() == 'http://github.com'
