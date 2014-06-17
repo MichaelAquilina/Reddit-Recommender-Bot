@@ -32,7 +32,6 @@ class HashedIndex(object):
         """
         Adds an occurrence of the term in the specified document.
         """
-
         if term not in self._terms:
             self._terms[term] = {}
 
@@ -54,7 +53,6 @@ class HashedIndex(object):
         """
         Returns the frequency of the term specified in the document.
         """
-
         if term not in self._terms:
             return 0
 
@@ -67,7 +65,6 @@ class HashedIndex(object):
         """
         Returns the number of documents the specified term appears in.
         """
-
         if term not in self._terms:
             return 0
         else:
