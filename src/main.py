@@ -3,12 +3,26 @@
 
 import os
 import nltk
+import json
+import numpy as np
 
 import hashedindex
 import textparser
 
+from url import Url
+
 from HTMLParser import HTMLParser
 from string import punctuation
+
+
+# Reddit Developer API Notes
+# t1_	Comment
+# t2_	Account
+# t3_	Link
+# t4_	Message
+# t5_	Subreddit
+# t6_	Award
+# t8_	PromoCampaign
 
 
 # Stemmer interface which returns token unchanged
@@ -46,59 +60,78 @@ def post_process(token, stemmer):
     else:
         return stemmer.stem(token)
 
+
 if __name__ == '__main__':
 
     import time
-    from pympler.asizeof import asizeof
+
+    # TODO: make this a program input
+    target_dir = '/home/michaela/Development/Reddit-Data/'
+
+    # Stores the appropriate classification for each document added
+    text_classification = {}
 
     index = hashedindex.HashedIndex()
-    stemmer = NullStemmer()
+    stemmer = nltk.LancasterStemmer()
 
-    target_dir = '/home/michaela/Examples'
+    pages_dir = os.path.join(target_dir, 'pages')
+    subreddits_dir = os.path.join(target_dir, 'subreddits')
+
+    subreddits = ['science', 'python']
+
+    print 'Using the following subreddits: %s' % subreddits
 
     t0 = time.time()
 
-    def search_dir(path):
-        for p in os.listdir(path):
-            abs_path = os.path.join(path, p)
-            rel_path = os.path.relpath(abs_path, target_dir)
+    # Parse JSON subreddit files
+    for sr in subreddits:
+        sr_abs_path = os.path.join(subreddits_dir, sr)
 
-            # Depth-First-Search
-            if os.path.isdir(abs_path):
-                search_dir(abs_path)
-            else:
-                with open(abs_path, 'r') as fp:
-                    html_text = fp.read()
+        for json_file in os.listdir(sr_abs_path):
+            with open(os.path.join(sr_abs_path, json_file)) as fp:
+                post_data = json.load(fp)
 
-                # This currently provides good accuracy but does not
-                # handle html tags very well
-                text = nltk.clean_html(html_text)
+            for post in post_data['data']['children']:
+                if post['kind'] == 't3':    # Only interested in type 3 (link) posts
+                    post_url = Url(post['data']['url'])
 
-                for token in textparser.word_tokenize(text, remove_case=True):
+                    if post_url.path == '/':
+                        rel_path = os.path.join(post_url.hostname, 'index.html')
+                    else:
+                        rel_path = os.path.join(post_url.hostname, post_url.path.lstrip('/'))
 
-                    # Handle "or" case represented by "/"
-                    for split_token in token.split('/'):
-                        post_processed_token = post_process(split_token, stemmer=stemmer)
-                        if post_processed_token:
-                            index.add_term_occurrence(post_processed_token, rel_path)
+                    abs_path = os.path.join(pages_dir, rel_path)
 
-    # Recursive search on the target directory
-    search_dir(target_dir)
+                    if os.path.exists(abs_path):
+                        print '%s : %s' % (sr, rel_path)
+
+                        with open(abs_path, 'r') as html_file:
+                            html_text = html_file.read()
+
+                        # This currently provides good accuracy but does not
+                        # handle html tags very well
+                        text = nltk.clean_html(html_text)
+
+                        for token in textparser.word_tokenize(text, remove_case=True):
+
+                            # Handle "or" case represented by "/"
+                            for split_token in token.split('/'):
+                                post_processed_token = post_process(split_token, stemmer=stemmer)
+                                if post_processed_token:
+                                    text_classification[rel_path] = sr
+                                    index.add_term_occurrence(post_processed_token, rel_path)
 
     runtime = time.time() - t0
 
     print 'Runtime = {}'.format(runtime)
     print index
 
-    print 'HashedIndex size = {}'.format(asizeof(index))
-
     t0 = time.time()
     feature_matrix = index.generate_feature_matrix(mode='tfidf')
-
-    print feature_matrix
-    print 'Feature matrix size = {}'.format(asizeof(feature_matrix))
-
     runtime = time.time() - t0
+
+    print 'Feature matrix shape = {}'.format(feature_matrix.shape)
+    print feature_matrix
     print 'Runtime = {}'.format(runtime)
 
     index.save('/home/michaela/index.json', compressed=False, comment='Using {}'.format(stemmer))
