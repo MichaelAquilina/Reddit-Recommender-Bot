@@ -39,6 +39,10 @@ def test_word_tokenize_punctuation():
     assert generator_cmp(word_tokenize('My name is Michael!'), ['My', 'name', 'is', 'Michael!'])
 
 
+def test_word_tokenize_large_whitespace():
+    assert generator_cmp(word_tokenize('This  \n   is \r a   \ttest'), ['This', 'is', 'a', 'test'])
+
+
 def test_isnumeric_not_words():
     assert not isnumeric('notanumber')
     assert not isnumeric('80eight')
