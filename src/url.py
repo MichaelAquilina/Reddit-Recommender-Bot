@@ -6,6 +6,7 @@ class Url(object):
         url_data = urlparse.urlparse(url_string.lower())
         self.hostname = url_data.hostname
         self.path = url_data.path
+        self.query = url_data.query
 
         # Normalise paths the way performed in browsers
         if self.path == '' or self.path == '/':
@@ -17,7 +18,11 @@ class Url(object):
             self.hostname = self.hostname.replace('www.', '')
 
     def geturl(self):
-        return 'http://%s%s' % (self.hostname, self.path.rstrip('/'))
+        url_string = 'http://%s%s' % (self.hostname, self.path.rstrip('/'))
+        if self.query:
+            url_string += '?%s' % self.query
+
+        return url_string
 
     def __eq__(self, other):
         return self.hostname == other.hostname and self.path == other.path
