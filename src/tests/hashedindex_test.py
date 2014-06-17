@@ -204,23 +204,3 @@ class HashedIndexTest(unittest.TestCase):
         assert meta['data-structure'] == str(self.index)
         assert meta['documents'] == len(self.index._documents)
         assert meta['terms'] == len(self.index._terms)
-
-
-class HashedIndexTuplesTest(unittest.TestCase):
-
-    def setUp(self):
-        self.index = HashedIndex()
-
-        for _ in xrange(5):
-            self.index.add_term_occurrence('snake', ('python', 'document3.txt'))
-
-        for _ in xrange(3):
-            self.index.add_term_occurrence('obama', ('worldnews', 'document1.txt'))
-
-    def test_documents(self):
-        assert unordered_list_cmp(self.index.documents(), [('python', 'document3.txt'), ('worldnews', 'document1.txt')])
-
-    def test_get_term_frequency(self):
-        assert self.index.get_term_frequency('snake', ('python', 'document3.txt')) == 5
-        assert self.index.get_term_frequency('obama', ('worldnews', 'document1.txt')) == 3
-        assert self.index.get_term_frequency('snake', 'document3.txt') == 0
