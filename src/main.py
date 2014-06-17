@@ -134,4 +134,14 @@ if __name__ == '__main__':
     print feature_matrix
     print 'Runtime = {}'.format(runtime)
 
-    index.save('/home/michaela/index.json', compressed=False, comment='Using {}'.format(stemmer))
+    # Generate the label vector
+    label_vector = np.zeros((len(index.documents())))
+    for i, document in enumerate(index.documents()):
+        label_vector[i] = subreddits.index(text_classification[document])
+
+    print 'Label vector shape = {}'.format(label_vector.shape)
+    print label_vector
+    print 'Python = ', label_vector[label_vector == subreddits.index('python')].size
+    print 'Science = ', label_vector[label_vector == subreddits.index('science')].size
+
+    index.save('/home/michaela/index.json.bz2', compressed=True, comment='Using {}'.format(stemmer))
