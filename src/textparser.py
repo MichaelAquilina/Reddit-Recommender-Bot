@@ -28,8 +28,6 @@ def word_tokenize(text, remove_case=False):
             else:
                 s_buffer += c
 
-        # Ignore punctuation and digits?
-
     if s_buffer:
         yield s_buffer
 
