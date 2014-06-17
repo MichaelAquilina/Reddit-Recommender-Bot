@@ -27,6 +27,7 @@ _stopwords = frozenset(nltk.corpus.stopwords.words())
 # Helper function that performs post-processing on tokens
 def post_process(token, stemmer):
     token = _parser.unescape(token)
+    token = token.lower()
 
     # TODO: Check if email, url, date etc...
     # Based on type you should parse accordingly
