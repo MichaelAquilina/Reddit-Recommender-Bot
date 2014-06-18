@@ -165,7 +165,7 @@ if __name__ == '__main__':
 
                         if url not in visited:
                             try:
-                                success = download_html_page(pages_dir, url.geturl(), timeout=15)
+                                success = download_html_page(pages_dir, url.geturl(), timeout=8)
                             except requests.ConnectionError:
                                 print 'Unable to connect to: %s' % url
                             except requests.Timeout:
