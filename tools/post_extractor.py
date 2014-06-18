@@ -70,6 +70,10 @@ def download_html_page(target_dir, page_url, timeout=15):
         if file_name == '':
             file_name = 'index.html'
 
+        # Query can uniquely identify a file
+        if page_url.query:
+            file_name += '?' + page_url.query
+
         file_path = os.path.join(page_save_dir, file_name)
 
         with open(file_path, 'w') as fp:

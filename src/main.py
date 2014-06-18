@@ -100,6 +100,9 @@ if __name__ == '__main__':
                     else:
                         rel_path = os.path.join(post_url.hostname, post_url.path.lstrip('/'))
 
+                    if post_url.query:
+                        rel_path += '?' + post_url.query
+
                     abs_path = os.path.join(pages_dir, rel_path)
 
                     if os.path.exists(abs_path):
