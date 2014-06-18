@@ -3,7 +3,8 @@
 import json
 import os
 import requests
-import urlparse
+import threading
+import Queue
 
 from url import Url
 
@@ -17,6 +18,49 @@ domain_blacklist = frozenset([
     'vimeo.com', 'picasa.google.com', 'tinypic.com',
     'xkcd.com', 'smbc-comics.com',
 ])
+
+
+class DownloaderThread(threading.Thread):
+
+    def __init__(self):
+        self.running = True
+        super(DownloaderThread, self).__init__()
+
+    def run(self):
+        global page_queue, pages_dir, page_lock, page_count, page_limit
+        self.running = True
+
+        while self.running:
+            try:
+                url, title = page_queue.get(timeout=0.1)
+            except Queue.Empty:
+                continue
+
+            try:
+                req = download_html_page(url.geturl(), timeout=8)
+
+                if req:
+                    file_path = get_path_from_url(pages_dir, url)
+                    with open(file_path, 'w') as fp:
+                        fp.write(req.text.encode('utf8'))
+
+                    page_lock.acquire()
+                    page_count -= 1
+                    print u'[{}]: {} ({})'.format(page_limit - page_count, title, url.geturl())
+                    page_lock.release()
+
+            except requests.ConnectionError:
+                print 'Unable to connect to: %s' % url
+            except requests.Timeout:
+                print 'Timeout on: %s' % url
+            except IOError:
+                print 'IOError on: %s' % url
+            except Exception as e:
+                print 'A generic error occurred on: %s' % url
+                print e.message
+
+            # Always mark the task as done before moving on the next item
+            page_queue.task_done()
 
 
 def join_and_check(path, *paths):
@@ -39,8 +83,7 @@ def join_and_check(path, *paths):
         return result
 
 
-def download_html_page(target_dir, page_url, timeout=15):
-
+def download_html_page(page_url, timeout=8):
     # Check encoding information before downloading everything
     req = requests.head(page_url, timeout=timeout, allow_redirects=True)
 
@@ -53,43 +96,41 @@ def download_html_page(target_dir, page_url, timeout=15):
         # Perform the actual download
         req = requests.get(page_url, timeout=timeout, allow_redirects=True)
 
-        page_url = urlparse.urlparse(page_url)
-        page_save_dir = os.path.join(target_dir, page_url.hostname)
+        return req
+    else:
+        return None
+
+
+def get_path_from_url(target_dir, url):
+    page_save_dir = os.path.join(target_dir, url.hostname)
+
+    if not os.path.exists(page_save_dir):
+        os.mkdir(page_save_dir)
+
+    # Create subdirs according to the url path
+    url_path = url.path.strip('/')
+
+    path_index = url_path.rfind('/')
+    if path_index != -1:
+        sub_path = url_path[:path_index].lstrip('/')
+        page_save_dir = os.path.join(page_save_dir, sub_path)
 
         if not os.path.exists(page_save_dir):
-            os.mkdir(page_save_dir)
+            os.makedirs(page_save_dir)
 
-        # Create subdirs according to the url path
-        url_path = page_url.path.strip('/')
-
-        path_index = url_path.rfind('/')
-        if path_index != -1:
-            sub_path = url_path[:path_index].lstrip('/')
-            page_save_dir = os.path.join(page_save_dir, sub_path)
-
-            if not os.path.exists(page_save_dir):
-                os.makedirs(page_save_dir)
-
-            file_name = url_path[path_index:].strip('/')
-        else:
-            file_name = url_path
-
-        # Root page directories are "index.html"
-        if file_name == '':
-            file_name = 'index.html'
-
-        # Query can uniquely identify a file
-        if page_url.query:
-            file_name += '?' + page_url.query
-
-        file_path = os.path.join(page_save_dir, file_name)
-
-        with open(file_path, 'w') as fp:
-            fp.write(req.text.encode('utf8'))
-
-        return 1
+        file_name = url_path[path_index:].strip('/')
     else:
-        return 0
+        file_name = url_path
+
+    # Root page directories are "index.html"
+    if file_name == '':
+        file_name = 'index.html'
+
+    # Query can uniquely identify a file
+    if url.query:
+        file_name += '?' + url.query
+
+    return os.path.join(page_save_dir, file_name)
 
 
 if __name__ == '__main__':
@@ -102,6 +143,7 @@ if __name__ == '__main__':
     parser.add_argument('--limit', type=int, default=25, help='Number of submissions to retrieve')
     parser.add_argument('--period', choices=('year', 'month', 'week', 'all'), default='year')
     parser.add_argument('--filter', type=str, choices=('top', 'controversial'), default='top')
+    parser.add_argument('--threads', type=int, default=10, help='Number of Threads to download with')
 
     args = parser.parse_args()
 
@@ -115,11 +157,22 @@ if __name__ == '__main__':
         # After pointer for retrieving next batch of submissions
         after = None
 
+        page_queue = Queue.Queue()
+        page_lock = threading.Lock()
+
         # Amount of requests required based on the limit specified
         page_count = args.limit
+        page_limit = args.limit
+        local_count = args.limit
 
         # Target directory to save the downloaded pages
         pages_dir = join_and_check(args.out, 'pages')
+
+        page_threads = []
+        for _ in xrange(args.threads):
+            t = DownloaderThread()
+            page_threads.append(t)
+            t.start()
 
         file_index = 0  # Current Index of json file to be saved
         post_index = 0  # Current Index of post being processed
@@ -163,8 +216,13 @@ if __name__ == '__main__':
 
                 for post in subreddit_data['data']['children']:
 
-                    if page_count <= 0:
-                        break
+                    if local_count <= 0:
+                        # TODO: this can probably be improved
+                        # Currently causes a slow down towards end of execution
+                        page_queue.join()
+                        local_count = page_count
+                        if local_count <= 0:
+                            break
 
                     post_index += 1
 
@@ -176,22 +234,10 @@ if __name__ == '__main__':
                         if url.hostname in domain_blacklist:
                             continue
 
-                        print u'[{}]: {} ({})'.format(args.limit - page_count + 1, title, url.geturl())
-
                         if url not in visited:
-                            try:
-                                success = download_html_page(pages_dir, url.geturl(), timeout=8)
-                            except requests.ConnectionError:
-                                print 'Unable to connect to: %s' % url
-                            except requests.Timeout:
-                                print 'Timeout on: %s' % url
-                            except Exception as e:
-                                print 'A generic error occurred on: %s' % url
-                                print e.message
-                            else:
-                                if success:
-                                    visited.add(url)
-                                    page_count -= 1
+                            visited.add(url)
+                            local_count -= 1
+                            page_queue.put((url, title))
 
                 # Set the after token for the next batch of data to download
                 after = subreddit_data['data']['after']
@@ -200,5 +246,10 @@ if __name__ == '__main__':
             else:
                 print 'An error has occurred while communicating with the Reddit API'
                 break
+
+        # Signify end of runtime and wait
+        for t in page_threads:
+            t.running = False
+            t.join()
 
         print 'Successfully downloaded %s HTML pages' % args.limit
