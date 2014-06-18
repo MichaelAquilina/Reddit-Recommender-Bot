@@ -7,7 +7,7 @@ class UrlTest(unittest.TestCase):
 
     def setUp(self):
         self.test1 = Url('http://www.Github.com')
-        self.test2 = Url('http://www.MyUrl.co.uk/some/Path/Example?a=1&b=2')
+        self.test2 = Url('http://www.MyUrl.co.uk/some/Path/Example?A=1&B=2')
         self.test3 = Url('http://My.domain.org/')
         self.test4 = Url('http://some.Page.com.mt/watch?v=somevalue')
 
@@ -35,7 +35,13 @@ class UrlTest(unittest.TestCase):
     def test_normalized_equality(self):
         assert Url('http://www.GitHub.com') == Url('http://github.com/')
         assert Url('http://www.mydomain.org/path') == Url('http://MYDOMAIN.org/PATH/')
+        assert not Url('http://www.mydomain.org/?v=20') == Url('http://www.mydomain.org')
+
+    def test_normalized_inequality(self):
+        assert Url('http://www.google.com') != Url('http://www.google.co.uk')
+        assert Url('http://www.mydomain.org?a=b') != Url('http://www.mydomain.org')
+        assert Url('http://sub.domain.org') != Url('http://domain.org')
 
     def test_normalized_hash(self):
-        assert hash(Url('http://www.Google.com')) == hash(Url('http://google.com/'))
+        assert hash(Url('http://www.Google.com?test=1')) == hash(Url('http://google.com/?TEST=1'))
         assert hash(Url('http://my.DOMAIN.org/path/')) == hash(Url('http://MY.domain.org/PATH'))

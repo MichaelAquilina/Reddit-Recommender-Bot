@@ -25,7 +25,12 @@ class Url(object):
         return url_string
 
     def __eq__(self, other):
-        return self.hostname == other.hostname and self.path == other.path
+        return self.hostname == other.hostname \
+            and self.path == other.path \
+            and self.query == other.query
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def __hash__(self):
         return hash(self.hostname) + hash(self.path)
