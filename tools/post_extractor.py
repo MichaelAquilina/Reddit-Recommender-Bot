@@ -160,7 +160,7 @@ if __name__ == '__main__':
 
                     post_index += 1
 
-                    if not post['data']['is_self']:
+                    if post['kind'] == 't3':
 
                         url = Url(post['data']['url'])
                         title = post['data']['title']
