@@ -11,6 +11,14 @@ from url import Url
 MAX_LIMIT = 100
 
 
+# List of domains which should be ignored
+domain_blacklist = frozenset([
+    'youtube.com', 'imgur.com', 'i.imgur.com',
+    'vimeo.com', 'picasa.google.com', 'tinypic.com',
+    'xkcd.com', 'smbc-comics.com',
+])
+
+
 def join_and_check(path, *paths):
     """
     Joins the specified path using os.path.join and ensures it exists. It then
@@ -164,6 +172,9 @@ if __name__ == '__main__':
 
                         url = Url(post['data']['url'])
                         title = post['data']['title']
+
+                        if url.hostname in domain_blacklist:
+                            continue
 
                         print u'[{}]: {} ({})'.format(args.limit - page_count + 1, title, url.geturl())
 
