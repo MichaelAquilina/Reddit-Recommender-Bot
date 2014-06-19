@@ -39,7 +39,7 @@ class DownloaderThread(threading.Thread):
             try:
                 req = download_html_page(url.geturl(), timeout=8)
 
-                if req:
+                if req and len(req.text) > 1000:
                     file_path = get_path_from_url(pages_dir, url)
                     with open(file_path, 'w') as fp:
                         fp.write(req.text.encode('utf8'))
