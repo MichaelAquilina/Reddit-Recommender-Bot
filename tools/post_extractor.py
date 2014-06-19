@@ -124,6 +124,11 @@ if __name__ == '__main__':
     if not os.path.exists(args.out):
         os.mkdir(args.out)
 
+    if args.threads > 100:
+        print 'WARNING: Using more than 100 threads has no benefit'
+        print 'Setting --threads 100'
+        args.threads = 100
+
     if not os.path.isdir(args.out):
         print 'Out parameter must be a directory'
     else:
