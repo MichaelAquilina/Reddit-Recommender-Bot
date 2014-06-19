@@ -7,6 +7,7 @@ import threading
 import Queue
 
 from url import Url
+from utils import get_path_from_url
 
 # Max listing limit as specified by the Reddit devapi
 MAX_LIMIT = 100
@@ -40,8 +41,12 @@ class DownloaderThread(threading.Thread):
                 req = download_html_page(url.geturl(), timeout=8)
 
                 if req and len(req.text) > 1000:
-                    file_path = get_path_from_url(pages_dir, url)
-                    with open(file_path, 'w') as fp:
+                    directory, filename = get_path_from_url(pages_dir, url)
+
+                    if not os.path.exists(directory):
+                        os.makedirs(directory)
+
+                    with open(os.path.join(directory, filename), 'w') as fp:
                         fp.write(req.text.encode('utf8'))
 
                     page_lock.acquire()
@@ -99,38 +104,6 @@ def download_html_page(page_url, timeout=8):
         return req
     else:
         return None
-
-
-def get_path_from_url(target_dir, url):
-    page_save_dir = os.path.join(target_dir, url.hostname)
-
-    if not os.path.exists(page_save_dir):
-        os.mkdir(page_save_dir)
-
-    # Create subdirs according to the url path
-    url_path = url.path.strip('/')
-
-    path_index = url_path.rfind('/')
-    if path_index != -1:
-        sub_path = url_path[:path_index].lstrip('/')
-        page_save_dir = os.path.join(page_save_dir, sub_path)
-
-        if not os.path.exists(page_save_dir):
-            os.makedirs(page_save_dir)
-
-        file_name = url_path[path_index:].strip('/')
-    else:
-        file_name = url_path
-
-    # Root page directories are "index.html"
-    if file_name == '':
-        file_name = 'index.html'
-
-    # Query can uniquely identify a file
-    if url.query:
-        file_name += '?' + url.query
-
-    return os.path.join(page_save_dir, file_name)
 
 
 if __name__ == '__main__':
