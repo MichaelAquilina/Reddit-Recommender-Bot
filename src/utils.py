@@ -20,6 +20,9 @@ def get_path_from_url(target_dir, url):
     if filename == '':
         filename = 'index.html'
 
+    if not (filename.endswith('.html') or filename.endswith('.htm')):
+        filename += '.html'
+
     # Query can uniquely identify a file
     if url.query:
         filename += '?' + url.query
