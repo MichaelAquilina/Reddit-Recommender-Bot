@@ -10,6 +10,7 @@ import hashedindex
 import textparser
 
 from url import Url
+from utils import get_path_from_url
 
 from HTMLParser import HTMLParser
 from string import punctuation
@@ -95,15 +96,9 @@ if __name__ == '__main__':
                 if post['kind'] == 't3':    # Only interested in type 3 (link) posts
                     post_url = Url(post['data']['url'])
 
-                    if post_url.path == '/':
-                        rel_path = os.path.join(post_url.hostname, 'index.html')
-                    else:
-                        rel_path = os.path.join(post_url.hostname, post_url.path.lstrip('/'))
-
-                    if post_url.query:
-                        rel_path += '?' + post_url.query
-
-                    abs_path = os.path.join(pages_dir, rel_path)
+                    directory, filename = get_path_from_url(pages_dir, post_url)
+                    abs_path = os.path.join(directory, filename)
+                    rel_path = os.path.relpath(abs_path, pages_dir)
 
                     if os.path.exists(abs_path):
                         print '%s : %s' % (sr, rel_path)
