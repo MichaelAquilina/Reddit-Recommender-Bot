@@ -9,7 +9,7 @@ class Url(object):
         self.query = url_data.query
 
         # Normalise paths the way performed in browsers
-        if self.path == '' or self.path == '/':
+        if self.path in ['', '/', '/index.html', '/index.htm']:
             self.path = '/'
         else:
             self.path = self.path.rstrip('/')

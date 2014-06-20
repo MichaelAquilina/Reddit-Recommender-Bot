@@ -45,3 +45,9 @@ class UrlTest(unittest.TestCase):
     def test_normalized_hash(self):
         assert hash(Url('http://www.Google.com?test=1')) == hash(Url('http://google.com/?TEST=1'))
         assert hash(Url('http://my.DOMAIN.org/path/')) == hash(Url('http://MY.domain.org/PATH'))
+
+    def test_normalized_protocol(self):
+        assert Url('https://www.google.com') == Url('http://www.google.com')
+
+    def test_normalized_homepage(self):
+        assert Url('http://someone.org') == Url('http://www.someone.org/index.html')
