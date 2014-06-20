@@ -1,6 +1,17 @@
 import os
 
 
+# TODO: Cover with tests
+def search_files(path):
+    for p1 in os.listdir(path):
+        abs_path = os.path.join(path, p1)
+        if os.path.isdir(abs_path):
+            for p2 in search_files(abs_path):
+                yield p2
+        else:
+            yield abs_path
+
+
 def get_path_from_url(target_dir, url):
     directory = os.path.join(target_dir, url.hostname)
 
