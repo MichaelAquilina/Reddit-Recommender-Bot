@@ -1,20 +1,20 @@
 #! /usr/bin/python
 # ~*~ coding: utf-8 ~*~
-
-import os
 import nltk
-import json
-import numpy as np
 
-import hashedindex
+import matplotlib.pyplot as plt
+
 import textparser
 
-from url import Url
-from utils import get_path_from_url
+from sklearn.svm import SVC
+from sklearn import metrics
+from sklearn.cross_validation import train_test_split
+
+from redditclassifier import RedditClassifier
+from utils import search_files
 
 from HTMLParser import HTMLParser
 from string import punctuation
-
 
 # Reddit Developer API Notes
 # t1_	Comment
@@ -37,10 +37,12 @@ class NullStemmer(object):
 
 _parser = HTMLParser()
 _stopwords = frozenset(nltk.corpus.stopwords.words())
+_stemmer = nltk.PorterStemmer()
 
 
 # Helper function that performs post-processing on tokens
-def post_process(token, stemmer):
+# Should be an argument that can be passed
+def post_process(token):
     token = _parser.unescape(token)
     token = token.lower()
 
@@ -59,87 +61,47 @@ def post_process(token, stemmer):
     if token in _stopwords:
         return None
     else:
-        return stemmer.stem(token)
-
+        return _stemmer.stem(token)
 
 if __name__ == '__main__':
 
+    import os
     import time
 
     # TODO: make this a program input
     target_dir = '/home/michaela/Development/Reddit-Data/'
 
-    # Stores the appropriate classification for each document added
-    text_classification = {}
+    classifier = RedditClassifier()
 
-    index = hashedindex.HashedIndex()
-    stemmer = nltk.LancasterStemmer()
-
-    pages_dir = os.path.join(target_dir, 'pages')
-    subreddits_dir = os.path.join(target_dir, 'subreddits')
-
-    subreddits = ['science', 'python']
-
-    print 'Using the following subreddits: %s' % subreddits
+    print 'Loading %d files...' % len(list(search_files(os.path.join(target_dir, 'pages'))))
 
     t0 = time.time()
-
-    # Parse JSON subreddit files
-    for sr in subreddits:
-        sr_abs_path = os.path.join(subreddits_dir, sr)
-
-        for json_file in os.listdir(sr_abs_path):
-            with open(os.path.join(sr_abs_path, json_file)) as fp:
-                post_data = json.load(fp)
-
-            for post in post_data['data']['children']:
-                if post['kind'] == 't3':    # Only interested in type 3 (link) posts
-                    post_url = Url(post['data']['url'])
-
-                    directory, filename = get_path_from_url(pages_dir, post_url)
-                    abs_path = os.path.join(directory, filename)
-                    rel_path = os.path.relpath(abs_path, pages_dir)
-
-                    if os.path.exists(abs_path):
-                        print '%s : %s' % (sr, rel_path)
-
-                        with open(abs_path, 'r') as html_file:
-                            html_text = html_file.read()
-
-                        # This currently provides good accuracy but does not
-                        # handle html tags very well
-                        text = nltk.clean_html(html_text)
-
-                        for token in textparser.word_tokenize(text, remove_case=True):
-
-                            # Handle "or" case represented by "/"
-                            for split_token in token.split('/'):
-                                post_processed_token = post_process(split_token, stemmer=stemmer)
-                                if post_processed_token:
-                                    text_classification[rel_path] = sr
-                                    index.add_term_occurrence(post_processed_token, rel_path)
-
+    X, y = classifier.load_data(target_dir, ['science', 'python'], process=post_process)
     runtime = time.time() - t0
 
     print 'Runtime = {}'.format(runtime)
-    print index
+    print X.shape
+    print 'Science: ', y[y == classifier.subreddits.index('science')].size
+    print 'Python: ', y[y == classifier.subreddits.index('python')].size
 
-    t0 = time.time()
-    feature_matrix = index.generate_feature_matrix(mode='tfidf')
-    runtime = time.time() - t0
+    print 'Performing Machine Learning'
 
-    print 'Feature matrix shape = {}'.format(feature_matrix.shape)
-    print feature_matrix
-    print 'Runtime = {}'.format(runtime)
+    X_train, X_test, y_train, y_test = train_test_split(X, y)
 
-    # Generate the label vector
-    label_vector = np.zeros((len(index.documents())))
-    for i, document in enumerate(index.documents()):
-        label_vector[i] = subreddits.index(text_classification[document])
+    classifier = SVC(kernel='linear')
+    classifier.fit(X_train, y_train)
 
-    print 'Label vector shape = {}'.format(label_vector.shape)
-    print label_vector
-    print 'Python = ', label_vector[label_vector == subreddits.index('python')].size
-    print 'Science = ', label_vector[label_vector == subreddits.index('science')].size
+    y_pred = classifier.predict(X_test)
 
-    index.save('/home/michaela/index.json.bz2', compressed=True, comment='Using {}'.format(stemmer))
+    cm = metrics.confusion_matrix(y_test, y_pred)
+
+    print cm
+
+    print 'Accuracy: ', metrics.accuracy_score(y_test, y_pred)
+    print 'Precision: ', metrics.precision_score(y_test, y_pred)
+    print 'Recall: ', metrics.recall_score(y_test, y_pred)
+    print 'F1 Measure: ', metrics.f1_score(y_test, y_pred)
+
+    plt.matshow(cm)
+    plt.colorbar()
+    plt.show()
