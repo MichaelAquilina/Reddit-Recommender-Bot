@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 
 import textparser
 
-from sklearn.svm import SVC
 from sklearn import metrics
 from sklearn.cross_validation import train_test_split
 
@@ -76,7 +75,11 @@ if __name__ == '__main__':
     print 'Loading %d files...' % len(list(search_files(os.path.join(target_dir, 'pages'))))
 
     t0 = time.time()
-    X, y = classifier.load_data(target_dir, ['science', 'python'], process=post_process)
+    classifier.load_data(target_dir, ['science', 'python'], process=post_process)
+    X, y = classifier.generate_data()
+
+    classifier.index.prune()
+
     runtime = time.time() - t0
 
     print 'Runtime = {}'.format(runtime)
@@ -88,6 +91,7 @@ if __name__ == '__main__':
 
     X_train, X_test, y_train, y_test = train_test_split(X, y)
 
+    from sklearn.svm import SVC
     classifier = SVC(kernel='linear')
     classifier.fit(X_train, y_train)
 

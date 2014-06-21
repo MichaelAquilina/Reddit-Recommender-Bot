@@ -68,6 +68,7 @@ class RedditClassifier(object):
                     if post['kind'] == 't3':  # Only interested in link posts
                         self._add_to_index(post, sr, pages_dir, process)
 
+    def generate_data(self):
         # Generate feature matrix from data loaded in the inverted index
         feature_matrix = self.index.generate_feature_matrix(mode='tfidf')
 
