@@ -76,9 +76,13 @@ if __name__ == '__main__':
 
     t0 = time.time()
     classifier.load_data(target_dir, ['science', 'python'], process=post_process)
-    X, y = classifier.generate_data()
+
+    print 'Pruning Index...'
 
     classifier.index.prune()
+
+    print 'Generating Data...'
+    X, y = classifier.generate_data()
 
     runtime = time.time() - t0
 
@@ -87,6 +91,8 @@ if __name__ == '__main__':
     print 'Science: ', y[y == classifier.subreddits.index('science')].size
     print 'Python: ', y[y == classifier.subreddits.index('python')].size
 
+    classifier.index.save('/home/michaela/index.json.bz2', compressed=True)
+
     print 'Performing Machine Learning'
 
     X_train, X_test, y_train, y_test = train_test_split(X, y)
@@ -94,6 +100,8 @@ if __name__ == '__main__':
     from sklearn.svm import SVC
     classifier = SVC(kernel='linear')
     classifier.fit(X_train, y_train)
+
+    print 'Evaluating results...'
 
     y_pred = classifier.predict(X_test)
 
