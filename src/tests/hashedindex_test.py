@@ -184,6 +184,26 @@ class HashedIndexTest(unittest.TestCase):
 
         assert self.index == index2
 
+    def test_prune(self):
+        self.index = HashedIndex()  # Fresh Index
+
+        for i in xrange(100):
+            self.index.add_term_occurrence('word', 'document{}.txt'.format(i))
+
+        for i in xrange(20):
+            self.index.add_term_occurrence('text', 'document{}.txt'.format(i))
+
+        self.index.add_term_occurrence('lonely', 'document2.txt')
+
+        self.index.prune(min_frequency=0.1)
+        assert 'word' in self.index.terms()
+        assert 'text' in self.index.terms()
+        assert 'lonely' not in self.index.terms()
+
+        self.index.prune(min_frequency=0.1, max_frequency=0.9)
+        assert 'word' not in self.index.terms()
+        assert 'text' in self.index.terms()
+
     def test_save_load_compressed(self):
         path = tempfile.mktemp()
         self.index.save(path, compressed=True)

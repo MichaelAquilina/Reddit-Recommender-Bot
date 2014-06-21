@@ -117,6 +117,19 @@ class HashedIndex(object):
 
         return result
 
+    def prune(self, min_frequency=0.005, max_frequency=1.0):
+        n = len(self._documents)
+
+        garbage = []
+        for term in self.terms():
+            freq = self.get_document_frequency(term) / n
+
+            if freq < min_frequency or freq > max_frequency:
+                garbage.append(term)
+
+        for term in garbage:
+            del(self._terms[term])
+
     def save(self, path, compressed=False, comment=''):
         """
         Saves the state of the HashedIndex as a JSON formatted
