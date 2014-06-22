@@ -43,7 +43,7 @@ class RedditClassifier(object):
                         self._text_classification[rel_path] = sr
                         self.index.add_term_occurrence(post_processed_token, rel_path)
 
-    def load_data(self, data_path, subreddits=None, process=lambda x: x):
+    def load_data_source(self, data_path, subreddits=None, process=lambda x: x):
         pages_dir = os.path.join(data_path, 'pages')
         subreddits_dir = os.path.join(data_path, 'subreddits')
 
