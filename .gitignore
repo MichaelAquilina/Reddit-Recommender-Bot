@@ -1,3 +1,9 @@
+# virtualenv
+bin
+include
+lib
+local
+
 # Python
 *.pyc
 *.pyo
