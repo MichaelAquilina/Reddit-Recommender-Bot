@@ -78,3 +78,15 @@ class RedditClassifier(object):
             label_vector[i] = self.subreddits.index(self._text_classification[document])
 
         return feature_matrix, label_vector
+
+    def save(self, data_path, compressed=False):
+        self.index.save(
+            data_path, compressed,
+            subreddits=self.subreddits,
+            text_classification=self._text_classification,
+        )
+
+    def load(self, data_path, compressed=False):
+        meta = self.index.load(data_path, compressed)
+        self._text_classification = meta['text_classification']
+        self.subreddits = meta['subreddits']
