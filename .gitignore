@@ -4,6 +4,7 @@ include
 lib
 local
 build
+man
 
 # Python
 *.pyc
