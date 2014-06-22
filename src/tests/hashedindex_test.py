@@ -215,7 +215,7 @@ class HashedIndexTest(unittest.TestCase):
 
     def test_save_load_meta(self):
         path = tempfile.mktemp()
-        self.index.save(path, comment='Testing Comment')
+        self.index.save(path, comment='Testing Comment', custom={'sometest': [1, 2, 3]})
 
         index2 = HashedIndex()
         meta = index2.load(path)
@@ -224,3 +224,4 @@ class HashedIndexTest(unittest.TestCase):
         assert meta['data-structure'] == str(self.index)
         assert meta['documents'] == len(self.index._documents)
         assert meta['terms'] == len(self.index._terms)
+        assert meta['custom'] == {'sometest': [1, 2, 3]}

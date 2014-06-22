@@ -130,12 +130,12 @@ class HashedIndex(object):
         for term in garbage:
             del(self._terms[term])
 
-    def save(self, path, compressed=False, comment=''):
+    def save(self, path, compressed=False, **kwargs):
         """
         Saves the state of the HashedIndex as a JSON formatted
         file to the specified path. The optional use of bz2
-        compression is also available. A text comment can be
-        optionally saved along with the meta-data.
+        compression is also available. Additional meta data can
+        be stored through the use of kwargs.
         """
         import json
         import datetime
@@ -146,15 +146,20 @@ class HashedIndex(object):
         else:
             fp = open(path, 'w')
 
+        meta_data = {
+            'data-structure': str(self),
+            'date': '{}'.format(datetime.datetime.now()),
+            'terms': len(self._terms),
+            'documents': len(self._documents),
+        }
+
+        # Store custom Kwargs in the meta-data
+        for key, value in kwargs.items():
+            meta_data[key] = value
+
         json.dump({
             # Store meta-data for analytical purposes
-            'meta': {
-                'data-structure': str(self),
-                'date': '{}'.format(datetime.datetime.now()),
-                'terms': len(self._terms),
-                'documents': len(self._documents),
-                'comment': comment,
-            },
+            'meta': meta_data,
             # Actual HashedIndex data
             'documents': list(self._documents),
             'terms': self._terms,
