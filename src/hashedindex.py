@@ -70,6 +70,14 @@ class HashedIndex(object):
         else:
             return len(self._terms[term])
 
+    def get_document_length(self, document):
+        total = 0
+        for term in self._terms:
+            if document in self._terms[term]:
+                total += self._terms[term][document]
+
+        return total
+
     def terms(self):
         return self._terms.keys()
 
