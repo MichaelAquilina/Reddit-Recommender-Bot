@@ -193,6 +193,10 @@ class HashedIndexTest(unittest.TestCase):
         assert matrix[instances.index('document2.txt'), features.index('malta')] == 0
         assert matrix[instances.index('document2.txt'), features.index('word')] == 2 / 6
 
+    def test_generate_feature_matrix_invalid(self):
+        self.assertRaises(ValueError, self.index.generate_feature_matrix, mode='invalid')
+        self.assertRaises(ValueError, self.index.generate_feature_matrix, mode=None)
+
     def test_save_load(self):
         # Note mktemp is deprecated but this still works
         path = tempfile.mktemp()
