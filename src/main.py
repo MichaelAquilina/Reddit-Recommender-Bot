@@ -2,15 +2,9 @@
 # ~*~ coding: utf-8 ~*~
 import nltk
 
-import matplotlib.pyplot as plt
-
 import textparser
 
-from sklearn import metrics
-from sklearn.cross_validation import train_test_split
-
 from redditclassifier import RedditClassifier
-from utils import search_files
 
 from HTMLParser import HTMLParser
 from string import punctuation
@@ -62,58 +56,43 @@ def post_process(token):
     else:
         return _stemmer.stem(token)
 
+
 if __name__ == '__main__':
 
-    import os
-    import time
+    from scipy import sparse
+    from sklearn.svm import SVC
+    from sklearn import metrics
+    from sklearn.cross_validation import train_test_split
 
     # TODO: make this a program input
     target_dir = '/home/michaela/Development/Reddit-Data/'
 
-    classifier = RedditClassifier()
+    reddit = RedditClassifier()
 
-    print 'Loading %d files...' % len(list(search_files(os.path.join(target_dir, 'pages'))))
+    # Load Data Source
+    reddit.load_data_source(target_dir, subreddits=['science', 'python'], process=post_process)
+    reddit.index.prune()
 
-    t0 = time.time()
-    classifier.load_data(target_dir, ['science', 'python'], process=post_process)
+    # Save for future pre-loading
+    reddit.save('/home/michaela/reddit.json.bz2', compressed=True)
 
-    print 'Pruning Index...'
+    # Generate feature matrix and label vector
+    X, y = reddit.generate_data()
+    X_csr = sparse.csr_matrix(X)
+    X_train, X_test, y_train, y_test = train_test_split(X_csr, y)
 
-    classifier.index.prune()
-
-    print 'Generating Data...'
-    X, y = classifier.generate_data()
-
-    runtime = time.time() - t0
-
-    print 'Runtime = {}'.format(runtime)
-    print X.shape
-    print 'Science: ', y[y == classifier.subreddits.index('science')].size
-    print 'Python: ', y[y == classifier.subreddits.index('python')].size
-
-    classifier.index.save('/home/michaela/index.json.bz2', compressed=True)
-
-    print 'Performing Machine Learning'
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y)
-
-    from sklearn.svm import SVC
+    # Train
     classifier = SVC(kernel='linear')
     classifier.fit(X_train, y_train)
 
-    print 'Evaluating results...'
-
+    # Predict unseen instances
     y_pred = classifier.predict(X_test)
 
+    # evaluate performance on unseen instances
     cm = metrics.confusion_matrix(y_test, y_pred)
-
     print cm
 
     print 'Accuracy: ', metrics.accuracy_score(y_test, y_pred)
-    print 'Precision: ', metrics.precision_score(y_test, y_pred)
     print 'Recall: ', metrics.recall_score(y_test, y_pred)
+    print 'Precision: ', metrics.precision_score(y_test, y_pred)
     print 'F1 Measure: ', metrics.f1_score(y_test, y_pred)
-
-    plt.matshow(cm)
-    plt.colorbar()
-    plt.show()
