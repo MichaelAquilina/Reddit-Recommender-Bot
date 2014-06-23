@@ -180,6 +180,19 @@ class HashedIndexTest(unittest.TestCase):
         assert matrix[instances.index('document2.txt'), features.index('malta')] == 0
         assert matrix[instances.index('document1.txt'), features.index('phone')] == 0
 
+    def test_generate_feature_matrix_tf(self):
+        features = self.index.terms()
+        instances = self.index.documents()
+
+        matrix = self.index.generate_feature_matrix(mode='tf')
+
+        assert matrix[instances.index('document1.txt'), features.index('word')] == 3 / 8
+        assert matrix[instances.index('document2.txt'), features.index('phone')] == 4 / 6
+        assert matrix[instances.index('document1.txt'), features.index('malta')] == 5 / 8
+
+        assert matrix[instances.index('document2.txt'), features.index('malta')] == 0
+        assert matrix[instances.index('document2.txt'), features.index('word')] == 2 / 6
+
     def test_save_load(self):
         # Note mktemp is deprecated but this still works
         path = tempfile.mktemp()

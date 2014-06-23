@@ -119,8 +119,12 @@ class HashedIndex(object):
             for j, term in enumerate(self._terms):
                 if mode == 'tfidf':
                     result[i, j] = self.get_tfidf(term, doc)
-                else:
+                elif mode == 'count':
                     result[i, j] = self.get_term_frequency(term, doc)
+                elif mode == 'tf':
+                    result[i, j] = self.get_term_frequency(term, doc) / self.get_document_length(doc)
+                else:
+                    raise ValueError('Unexpected mode: %s', mode)
 
         return result
 
