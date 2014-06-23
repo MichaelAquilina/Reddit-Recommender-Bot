@@ -12,7 +12,7 @@ class HashedIndex(object):
 
     def __init__(self):
         self._terms = {}
-        self._documents = set()
+        self._documents = {}
 
     def __getitem__(self, term):
         return self._terms[term]
@@ -26,7 +26,7 @@ class HashedIndex(object):
         )
 
     def __eq__(self, other):
-        return self.items() == other.items() and self.documents() == other.documents()
+        return self._terms == other._terms and self._documents == other._documents
 
     def add_term_occurrence(self, term, document):
         """
@@ -39,8 +39,9 @@ class HashedIndex(object):
             self._terms[term][document] = 0
 
         if document not in self._documents:
-            self._documents.add(document)
+            self._documents[document] = 0
 
+        self._documents[document] += 1
         self._terms[term][document] += 1
 
     def get_total_term_frequency(self, term):
@@ -71,12 +72,10 @@ class HashedIndex(object):
             return len(self._terms[term])
 
     def get_document_length(self, document):
-        total = 0
-        for term in self._terms:
-            if document in self._terms[term]:
-                total += self._terms[term][document]
-
-        return total
+        if document in self._documents:
+            return self._documents[document]
+        else:
+            return 0
 
     def terms(self):
         return self._terms.keys()
@@ -169,7 +168,7 @@ class HashedIndex(object):
             # Store meta-data for analytical purposes
             'meta': meta_data,
             # Actual HashedIndex data
-            'documents': list(self._documents),
+            'documents': self._documents,
             'terms': self._terms,
         }, fp, indent=5)
         fp.close()
@@ -191,7 +190,7 @@ class HashedIndex(object):
         data = json.load(fp)
         fp.close()
 
-        self._documents = set(data['documents'])
+        self._documents = data['documents']
         self._terms = data['terms']
 
         return data['meta']

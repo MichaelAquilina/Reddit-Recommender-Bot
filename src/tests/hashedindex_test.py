@@ -93,6 +93,8 @@ class HashedIndexTest(unittest.TestCase):
         assert self.index.get_document_length('document1.txt') == 8
         assert self.index.get_document_length('document2.txt') == 6
 
+        assert self.index.get_document_length('doesnotexist.txt') == 0
+
     def test_get_terms(self):
         assert unordered_list_cmp(self.index.terms(), ['word', 'malta', 'phone'])
 
