@@ -28,8 +28,8 @@ class HashedIndexTest(unittest.TestCase):
         for i in xrange(2):
             self.index.add_term_occurrence('word', 'document2.txt')
 
-    def test_hashedindex_inherit_constructor(self):
-        index2 = HashedIndex(self.index)
+    def test_hashedindex_constructor_with_terms(self):
+        index2 = HashedIndex(self.index.terms())
 
         # Terms between the two indexes should be equal
         assert index2.terms() == self.index.terms()
