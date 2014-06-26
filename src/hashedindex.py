@@ -10,9 +10,16 @@ class HashedIndex(object):
     InvertedIndex structure in the form of a hash list implementation.
     """
 
-    def __init__(self):
-        self._terms = {}
+    def __init__(self, index=None):
+        """
+        Construct a new HashedIndex. An optional index may be passed
+        whose terms will be automatically added to the new HashedIndex.
+        """
         self._documents = {}
+        self._terms = {}
+        if index is not None:
+            for term in index.terms():
+                self._terms[term] = {}
 
     def __getitem__(self, term):
         return self._terms[term]

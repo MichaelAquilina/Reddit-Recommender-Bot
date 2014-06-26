@@ -28,6 +28,22 @@ class HashedIndexTest(unittest.TestCase):
         for i in xrange(2):
             self.index.add_term_occurrence('word', 'document2.txt')
 
+    def test_hashedindex_inherit_constructor(self):
+        index2 = HashedIndex(self.index)
+
+        # Terms between the two indexes should be equal
+        assert index2.terms() == self.index.terms()
+
+        # No documents should be found
+        assert index2.documents() == []
+
+        # All terms should have no referenced documents
+        for term in index2.terms():
+            assert index2[term] == {}
+
+        index2.add_term_occurrence('phone', 'mydoc.doc')
+        assert index2.get_term_frequency('phone', 'mydoc.doc') == 1
+
     def test_case_sensitive_documents(self):
         self.index.add_term_occurrence('word', 'Document2.txt')
 
