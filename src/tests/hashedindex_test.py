@@ -75,6 +75,27 @@ class HashedIndexTest(unittest.TestCase):
         # Non-Existent check
         assert 'doesnotexist' not in self.index
 
+    def test_freeze_unfreeze(self):
+        self.index.freeze()
+        self.index.add_term_occurrence('myword', 'document2.txt')
+
+        # New words should be not added
+        assert 'myword' not in self.index
+
+        # Adding words that exist should work though
+        assert self.index.get_term_frequency('word', 'document1.txt') == 3
+
+        self.index.add_term_occurrence('phone', 'document9.txt')
+        self.index.add_term_occurrence('word', 'document1.txt')
+
+        assert self.index.get_term_frequency('word', 'document1.txt') == 4
+        assert self.index.get_term_frequency('phone', 'document9.txt') == 1
+
+        # Terms should be add-able
+        self.index.unfreeze()
+        self.index.add_term_occurrence('myword', 'document2.txt')
+        assert 'myword' in self.index
+
     def test_get_total_term_frequency(self):
         assert self.index.get_total_term_frequency('word') == 5
         assert self.index.get_total_term_frequency('malta') == 5

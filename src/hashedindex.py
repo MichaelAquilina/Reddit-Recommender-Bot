@@ -17,6 +17,7 @@ class HashedIndex(object):
         """
         self._documents = {}
         self._terms = {}
+        self._freeze = False
         if initial_terms is not None:
             for term in initial_terms:
                 self._terms[term] = {}
@@ -35,12 +36,21 @@ class HashedIndex(object):
     def __eq__(self, other):
         return self._terms == other._terms and self._documents == other._documents
 
+    def freeze(self):
+        self._freeze = True
+
+    def unfreeze(self):
+        self._freeze = False
+
     def add_term_occurrence(self, term, document):
         """
         Adds an occurrence of the term in the specified document.
         """
         if term not in self._terms:
-            self._terms[term] = {}
+            if self._freeze:
+                return
+            else:
+                self._terms[term] = {}
 
         if document not in self._terms[term]:
             self._terms[term][document] = 0
