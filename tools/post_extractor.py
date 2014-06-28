@@ -231,6 +231,10 @@ if __name__ == '__main__':
                 # Set the after token for the next batch of data to download
                 after = subreddit_data['data']['after']
 
+                # No more data left to download!
+                if after is None:
+                    break
+
                 file_index += 1
             else:
                 print 'An error has occurred while communicating with the Reddit API'
