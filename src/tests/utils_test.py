@@ -2,6 +2,24 @@ from utils import *
 from url import Url
 
 
+def test_get_url_from_path_empty_dir():
+    assert get_url_from_path(
+        '', 'reddit.com/r/random%$%'
+    ) == 'http://reddit.com/r/random'
+
+
+def test_get_url_from_path_with_dir():
+    assert get_url_from_path(
+        '/home/user/pages', '/home/user/pages/example.com/index.html%$%'
+    ) == 'http://example.com/index.html'
+
+
+def test_get_url_from_path_no_symbol():
+    assert get_url_from_path(
+        '', 'my.domain.com/some/path'
+    ) == 'http://my.domain.com/some/path'
+
+
 def test_get_path_from_url_empty_path():
     # test with empty path urls
     assert get_path_from_url(

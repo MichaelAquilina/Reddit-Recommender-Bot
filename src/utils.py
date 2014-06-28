@@ -12,6 +12,15 @@ def search_files(path):
             yield abs_path
 
 
+def get_url_from_path(target_dir, abs_path):
+    rel_path = os.path.relpath(abs_path, target_dir)
+
+    if rel_path.endswith('%$%'):
+        rel_path = rel_path[:-3]  # Remove special tag character
+
+    return 'http://' + rel_path
+
+
 def get_path_from_url(target_dir, url):
     directory = os.path.join(target_dir, url.hostname)
 
