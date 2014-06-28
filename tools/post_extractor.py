@@ -230,4 +230,4 @@ if __name__ == '__main__':
             t.running = False
             t.join()
 
-        print 'Successfully downloaded %s HTML pages' % args.limit
+        print 'Successfully downloaded %d HTML pages (target was %d)' % (page_limit - page_count, args.limit)
