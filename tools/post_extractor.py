@@ -17,7 +17,7 @@ MAX_LIMIT = 100
 domain_blacklist = frozenset([
     'youtube.com', 'imgur.com', 'i.imgur.com',
     'vimeo.com', 'picasa.google.com', 'tinypic.com',
-    'xkcd.com', 'smbc-comics.com',
+    'xkcd.com', 'smbc-comics.com', 'flickr.com',
 ])
 
 
