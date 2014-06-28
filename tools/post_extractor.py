@@ -20,6 +20,9 @@ domain_blacklist = frozenset([
     'xkcd.com', 'smbc-comics.com', 'flickr.com',
 ])
 
+MAX_LENGTH = 1 * 1024 * 1024  # Max 1mb size
+MIN_LENGTH = 1024             # Min 1kb size
+
 
 class DownloaderThread(threading.Thread):
 
@@ -40,7 +43,7 @@ class DownloaderThread(threading.Thread):
             try:
                 req = download_html_page(url.geturl(), timeout=8)
 
-                if req and len(req.text) > 1000:
+                if req and MIN_LENGTH < len(req.text) < MAX_LENGTH:
                     directory, filename = get_path_from_url(pages_dir, url)
 
                     if not os.path.exists(directory):
