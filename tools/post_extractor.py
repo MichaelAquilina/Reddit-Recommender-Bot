@@ -189,7 +189,7 @@ if __name__ == '__main__':
 
                 # Detect if no data is returned before continuing
                 if len(subreddit_data['data']['children']) == 0:
-                    print 'The subreddit \'%s\' does not exist', args.subreddit
+                    print 'There was an error downloading \'%s\' subreddit data' % args.subreddit
                     break
 
                 with open(save_path, 'w') as f:
