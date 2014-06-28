@@ -164,6 +164,18 @@ if __name__ == '__main__':
         # Keep track of visited pages to prevent duplicates
         visited = set()
 
+        # Master dictionary of downloaded subreddit posts
+        # Mimics the format from the Reddit JSON dev API
+        master_dict = {
+            'Kind': 'Listing',
+            'data': {
+                'modhash': '',
+                'children': [],
+                'before': None,
+                'after': None
+            }
+        }
+
         while page_count:
 
             # Request data
@@ -185,15 +197,10 @@ if __name__ == '__main__':
                 # Data returned is in JSON format
                 subreddit_data = r.json()
 
-                save_path = os.path.join(save_dir, '{}.{}.{}.json'.format(args.subreddit, args.filter, file_index))
-
                 # Detect if no data is returned before continuing
                 if len(subreddit_data['data']['children']) == 0:
                     print 'There was an error downloading \'%s\' subreddit data' % args.subreddit
                     break
-
-                with open(save_path, 'w') as f:
-                    json.dump(subreddit_data, f, indent=4)
 
                 for post in subreddit_data['data']['children']:
 
@@ -208,6 +215,7 @@ if __name__ == '__main__':
                     post_index += 1
 
                     if post['kind'] == 't3' and not post['data']['is_self']:
+                        master_dict['data']['children'].append(post)
 
                         url = Url(post['data']['url'])
                         title = post['data']['title']
@@ -227,6 +235,10 @@ if __name__ == '__main__':
             else:
                 print 'An error has occurred while communicating with the Reddit API'
                 break
+
+        save_path = os.path.join(save_dir, '{}.{}.json'.format(args.subreddit, args.filter))
+        with open(save_path, 'w') as f:
+            json.dump(master_dict, f, indent=4)
 
         # Signify end of runtime and wait
         for t in page_threads:
