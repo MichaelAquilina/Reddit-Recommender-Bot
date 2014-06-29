@@ -89,12 +89,21 @@ def count_data(path, subreddit):
 
     return len(referenced)
 
+
+def list_subreddits(path):
+    subreddits_dir = os.path.join(path, 'subreddits')
+    return os.listdir(subreddits_dir)
+
+
 if __name__ == '__main__':
 
     import argparse
     parser = argparse.ArgumentParser(description='Data Store Tool for clearing and maintaining data')
     subparsers = parser.add_subparsers(dest='command')
     parser.add_argument('path', help='Path of the Data Store on which to operate on', type=str)
+
+    # List command
+    list_parser = subparsers.add_parser('list', help='List available subreddits')
 
     # Count command
     count_parser = subparsers.add_parser('count', help='Count number of subreddit referenced pages')
@@ -115,3 +124,5 @@ if __name__ == '__main__':
         print 'Successfully deleted %d unreferenced pages' % clean_data(args.path)
     elif args.command == 'count':
         print '\'%s\' has %d referenced pages available' % (args.subreddit, count_data(args.path, args.subreddit))
+    elif args.command == 'list':
+        print list_subreddits(args.path)
