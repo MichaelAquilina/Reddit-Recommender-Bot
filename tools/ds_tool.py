@@ -93,9 +93,8 @@ if __name__ == '__main__':
 
     import argparse
     parser = argparse.ArgumentParser(description='Data Store Tool for clearing and maintaining data')
-    parser.add_argument('path', help='Path of the Data Store on which to operate on', type=str)
-
     subparsers = parser.add_subparsers(dest='command')
+    parser.add_argument('path', help='Path of the Data Store on which to operate on', type=str)
 
     # Count command
     count_parser = subparsers.add_parser('count', help='Count number of subreddit referenced pages')
