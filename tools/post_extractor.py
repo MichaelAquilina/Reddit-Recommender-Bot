@@ -94,6 +94,7 @@ def join_and_check(path, *paths):
 def download_html_page(page_url, timeout=8):
     # Check encoding information before downloading everything
     req = requests.head(page_url, timeout=timeout, allow_redirects=True)
+    req.close()
 
     # Only download text content, we don't want anything else
     if req.ok and \
@@ -103,6 +104,7 @@ def download_html_page(page_url, timeout=8):
 
         # Perform the actual download
         req = requests.get(page_url, timeout=timeout, allow_redirects=True)
+        req.close()
 
         return req
     else:
