@@ -85,9 +85,10 @@ def count_data(path, subreddit):
     pages_dir = os.path.join(path, 'pages')
     subreddits_dir = os.path.join(path, 'subreddits')
 
-    referenced = set(get_subreddit_files(pages_dir, subreddits_dir, subreddit))
-
-    return len(referenced)
+    if subreddit == 'all':
+        return len(list(search_files(pages_dir)))
+    else:
+        return len(get_subreddit_files(pages_dir, subreddits_dir, subreddit))
 
 
 def list_subreddits(path):
@@ -106,8 +107,8 @@ if __name__ == '__main__':
     list_parser = subparsers.add_parser('list', help='List available subreddits')
 
     # Count command
-    count_parser = subparsers.add_parser('count', help='Count number of subreddit referenced pages')
-    count_parser.add_argument('subreddit', help='Subreddit for which to count')
+    count_parser = subparsers.add_parser('count', help='Count the number of pages')
+    count_parser.add_argument('subreddit', help='Subreddit for which to count. Specify \'all\' for no filter')
 
     # Clean command
     clean_parser = subparsers.add_parser('clean', help='Detect unreferenced pages and remove them')
@@ -123,6 +124,11 @@ if __name__ == '__main__':
     elif args.command == 'clean':
         print 'Successfully deleted %d unreferenced pages' % clean_data(args.path)
     elif args.command == 'count':
-        print '\'%s\' has %d referenced pages available' % (args.subreddit, count_data(args.path, args.subreddit))
+        pages_count = count_data(args.path, args.subreddit)
+        if args.subreddit == 'all':
+            print '%d pages found' % pages_count
+        else:
+            print '\'%s\' has %d referenced pages available' % (args.subreddit, pages_count)
+
     elif args.command == 'list':
         print list_subreddits(args.path)
