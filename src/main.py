@@ -1,22 +1,17 @@
 #! /usr/bin/python
 # ~*~ coding: utf-8 ~*~
+from __future__ import division
+
 import nltk
+import numpy as np
 
 import textparser
-
-from redditclassifier import RedditClassifier
 
 from HTMLParser import HTMLParser
 from string import punctuation
 
-# Reddit Developer API Notes
-# t1_	Comment
-# t2_	Account
-# t3_	Link
-# t4_	Message
-# t5_	Subreddit
-# t6_	Award
-# t8_	PromoCampaign
+from redditclassifier import load_data_source
+from hashedindex import HashedIndex
 
 
 # Stemmer interface which returns token unchanged
@@ -30,7 +25,9 @@ class NullStemmer(object):
 
 _parser = HTMLParser()
 _stopwords = frozenset(nltk.corpus.stopwords.words())
-_stemmer = nltk.PorterStemmer()
+
+# Lancaster Stemmer is very very slow
+_stemmer = NullStemmer()
 
 
 # Helper function that performs post-processing on tokens
@@ -59,40 +56,35 @@ def post_process(token):
 
 if __name__ == '__main__':
 
-    from scipy import sparse
-    from sklearn.svm import SVC
-    from sklearn import metrics
-    from sklearn.cross_validation import train_test_split
+    import time
+    t0 = time.time()
 
-    # TODO: make this a program input
-    target_dir = '/home/michaela/Development/Reddit-Data/'
+    data_path = '/home/michaela/Development/Reddit-Testing-Data'
+    save_path = '/home/michaela/Development/python_sr.json.bz2'
+    python_sr = HashedIndex()
 
-    reddit = RedditClassifier()
+    data = load_data_source(python_sr, data_path, subreddit='python', page_samples=800, process=post_process)
 
-    # Load Data Source
-    reddit.load_data_source(target_dir, subreddits=['science', 'python'], process=post_process)
-    reddit.index.prune()
+    print 'Original shape: (%d, %d)' % (len(python_sr.documents()), len(python_sr.terms()))
 
-    # Save for future pre-loading
-    reddit.save('/home/michaela/reddit.json.bz2', compressed=True)
+    # Values larger than 0.01 for min_frequency can be considered "aggressive" pruning
+    python_sr.prune(min_frequency=0.08)
+    python_sr.save(save_path, compressed=True, stemmer=str(_stemmer), subreddit='python')
 
-    # Generate feature matrix and label vector
-    X, y = reddit.generate_data()
-    X_csr = sparse.csr_matrix(X)
-    X_train, X_test, y_train, y_test = train_test_split(X_csr, y)
+    # python_sr.load(save_path, compressed=True)
 
-    # Train
-    classifier = SVC(kernel='linear')
-    classifier.fit(X_train, y_train)
+    # Generate numpy feature matrix
+    X = python_sr.generate_feature_matrix(mode='tfidf')
 
-    # Predict unseen instances
-    y_pred = classifier.predict(X_test)
+    # TODO: Move the generator code below to a function
+    y = np.zeros(len(python_sr.documents()))
+    for index, doc in enumerate(python_sr.documents()):
+        y[index] = 0 if data[doc] is None else 1
 
-    # evaluate performance on unseen instances
-    cm = metrics.confusion_matrix(y_test, y_pred)
-    print cm
+    print y
+    print y.shape
+    print np.sum(y == 1)
+    print np.sum(y == 0)
 
-    print 'Accuracy: ', metrics.accuracy_score(y_test, y_pred)
-    print 'Recall: ', metrics.recall_score(y_test, y_pred)
-    print 'Precision: ', metrics.precision_score(y_test, y_pred)
-    print 'F1 Measure: ', metrics.f1_score(y_test, y_pred)
+    print 'Pruned shape: (%d, %d)' % X.shape
+    print 'Runtime: {}'.format(time.time() - t0)
