@@ -18,6 +18,8 @@ if __name__ == '__main__':
     sr_json_dir = os.path.join(args.path, 'subreddits', args.subreddit)
     pages_dir = os.path.join(args.path, 'pages')
 
+    count = 0
+
     for json_file in os.listdir(sr_json_dir):
         abs_json_path = os.path.join(sr_json_dir, json_file)
         with open(abs_json_path, 'r') as fp:
@@ -33,9 +35,12 @@ if __name__ == '__main__':
                     print 'Removing: %s' % page_path
                     # Remove the stored page
                     os.remove(page_path)
+                    count += 1
 
         # Remove the subreddit json file when done
         os.remove(abs_json_path)
 
     # Remove the actual subreddit dir
     os.removedirs(sr_json_dir)
+
+    print 'Successfully deleted %d pages' % count
