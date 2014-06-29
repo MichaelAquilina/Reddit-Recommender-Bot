@@ -1,26 +1,51 @@
 import os
 import json
 import nltk
-
-import numpy as np
+import random
 
 import textparser
 
 from hashedindex import HashedIndex
 from url import Url
-from utils import get_path_from_url
+from utils import get_path_from_url, search_files, get_url_from_path
+
+# Reddit Developer API Notes
+# t1_	Comment
+# t2_	Account
+# t3_	Link
+# t4_	Message
+# t5_	Subreddit
+# t6_	Award
+# t8_	PromoCampaign
 
 
-# Try conform to sklearn's Estimator interface
-class RedditClassifier(object):
+def load_data_source(index, data_path, subreddit, page_samples, process=lambda x: x):
+    pages_dir = os.path.join(data_path, 'pages')
+    subreddits_dir = os.path.join(data_path, 'subreddits')
+    sr_path = os.path.join(subreddits_dir, subreddit)
 
-    def __init__(self):
-        self.index = HashedIndex()
-        self.subreddits = None
-        self._text_classification = None
+    # Dictionary of all available instances
+    data = {}
 
-    def _add_to_index(self, post, sr, pages_dir, process):
-        post_url = Url(post['data']['url'])
+    # Add pages from subreddit JSON file
+    for json_file in os.listdir(sr_path):
+        with open(os.path.join(sr_path, json_file)) as fp:
+            post_data = json.load(fp)
+
+        for post in post_data['data']['children']:
+            # Only interested in link posts (but they all should ok)
+            if post['kind'] == 't3':
+                data[post['data']['url']] = subreddit
+
+    # Add random sample from pages directory
+    remaining = set(search_files(pages_dir)) - set(data.keys())
+    for page_path in random.sample(remaining, page_samples):
+        url = get_url_from_path(pages_dir, page_path)
+        data[url] = None   # Unlabelled data
+
+    # Add all the data to the index
+    for url, label in data.items():
+        post_url = Url(url)
 
         directory, filename = get_path_from_url(pages_dir, post_url)
         abs_path = os.path.join(directory, filename)
@@ -40,53 +65,7 @@ class RedditClassifier(object):
                 for split_token in token.split('/'):
                     post_processed_token = process(split_token)
                     if post_processed_token:
-                        self._text_classification[rel_path] = sr
-                        self.index.add_term_occurrence(post_processed_token, rel_path)
+                        index.add_term_occurrence(post_processed_token, url)
 
-    def load_data_source(self, data_path, subreddits=None, process=lambda x: x):
-        pages_dir = os.path.join(data_path, 'pages')
-        subreddits_dir = os.path.join(data_path, 'subreddits')
-
-        # Store the classification of each document added
-        self._text_classification = {}
-
-        if subreddits is None:
-            subreddits = os.listdir(subreddits_dir)
-
-        # Assign the subreddits trained on
-        self.subreddits = subreddits
-
-        # Parse JSON subreddit files
-        for sr in subreddits:
-            sr_path = os.path.join(subreddits_dir, sr)
-
-            for json_file in os.listdir(sr_path):
-                with open(os.path.join(sr_path, json_file)) as fp:
-                    post_data = json.load(fp)
-
-                for post in post_data['data']['children']:
-                    if post['kind'] == 't3':  # Only interested in link posts
-                        self._add_to_index(post, sr, pages_dir, process)
-
-    def generate_data(self):
-        # Generate feature matrix from data loaded in the inverted index
-        feature_matrix = self.index.generate_feature_matrix(mode='tfidf')
-
-        # Generate the label vector
-        label_vector = np.zeros((len(self.index.documents())))
-        for i, document in enumerate(self.index.documents()):
-            label_vector[i] = self.subreddits.index(self._text_classification[document])
-
-        return feature_matrix, label_vector
-
-    def save(self, data_path, compressed=False):
-        self.index.save(
-            data_path, compressed,
-            subreddits=self.subreddits,
-            text_classification=self._text_classification,
-        )
-
-    def load(self, data_path, compressed=False):
-        meta = self.index.load(data_path, compressed)
-        self._text_classification = meta['text_classification']
-        self.subreddits = meta['subreddits']
+    # Return list of data points
+    return data
