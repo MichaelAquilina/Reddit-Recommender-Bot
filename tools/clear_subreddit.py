@@ -11,8 +11,6 @@ if __name__ == '__main__':
     parser.add_argument('subreddit', type=str)
     parser.add_argument('path', type=str)
 
-    # TODO: Add option to clear all directories which are empty
-
     args = parser.parse_args()
 
     sr_json_dir = os.path.join(args.path, 'subreddits', args.subreddit)
@@ -36,6 +34,10 @@ if __name__ == '__main__':
                     # Remove the stored page
                     os.remove(page_path)
                     count += 1
+
+                    # Remove leaf directory and all empty intermediate ones
+                    if len(os.listdir(directory)) == 0:
+                        os.removedirs(directory)
 
         # Remove the subreddit json file when done
         os.remove(abs_json_path)
