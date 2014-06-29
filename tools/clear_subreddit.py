@@ -1,20 +1,19 @@
+#! /usr/bin/python
+
 import os
 import json
 
 from url import Url
 from utils import get_path_from_url
 
-if __name__ == '__main__':
 
-    import argparse
-    parser = argparse.ArgumentParser(description='Clear subreddit data from a data store')
-    parser.add_argument('subreddit', help='Target subreddit to remove', type=str)
-    parser.add_argument('path', help='Path of the Data Store on which to operate on', type=str)
+# BUG: Pages referenced by more than 1 subreddit will still be deleted by the remove command
+def remove_subreddit(path, subreddit):
+    sr_json_dir = os.path.join(path, 'subreddits', subreddit)
+    pages_dir = os.path.join(path, 'pages')
 
-    args = parser.parse_args()
-
-    sr_json_dir = os.path.join(args.path, 'subreddits', args.subreddit)
-    pages_dir = os.path.join(args.path, 'pages')
+    if not os.path.exists(sr_json_dir):
+        return 0
 
     count = 0
 
@@ -44,5 +43,28 @@ if __name__ == '__main__':
 
     # Remove the actual subreddit dir
     os.removedirs(sr_json_dir)
+    return count
 
-    print 'Successfully deleted %d pages' % count
+
+if __name__ == '__main__':
+
+    import argparse
+    parser = argparse.ArgumentParser(description='Data Store Tool for clearing and maintaining data')
+    parser.add_argument('path', help='Path of the Data Store on which to operate on', type=str)
+
+    subparsers = parser.add_subparsers(dest='command')
+
+    # Clean command
+    clean_parser = subparsers.add_parser('clean', help='Detect unreferenced pages and remove them')
+
+    # Remove Command
+    remove_parser = subparsers.add_parser('remove', help='Remove the specified subreddit and all its associated pages')
+    remove_parser.add_argument('subreddit', help='Target subreddit to remove', type=str)
+
+    args = parser.parse_args()
+
+    if args.command == 'remove':
+        count = remove_subreddit(args.path, args.subreddit)
+        print 'Successfully deleted %d pages' % count
+    elif args.command == 'clean':
+        print 'Clean Command'
