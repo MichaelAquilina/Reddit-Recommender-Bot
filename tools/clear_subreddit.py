@@ -8,8 +8,8 @@ if __name__ == '__main__':
 
     import argparse
     parser = argparse.ArgumentParser(description='Clear subreddit data from a data store')
-    parser.add_argument('subreddit', type=str)
-    parser.add_argument('path', type=str)
+    parser.add_argument('subreddit', help='Target subreddit to remove', type=str)
+    parser.add_argument('path', help='Path of the Data Store on which to operate on', type=str)
 
     args = parser.parse_args()
 
