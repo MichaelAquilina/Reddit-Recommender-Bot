@@ -217,8 +217,6 @@ if __name__ == '__main__':
                     post_index += 1
 
                     if post['kind'] == 't3' and not post['data']['is_self']:
-                        master_dict['data']['children'].append(post)
-
                         url = Url(post['data']['url'])
                         title = post['data']['title']
 
@@ -226,6 +224,8 @@ if __name__ == '__main__':
                             continue
 
                         if url not in visited:
+                            master_dict['data']['children'].append(post)
+
                             visited.add(url)
                             local_count -= 1
                             page_queue.put((url, title))
