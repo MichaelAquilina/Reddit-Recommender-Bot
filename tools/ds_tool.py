@@ -4,7 +4,7 @@ import os
 import json
 
 from url import Url
-from utils import get_path_from_url
+from utils import get_path_from_url, search_files
 
 
 # BUG: Pages referenced by more than 1 subreddit will still be deleted by the remove command
@@ -46,6 +46,39 @@ def remove_subreddit(path, subreddit):
     return count
 
 
+def clean_data(path):
+    pages_dir = os.path.join(path, 'pages')
+    subreddits_dir = os.path.join(path, 'subreddits')
+
+    all_pages = set(search_files(pages_dir))
+    referenced = set()
+
+    for sr in os.listdir(subreddits_dir):
+        sr_json_dir = os.path.join(subreddits_dir, sr)
+        for json_file in os.listdir(sr_json_dir):
+            with open(os.path.join(sr_json_dir, json_file), 'r') as fp:
+                data = json.load(fp)
+
+            for post in data['data']['children']:
+                url = Url(post['data']['url'])
+                directory, filename = get_path_from_url(pages_dir, url)
+                referenced.add(os.path.join(directory, filename))
+
+    count = 0
+    unreferenced = all_pages - referenced
+    for page_path in unreferenced:
+        if os.path.exists(page_path):
+            print 'Removing: %s' % page_path
+            os.remove(page_path)
+            parent = os.path.dirname(page_path)
+            count += 1
+
+            if len(os.listdir(parent)) == 0:
+                os.removedirs(parent)
+
+    return count
+
+
 if __name__ == '__main__':
 
     import argparse
@@ -67,4 +100,5 @@ if __name__ == '__main__':
         count = remove_subreddit(args.path, args.subreddit)
         print 'Successfully deleted %d pages' % count
     elif args.command == 'clean':
-        print 'Clean Command'
+        count = clean_data(args.path)
+        print 'Successfully deleted %d unreferenced pages' % count
