@@ -32,12 +32,14 @@ class DownloaderThread(threading.Thread):
         super(DownloaderThread, self).__init__()
 
     def run(self):
-        global page_queue, pages_dir, page_lock, page_count, page_limit
+        global page_queue, pages_dir, page_lock, \
+            page_count, page_limit, valid_queue
         self.running = True
 
         while self.running:
             try:
                 url, title = page_queue.get(timeout=0.1)
+                valid = False  # Reset flag after each get
             except Queue.Empty:
                 continue
 
@@ -57,6 +59,7 @@ class DownloaderThread(threading.Thread):
                     page_count -= 1
                     print u'[{}]: {} ({})'.format(page_limit - page_count, title, url.geturl())
                     page_lock.release()
+                    valid = True  # Mark the operation as successful
 
             except requests.ConnectionError:
                 print 'Unable to connect to: %s' % url
@@ -67,6 +70,10 @@ class DownloaderThread(threading.Thread):
             except Exception as e:
                 print 'A generic error occurred on: %s' % url
                 print e.message
+
+            # If the operation was successful, place it in the valid queue for saving
+            if valid:
+                valid_queue.put(url)
 
             # Always mark the task as done before moving on the next item
             page_queue.task_done()
@@ -141,6 +148,7 @@ if __name__ == '__main__':
         # After pointer for retrieving next batch of submissions
         after = None
 
+        valid_queue = Queue.Queue()  # Could possible be replaced by a simple list
         page_queue = Queue.Queue()
         page_lock = threading.Lock()
 
@@ -165,19 +173,7 @@ if __name__ == '__main__':
         save_dir = join_and_check(args.out, 'subreddits', args.subreddit)
 
         # Keep track of visited pages to prevent duplicates
-        visited = set()
-
-        # Master dictionary of downloaded subreddit posts
-        # Mimics the format from the Reddit JSON dev API
-        master_dict = {
-            'Kind': 'Listing',
-            'data': {
-                'modhash': '',
-                'children': [],
-                'before': None,
-                'after': None
-            }
-        }
+        visited = dict()
 
         while page_count:
 
@@ -225,9 +221,7 @@ if __name__ == '__main__':
                             continue
 
                         if url not in visited:
-                            master_dict['data']['children'].append(post)
-
-                            visited.add(url)
+                            visited[url] = post
                             local_count -= 1
                             page_queue.put((url, title))
 
@@ -243,13 +237,31 @@ if __name__ == '__main__':
                 print 'An error has occurred while communicating with the Reddit API'
                 break
 
-        save_path = os.path.join(save_dir, '{}.{}.json'.format(args.subreddit, args.filter))
-        with open(save_path, 'w') as f:
-            json.dump(master_dict, f, indent=4)
-
         # Signify end of runtime and wait
         for t in page_threads:
             t.running = False
             t.join()
+
+        # Master dictionary of downloaded subreddit posts
+        # Mimics the format from the Reddit JSON dev API
+        master_dict = {
+            'Kind': 'Listing',
+            'data': {
+                'modhash': '',
+                'children': [],
+                'before': None,
+                'after': None
+            }
+        }
+
+        # store all successfully downloaded pages in the master_dict
+        while valid_queue.unfinished_tasks:
+            url = valid_queue.get()
+            valid_queue.task_done()
+            master_dict['data']['children'].append(visited[url])
+
+        save_path = os.path.join(save_dir, '{}.{}.json'.format(args.subreddit, args.filter))
+        with open(save_path, 'w') as f:
+            json.dump(master_dict, f, indent=4)
 
         print 'Successfully downloaded %d HTML pages (target was %d)' % (page_limit - page_count, args.limit)
