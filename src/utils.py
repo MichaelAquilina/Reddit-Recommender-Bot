@@ -7,9 +7,9 @@ def search_files(path):
         abs_path = os.path.join(path, p1)
         if os.path.isdir(abs_path):
             for p2 in search_files(abs_path):
-                yield p2
+                yield unicode(p2)
         else:
-            yield abs_path
+            yield unicode(abs_path)
 
 
 def get_url_from_path(target_dir, abs_path):
