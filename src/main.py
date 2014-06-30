@@ -10,7 +10,7 @@ import textparser
 from HTMLParser import HTMLParser
 from string import punctuation
 
-from redditclassifier import load_data_source
+from datasource import load_data_source
 from hashedindex import HashedIndex
 
 

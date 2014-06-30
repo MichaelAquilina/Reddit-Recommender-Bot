@@ -5,7 +5,8 @@ import random
 
 import textparser
 
-from utils import get_path_from_url, search_files
+from utils import search_files
+from url import Url
 
 # Reddit Developer API Notes
 # t1_	Comment
@@ -17,7 +18,48 @@ from utils import get_path_from_url, search_files
 # t8_	PromoCampaign
 
 
-def load_data_source(index, data_path, subreddit, page_samples, process=lambda x: x):
+def get_url_from_path(target_dir, abs_path):
+    rel_path = os.path.relpath(abs_path, target_dir)
+
+    if rel_path.endswith('%$%'):
+        rel_path = rel_path[:-3]  # Remove special tag character
+
+    return 'http://' + rel_path
+
+
+def get_path_from_url(target_dir, url):
+    if type(url) != Url:
+        url = Url(url)
+
+    directory = os.path.join(target_dir, url.hostname)
+
+    # Create subdirs according to the url path
+    url_path = url.path.strip('/')
+
+    path_index = url_path.rfind('/')
+    if path_index != -1:
+        sub_path = url_path[:path_index].lstrip('/')
+        directory = os.path.join(directory, sub_path)
+
+        filename = url_path[path_index:].strip('/')
+    else:
+        filename = url_path
+
+    # Root page directories are "index.html"
+    if filename == '':
+        filename = 'index.html'
+
+    # Query can uniquely identify a file
+    if url.query:
+        filename += '?' + url.query
+
+    # Append special character to prevent conflicts with directories
+    filename += '%$%'
+
+    return directory, filename
+
+
+def load_data_source(index, data_path, subreddit, page_samples, preprocess=lambda x: x):
     pages_dir = os.path.join(data_path, 'pages')
     subreddits_dir = os.path.join(data_path, 'subreddits')
     sr_path = os.path.join(subreddits_dir, subreddit)
@@ -56,7 +98,7 @@ def load_data_source(index, data_path, subreddit, page_samples, process=lambda x
 
                 # Handle "or" case represented by "/"
                 for split_token in token.split('/'):
-                    post_processed_token = process(split_token)
+                    post_processed_token = preprocess(split_token)
                     if post_processed_token:
                         index.add_term_occurrence(post_processed_token, page_path)
 
