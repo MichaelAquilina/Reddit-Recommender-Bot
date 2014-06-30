@@ -1,5 +1,7 @@
 import os
 
+from url import Url
+
 
 # TODO: Cover with tests
 def search_files(path):
@@ -22,6 +24,9 @@ def get_url_from_path(target_dir, abs_path):
 
 
 def get_path_from_url(target_dir, url):
+    if type(url) != Url:
+        url = Url(url)
+
     directory = os.path.join(target_dir, url.hostname)
 
     # Create subdirs according to the url path
