@@ -120,6 +120,20 @@ class HashedIndex(object):
         else:
             return 0.0
 
+    def generate_document_vector(self, doc, mode='tfidf'):
+        result = np.zeros(len(self._terms))
+        for i, term in enumerate(self._terms):
+            if mode == 'tfidf':
+                result[i] = self.get_tfidf(term, doc)
+            elif mode == 'count':
+                result[i] = self.get_term_frequency(term, doc)
+            elif mode == 'tf':
+                result[i] = self.get_term_frequency(term, doc) / self.get_document_length(doc)
+            else:
+                raise ValueError('Unexpected mode: %s', mode)
+
+        return result
+
     def generate_feature_matrix(self, mode='tfidf'):
         """
         Returns a feature numpy matrix representing the terms and
@@ -133,15 +147,7 @@ class HashedIndex(object):
         result = np.zeros((len(self._documents), len(self._terms)))
 
         for i, doc in enumerate(self._documents):
-            for j, term in enumerate(self._terms):
-                if mode == 'tfidf':
-                    result[i, j] = self.get_tfidf(term, doc)
-                elif mode == 'count':
-                    result[i, j] = self.get_term_frequency(term, doc)
-                elif mode == 'tf':
-                    result[i, j] = self.get_term_frequency(term, doc) / self.get_document_length(doc)
-                else:
-                    raise ValueError('Unexpected mode: %s', mode)
+            result[i, :] = self.generate_document_vector(doc, mode)
 
         return result
 

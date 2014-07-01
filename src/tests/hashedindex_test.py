@@ -12,6 +12,9 @@ def unordered_list_cmp(list1, list2):
 
 
 class HashedIndexTest(unittest.TestCase):
+    # Note that generate_document_vector and generate_feature_matrix tests
+    # are considered interrelated and test cases are therefore not repeated
+    # between them where possible.
 
     def setUp(self):
         self.index = HashedIndex()
@@ -172,6 +175,10 @@ class HashedIndexTest(unittest.TestCase):
     def test_get_tfidf_empty_term(self):
         assert self.index.get_tfidf('doesnotexist', 'document1.txt') == 0
 
+    def test_generate_document_vector_default(self):
+        assert (self.index.generate_document_vector('document1.txt') ==
+                self.index.generate_document_vector('document1.txt', mode='tfidf')).all()
+
     def test_generate_feature_matrix_default(self):
         assert (self.index.generate_feature_matrix() == self.index.generate_feature_matrix(mode='tfidf')).all()
 
@@ -196,6 +203,17 @@ class HashedIndexTest(unittest.TestCase):
         # Zero Cases
         assert matrix[instances.index('document2.txt'), features.index('malta')] == 0
         assert matrix[instances.index('document1.txt'), features.index('phone')] == 0
+
+    def test_generate_document_vector_count(self):
+        features = self.index.terms()
+        vector = self.index.generate_document_vector('document1.txt', mode='count')
+
+        # Correct vector shape
+        assert vector.shape == (len(features),)
+
+        assert vector[features.index('malta')] == 5.0
+        assert vector[features.index('word')] == 3.0
+        assert vector[features.index('phone')] == 0.0
 
     def test_generate_feature_matrix_count(self):
         # Extract the feature and document indices
