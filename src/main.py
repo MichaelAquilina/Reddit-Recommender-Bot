@@ -72,6 +72,7 @@ if __name__ == '__main__':
 
     sr_index = HashedIndex()
 
+    print 'Loading from disk: ', load
     if load:
         meta = sr_index.load(save_path, compressed=True)
         data = meta['text_class']
@@ -85,7 +86,9 @@ if __name__ == '__main__':
         sr_index.save(save_path, compressed=True, stemmer=str(_stemmer), subreddit='python', text_class=data)
 
     # Generate numpy feature matrix
+    t1 = time.time()
     X = sr_index.generate_feature_matrix(mode='tfidf')
+    print 'generation runtime = {}'.format(time.time() - t1)
 
     print 'Feature Matrix shape: (%d, %d)' % X.shape
     print 'Runtime: {}'.format(time.time() - t0)
@@ -103,8 +106,9 @@ if __name__ == '__main__':
     X_train, X_test, y_train, y_test = train_test_split(X, y)
 
     # Machine Learning Stuff Here
-    from sklearn.svm import SVC
-    classifier = SVC(kernel='linear')
+    from sklearn.linear_model import SGDClassifier
+
+    classifier = SGDClassifier()
     classifier.fit(X_train, y_train)
 
     y_pred = classifier.predict(X_test)
@@ -115,3 +119,20 @@ if __name__ == '__main__':
 
     # Standard ML metrics
     print 'Accuracy: ', metrics.accuracy_score(y_test, y_pred)
+
+    # Test out some pages
+    import requests
+    req = requests.get('http://arstechnica.com/gadgets/2014/06/flying-and-crashing-a-1300-quadcopter-drone/')
+    sr_index.freeze()  # Prevent more terms from being added
+
+    text = nltk.clean_html(req.text)
+    for token in textparser.word_tokenize(text, remove_case=True):
+        # Handle "or" case represented by "/"
+        for split_token in token.split('/'):
+            post_processed_token = post_process(split_token)
+            if post_processed_token:
+                sr_index.add_term_occurrence(post_processed_token, 'TESTDOCUMENT')
+
+    doc_vector = sr_index.generate_document_vector('TESTDOCUMENT')
+
+    print classifier.predict(doc_vector)
