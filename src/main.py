@@ -2,16 +2,20 @@
 # ~*~ coding: utf-8 ~*~
 from __future__ import division
 
+import os
 import nltk
 import numpy as np
 
 import textparser
 
+from sklearn import metrics
+from sklearn.cross_validation import train_test_split
 from HTMLParser import HTMLParser
 from string import punctuation
 
 from datasource import load_data_source
 from hashedindex import HashedIndex
+from utils import search_files
 
 
 # Stemmer interface which returns token unchanged
@@ -59,32 +63,55 @@ if __name__ == '__main__':
     import time
     t0 = time.time()
 
+    load = True  # Flag to specify whether to load or parse the information
+
     data_path = '/home/michaela/Development/Reddit-Testing-Data'
     save_path = '/home/michaela/Development/python_sr.json.bz2'
-    python_sr = HashedIndex()
 
-    data = load_data_source(python_sr, data_path, subreddit='python', page_samples=800, process=post_process)
+    print 'Available pages: ', len(list(search_files(os.path.join(data_path, 'pages'))))
 
-    print 'Original shape: (%d, %d)' % (len(python_sr.documents()), len(python_sr.terms()))
+    sr_index = HashedIndex()
 
-    # Values larger than 0.01 for min_frequency can be considered "aggressive" pruning
-    python_sr.prune(min_frequency=0.08)
-    python_sr.save(save_path, compressed=True, stemmer=str(_stemmer), subreddit='python')
+    if load:
+        meta = sr_index.load(save_path, compressed=True)
+        data = meta['text_class']
+    else:
+        data = load_data_source(sr_index, data_path, subreddit='python', page_samples=800, preprocess=post_process)
 
-    # python_sr.load(save_path, compressed=True)
+        print 'Original shape: (%d, %d)' % (len(sr_index.documents()), len(sr_index.terms()))
+
+        # Values larger than 0.01 for min_frequency can be considered "aggressive" pruning
+        sr_index.prune(min_frequency=0.08)
+        sr_index.save(save_path, compressed=True, stemmer=str(_stemmer), subreddit='python', text_class=data)
 
     # Generate numpy feature matrix
-    X = python_sr.generate_feature_matrix(mode='tfidf')
+    X = sr_index.generate_feature_matrix(mode='tfidf')
+
+    print 'Feature Matrix shape: (%d, %d)' % X.shape
+    print 'Runtime: {}'.format(time.time() - t0)
 
     # TODO: Move the generator code below to a function
-    y = np.zeros(len(python_sr.documents()))
-    for index, doc in enumerate(python_sr.documents()):
+    y = np.zeros(len(sr_index.documents()))
+    for index, doc in enumerate(sr_index.documents()):
         y[index] = 0 if data[doc] is None else 1
 
     print y
     print y.shape
-    print np.sum(y == 1)
-    print np.sum(y == 0)
+    print 'Positive: ', np.sum(y == 1)
+    print 'Unlabelled: ', np.sum(y == 0)
 
-    print 'Pruned shape: (%d, %d)' % X.shape
-    print 'Runtime: {}'.format(time.time() - t0)
+    X_train, X_test, y_train, y_test = train_test_split(X, y)
+
+    # Machine Learning Stuff Here
+    from sklearn.svm import SVC
+    classifier = SVC(kernel='linear')
+    classifier.fit(X_train, y_train)
+
+    y_pred = classifier.predict(X_test)
+
+    # Print confusion matrix to understand overall performance
+    cm = metrics.confusion_matrix(y_test, y_pred)
+    print cm
+
+    # Standard ML metrics
+    print 'Accuracy: ', metrics.accuracy_score(y_test, y_pred)
