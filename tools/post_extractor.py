@@ -7,7 +7,7 @@ import threading
 import Queue
 
 from url import Url
-from utils import get_path_from_url
+from datasource import get_path_from_url
 
 # Max listing limit as specified by the Reddit devapi
 MAX_LIMIT = 100

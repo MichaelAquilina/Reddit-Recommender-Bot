@@ -9,7 +9,8 @@ import os
 import json
 
 from url import Url
-from utils import get_path_from_url, search_files
+from utils import search_files
+from datasource import get_path_from_url
 
 
 # Lists all page files referenced in the subreddit JSON file
