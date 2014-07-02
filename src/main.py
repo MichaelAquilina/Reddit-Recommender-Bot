@@ -144,13 +144,21 @@ if __name__ == '__main__':
     pages = [
         'http://www.cnet.com/uk/news/linux-arrives-on-loaded-dell-ultrabook/',
         'http://www.mirror.co.uk/news/uk-news/uk-average-salary-26500-figures-3002995',
-        'http://www.bristolastrosoc.org.uk/www/pages/the-society.php',
+        'https://github.com/vasi/pixz',
         'https://www.dlitz.net/software/pycrypto/',  # Python
         'http://jakevdp.github.io/blog/2013/07/10/XKCD-plots-in-matplotlib/',  # Python
         'http://jakevdp.github.io/blog/2012/10/07/xkcd-style-plots-in-matplotlib/',  # Python
     ]
 
-    for p in pages:
+    terms = sr_index.terms()
+
+    import matplotlib.pyplot as plt
+    from math import ceil
+
+    n = 20
+    figure, axes = plt.subplots(int(ceil(len(pages) / 3)), 3)
+
+    for count, p in enumerate(pages):
 
         req = requests.get(p)
 
@@ -165,3 +173,17 @@ if __name__ == '__main__':
         doc_vector = sr_index.generate_document_vector(p)
 
         print '%s: %s' % (p, classifier.predict(doc_vector))
+
+        items = zip(doc_vector, range(doc_vector.size))
+        items.sort(reverse=True)
+        items = items[:n]
+
+        i = count // 3
+        j = count % 3
+
+        axes[i, j].set_xticks(range(0, n, 1))
+        axes[i, j].set_xticklabels([terms[a[1]] for a in items], rotation=45, ha='right')
+        axes[i, j].set_title('{:.35s}'.format(p))
+        axes[i, j].scatter(range(n), [a[0] for a in items])
+
+    plt.show()
