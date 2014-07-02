@@ -172,7 +172,8 @@ if __name__ == '__main__':
 
         doc_vector = sr_index.generate_document_vector(p)
 
-        print '%s: %s' % (p, classifier.predict(doc_vector))
+        doc_prediction = classifier.predict(doc_vector)
+        print '%s: %s' % (p, doc_prediction)
 
         items = zip(doc_vector, range(doc_vector.size))
         items.sort(reverse=True)
@@ -181,9 +182,11 @@ if __name__ == '__main__':
         i = count // 3
         j = count % 3
 
+        color = 'g' if doc_prediction[0] == 1.0 else 'r'
+
         axes[i, j].set_xticks(range(0, n, 1))
         axes[i, j].set_xticklabels([terms[a[1]] for a in items], rotation=45, ha='right')
         axes[i, j].set_title('{:.35s}'.format(p))
-        axes[i, j].scatter(range(n), [a[0] for a in items])
+        axes[i, j].scatter(range(n), [a[0] for a in items], color=color)
 
     plt.show()
