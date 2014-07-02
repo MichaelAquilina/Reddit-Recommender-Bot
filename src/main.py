@@ -30,9 +30,6 @@ class NullStemmer(object):
 _parser = HTMLParser()
 _stopwords = frozenset(nltk.corpus.stopwords.words())
 
-# Lancaster Stemmer is very very slow
-_stemmer = NullStemmer()
-
 
 # Helper function that performs post-processing on tokens
 # Should be an argument that can be passed
@@ -63,37 +60,56 @@ if __name__ == '__main__':
     import time
     t0 = time.time()
 
-    load = True  # Flag to specify whether to load or parse the information
+    # Lancaster Stemmer is very very slow
+    _stemmer = NullStemmer()
 
     data_path = '/home/michaela/Development/Reddit-Testing-Data'
     save_path = '/home/michaela/Development/python_sr.json.bz2'
+
+    # Set the parameters to the program over here
+    force_load = False
+    parameters = {
+        'samples': 900,
+        'subreddit': 'python',
+        'min_frequency': 0.05,
+        'max_frequency': 1.00,
+        'stemmer': str(_stemmer),
+        'mode': 'tfidf',
+    }
 
     print 'Available pages: ', len(list(search_files(os.path.join(data_path, 'pages'))))
 
     sr_index = HashedIndex()
 
-    print 'Loading from disk: ', load
-    if load:
-        meta = sr_index.load(save_path, compressed=True)
-        data = meta['text_class']
-    else:
-        data = load_data_source(sr_index, data_path, subreddit='python', page_samples=800, preprocess=post_process)
+    # Possible to initially just load meta-data?
+    meta = sr_index.load(save_path, compressed=True)
+
+    if force_load or meta['parameters'] != parameters:
+        print 'State File Parameters out of date. Re-Indexing...'
+
+        sr_index.clear()
+        data = load_data_source(sr_index, data_path, subreddit=parameters['subreddit'], page_samples=parameters['samples'], preprocess=post_process)
 
         print 'Original shape: (%d, %d)' % (len(sr_index.documents()), len(sr_index.terms()))
 
         # Values larger than 0.01 for min_frequency can be considered "aggressive" pruning
-        sr_index.prune(min_frequency=0.08)
-        sr_index.save(save_path, compressed=True, stemmer=str(_stemmer), subreddit='python', text_class=data)
+        sr_index.prune(min_frequency=parameters['min_frequency'], max_frequency=parameters['max_frequency'])
+        sr_index.save(save_path, compressed=True, text_class=data, parameters=parameters)
+    else:
+        print 'State File is up to date'
+        data = meta['text_class']
 
     # Generate numpy feature matrix
+    print 'Generating feature matrix'
     t1 = time.time()
-    X = sr_index.generate_feature_matrix(mode='tfidf')
+    X = sr_index.generate_feature_matrix(mode=parameters['mode'])
     print 'generation runtime = {}'.format(time.time() - t1)
 
     print 'Feature Matrix shape: (%d, %d)' % X.shape
     print 'Runtime: {}'.format(time.time() - t0)
 
     # TODO: Move the generator code below to a function
+    # This needs to be better tested, not sure if this is 100% correct
     y = np.zeros(len(sr_index.documents()))
     for index, doc in enumerate(sr_index.documents()):
         y[index] = 0 if data[doc] is None else 1
@@ -122,7 +138,7 @@ if __name__ == '__main__':
 
     # Test out some pages
     import requests
-    req = requests.get('http://arstechnica.com/gadgets/2014/06/flying-and-crashing-a-1300-quadcopter-drone/')
+    req = requests.get('http://www.cnet.com/uk/news/linux-arrives-on-loaded-dell-ultrabook/')
     sr_index.freeze()  # Prevent more terms from being added
 
     text = nltk.clean_html(req.text)
