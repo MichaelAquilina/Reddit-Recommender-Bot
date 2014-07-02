@@ -71,7 +71,7 @@ if __name__ == '__main__':
     parameters = {
         'samples': 900,
         'subreddit': 'python',
-        'min_frequency': 0.05,
+        'min_frequency': 0.08,
         'max_frequency': 1.00,
         'stemmer': str(_stemmer),
         'mode': 'tfidf',
@@ -101,8 +101,11 @@ if __name__ == '__main__':
 
     # Generate numpy feature matrix
     print 'Generating feature matrix'
+
     t1 = time.time()
     X = sr_index.generate_feature_matrix(mode=parameters['mode'])
+    sr_index.freeze()  # Prevent more terms from being added
+
     print 'generation runtime = {}'.format(time.time() - t1)
 
     print 'Feature Matrix shape: (%d, %d)' % X.shape
@@ -138,17 +141,27 @@ if __name__ == '__main__':
 
     # Test out some pages
     import requests
-    req = requests.get('http://www.cnet.com/uk/news/linux-arrives-on-loaded-dell-ultrabook/')
-    sr_index.freeze()  # Prevent more terms from being added
+    pages = [
+        'http://www.cnet.com/uk/news/linux-arrives-on-loaded-dell-ultrabook/',
+        'http://www.mirror.co.uk/news/uk-news/uk-average-salary-26500-figures-3002995',
+        'http://www.bristolastrosoc.org.uk/www/pages/the-society.php',
+        'https://www.dlitz.net/software/pycrypto/',  # Python
+        'http://jakevdp.github.io/blog/2013/07/10/XKCD-plots-in-matplotlib/',  # Python
+        'http://jakevdp.github.io/blog/2012/10/07/xkcd-style-plots-in-matplotlib/',  # Python
+    ]
 
-    text = nltk.clean_html(req.text)
-    for token in textparser.word_tokenize(text, remove_case=True):
-        # Handle "or" case represented by "/"
-        for split_token in token.split('/'):
-            post_processed_token = post_process(split_token)
-            if post_processed_token:
-                sr_index.add_term_occurrence(post_processed_token, 'TESTDOCUMENT')
+    for p in pages:
 
-    doc_vector = sr_index.generate_document_vector('TESTDOCUMENT')
+        req = requests.get(p)
 
-    print classifier.predict(doc_vector)
+        text = nltk.clean_html(req.text)
+        for token in textparser.word_tokenize(text, remove_case=True):
+            # Handle "or" case represented by "/"
+            for split_token in token.split('/'):
+                post_processed_token = post_process(split_token)
+                if post_processed_token:
+                    sr_index.add_term_occurrence(post_processed_token, p)
+
+        doc_vector = sr_index.generate_document_vector(p)
+
+        print '%s: %s' % (p, classifier.predict(doc_vector))
