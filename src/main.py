@@ -49,7 +49,7 @@ def post_process(token):
     # Aggressively strip the following punctuation
     token = token.replace('\'', '')
 
-    if token in _stopwords:
+    if token in _stopwords or len(token) <= 1 or textparser.isnumeric(token):
         return None
     else:
         return _stemmer.stem(token)
