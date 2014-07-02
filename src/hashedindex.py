@@ -36,6 +36,10 @@ class HashedIndex(object):
     def __eq__(self, other):
         return self._terms == other._terms and self._documents == other._documents
 
+    def clear(self):
+        self._terms = {}
+        self._documents = {}
+
     def freeze(self):
         self._freeze = True
 

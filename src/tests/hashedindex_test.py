@@ -78,6 +78,12 @@ class HashedIndexTest(unittest.TestCase):
         # Non-Existent check
         assert 'doesnotexist' not in self.index
 
+    def test_clear(self):
+        self.index.clear()
+
+        assert self.index.terms() == []
+        assert self.index.documents() == []
+
     def test_freeze_unfreeze(self):
         self.index.freeze()
         self.index.add_term_occurrence('myword', 'document2.txt')
