@@ -65,7 +65,7 @@ if __name__ == '__main__':
     save_path = '/home/michaela/Development/python_sr.json.bz2'
 
     # Set the parameters to the program over here
-    force_load = False
+    force_reindex = False
     parameters = {
         'samples': 900,
         'subreddit': 'python',
@@ -82,7 +82,7 @@ if __name__ == '__main__':
     # Possible to initially just load meta-data?
     meta = sr_index.load(save_path, compressed=True)
 
-    if force_load or meta['parameters'] != parameters:
+    if force_reindex or meta['parameters'] != parameters:
         print 'State File Parameters out of date. Re-Indexing...'
 
         sr_index.clear()
