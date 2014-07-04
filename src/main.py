@@ -69,12 +69,13 @@ if __name__ == '__main__':
     parameters = {
         'samples': 900,
         'subreddit': 'python',
-        'min_frequency': 0.07,
+        'min_frequency': 0.09,
         'max_frequency': 1.00,
         'stemmer': str(_stemmer),
         'mode': 'tfidf',
     }
 
+    print parameters
     print 'Available pages: ', len(list(search_files(os.path.join(data_path, 'pages'))))
 
     sr_index = HashedIndex()
@@ -122,7 +123,6 @@ if __name__ == '__main__':
 
     from sklearn.cross_validation import KFold
     from sklearn.metrics import *
-    from sklearn.svm import SVC
 
     n = 4  # Number of folds
 
@@ -133,8 +133,15 @@ if __name__ == '__main__':
     f1 = np.zeros(n)
     cm = np.zeros((2, 2))
 
+    # SVM
+    # Note: Optimised values of C are data-dependent and cannot be set
+    # with some pre-determined value. They need to be optimised with a
+    # cross validation study in order to make the most use of them.
+
+    classifier = None
     for index, (train, test) in enumerate(kf):
-        classifier = SVC(kernel='linear', C=0.8)
+        from sklearn.svm import SVC
+        classifier = SVC(kernel='linear', C=1.0)
 
         classifier.fit(X[train], y[train])
         y_pred = classifier.predict(X[test])
@@ -151,7 +158,7 @@ if __name__ == '__main__':
     print
     print 'Performance Metrics'
     print '-------------------'
-    print '(Using %s)' % str(kf)
+    print '(Using %s)' % str(classifier)
     print 'Accuracy: ', accuracy.mean()
     print 'Precision: ', precision.mean()
     print 'Recall: ', recall.mean()
