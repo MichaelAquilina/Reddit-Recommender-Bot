@@ -86,6 +86,7 @@ if __name__ == '__main__':
     if force_reindex or meta['parameters'] != parameters:
         print 'State File Parameters out of date. Re-Indexing...'
 
+        t0 = time.time()
         sr_index.clear()
         data = load_data_source(sr_index, data_path, subreddit=parameters['subreddit'], page_samples=parameters['samples'], preprocess=post_process)
 
@@ -94,11 +95,12 @@ if __name__ == '__main__':
         # Values larger than 0.01 for min_frequency can be considered "aggressive" pruning
         sr_index.prune(min_frequency=parameters['min_frequency'], max_frequency=parameters['max_frequency'])
         sr_index.save(save_path, compressed=True, text_class=data, parameters=parameters)
+        print 'Indexing Runtime: {}'.format(time.time() - t0)
     else:
         print 'State File is up to date'
         data = meta['text_class']
 
-    # Generate numpy feature matrix
+    print
     print 'Generating feature matrix'
 
     t1 = time.time()
@@ -108,7 +110,6 @@ if __name__ == '__main__':
     print 'generation runtime = {}'.format(time.time() - t1)
 
     print 'Feature Matrix shape: (%d, %d)' % X.shape
-    print 'Runtime: {}'.format(time.time() - t0)
 
     # TODO: Move the generator code below to a function
     # This needs to be better tested, not sure if this is 100% correct
@@ -117,7 +118,8 @@ if __name__ == '__main__':
         y[index] = 0 if data[doc] is None else 1
 
     print y
-    print y.shape
+
+    print
     print 'Unlabelled: ', np.sum(y == 0)
     print 'Positive: ', np.sum(y == 1)
 
