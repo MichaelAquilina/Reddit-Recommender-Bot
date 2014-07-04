@@ -121,12 +121,12 @@ if __name__ == '__main__':
     print 'Unlabelled: ', np.sum(y == 0)
     print 'Positive: ', np.sum(y == 1)
 
-    from sklearn.cross_validation import KFold
+    from sklearn.cross_validation import StratifiedKFold
     from sklearn.metrics import *
 
     n = 4  # Number of folds
 
-    kf = KFold(len(y), n_folds=n, shuffle=True)
+    kf = StratifiedKFold(y, n_folds=n)
     accuracy = np.zeros(n)
     precision = np.zeros(n)
     recall = np.zeros(n)
