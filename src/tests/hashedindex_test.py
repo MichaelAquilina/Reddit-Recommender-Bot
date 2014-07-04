@@ -108,13 +108,15 @@ class HashedIndexTest(unittest.TestCase):
     def test_get_total_term_frequency(self):
         assert self.index.get_total_term_frequency('word') == 5
         assert self.index.get_total_term_frequency('malta') == 5
-        assert self.index.get_total_term_frequency('doesnotexist') == 0
         assert self.index.get_total_term_frequency('phone') == 4
 
+    def test_get_total_term_frequency_exceptions(self):
+        self.assertRaises(IndexError, self.index.get_total_term_frequency, 'doesnotexist')
+
     def test_get_total_term_frequency_case(self):
-        assert self.index.get_total_term_frequency('WORD') == 0
-        assert self.index.get_total_term_frequency('Malta') == 0
-        assert self.index.get_total_term_frequency('phonE') == 0
+        self.assertRaises(IndexError, self.index.get_total_term_frequency, 'WORD')
+        self.assertRaises(IndexError, self.index.get_total_term_frequency, 'Malta')
+        self.assertRaises(IndexError, self.index.get_total_term_frequency, 'phonE')
 
     def test_get_term_frequency(self):
         # Check Existing cases
@@ -126,20 +128,25 @@ class HashedIndexTest(unittest.TestCase):
         # Check non existing cases
         assert self.index.get_term_frequency('malta', 'document2.txt') == 0
         assert self.index.get_term_frequency('phone', 'document1.txt') == 0
-        assert self.index.get_term_frequency('doesnotexist', 'document1.txt') == 0
+
+    def test_get_term_frequency_exceptions(self):
+        self.assertRaises(IndexError, self.index.get_term_frequency, 'doesnotexist', 'document1.txt')
+        self.assertRaises(IndexError, self.index.get_term_frequency, 'malta', 'deoesnotexist.txt')
 
     def test_get_document_frequency(self):
         assert self.index.get_document_frequency('word') == 2
         assert self.index.get_document_frequency('malta') == 1
         assert self.index.get_document_frequency('phone') == 1
 
-        assert self.index.get_document_frequency('doesnotexist') == 0
+    def test_get_document_frequency_exceptions(self):
+        self.assertRaises(IndexError, self.index.get_document_frequency, 'doesnotexist')
 
     def test_get_document_length(self):
         assert self.index.get_document_length('document1.txt') == 8
         assert self.index.get_document_length('document2.txt') == 6
 
-        assert self.index.get_document_length('doesnotexist.txt') == 0
+    def test_get_document_length_exceptions(self):
+        self.assertRaises(IndexError, self.index.get_document_length, 'doesnotexist.txt')
 
     def test_get_terms(self):
         assert unordered_list_cmp(self.index.terms(), ['word', 'malta', 'phone'])
@@ -179,7 +186,7 @@ class HashedIndexTest(unittest.TestCase):
         assert self.index.get_tfidf('malta', 'document2.txt') == 0
 
     def test_get_tfidf_empty_term(self):
-        assert self.index.get_tfidf('doesnotexist', 'document1.txt') == 0
+        assert self.index.get_tfidf('phone', 'document1.txt') == 0
 
     def test_generate_document_vector_default(self):
         assert (self.index.generate_document_vector('document1.txt') ==

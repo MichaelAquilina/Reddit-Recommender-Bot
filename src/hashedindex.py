@@ -5,6 +5,10 @@ import numpy as np
 from math import log10
 
 
+DOCUMENT_DOES_NOT_EXIST = 'The specified document does not exist'
+TERM_DOES_NOT_EXIST = 'The specified term does not exist'
+
+
 class HashedIndex(object):
     """
     InvertedIndex structure in the form of a hash list implementation.
@@ -67,7 +71,7 @@ class HashedIndex(object):
 
     def get_total_term_frequency(self, term):
         if term not in self._terms:
-            return 0
+            raise IndexError(TERM_DOES_NOT_EXIST)
 
         return sum(self._terms[term].values())
 
@@ -75,8 +79,11 @@ class HashedIndex(object):
         """
         Returns the frequency of the term specified in the document.
         """
+        if document not in self._documents:
+            raise IndexError(DOCUMENT_DOES_NOT_EXIST)
+
         if term not in self._terms:
-            return 0
+            raise IndexError(TERM_DOES_NOT_EXIST)
 
         if document not in self._terms[term]:
             return 0
@@ -88,7 +95,7 @@ class HashedIndex(object):
         Returns the number of documents the specified term appears in.
         """
         if term not in self._terms:
-            return 0
+            raise IndexError(TERM_DOES_NOT_EXIST)
         else:
             return len(self._terms[term])
 
@@ -96,7 +103,7 @@ class HashedIndex(object):
         if document in self._documents:
             return self._documents[document]
         else:
-            return 0
+            raise IndexError(DOCUMENT_DOES_NOT_EXIST)
 
     def terms(self):
         return self._terms.keys()
