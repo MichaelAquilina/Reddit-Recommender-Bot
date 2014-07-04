@@ -80,8 +80,12 @@ if __name__ == '__main__':
 
     sr_index = HashedIndex()
 
-    # Possible to initially just load meta-data?
-    meta = sr_index.load(save_path, compressed=True)
+    if os.path.exists(save_path):
+        # Possible to initially just load meta-data?
+        meta = sr_index.load(save_path, compressed=True)
+    else:
+        meta = None
+        force_reindex = True
 
     if force_reindex or meta['parameters'] != parameters:
         print 'State File Parameters out of date. Re-Indexing...'
