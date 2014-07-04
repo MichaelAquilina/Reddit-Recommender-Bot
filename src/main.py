@@ -8,8 +8,6 @@ import numpy as np
 
 import textparser
 
-from sklearn import metrics
-from sklearn.cross_validation import train_test_split
 from HTMLParser import HTMLParser
 from string import punctuation
 
@@ -71,7 +69,7 @@ if __name__ == '__main__':
     parameters = {
         'samples': 900,
         'subreddit': 'python',
-        'min_frequency': 0.08,
+        'min_frequency': 0.07,
         'max_frequency': 1.00,
         'stemmer': str(_stemmer),
         'mode': 'tfidf',
@@ -119,74 +117,48 @@ if __name__ == '__main__':
 
     print y
     print y.shape
-    print 'Positive: ', np.sum(y == 1)
     print 'Unlabelled: ', np.sum(y == 0)
+    print 'Positive: ', np.sum(y == 1)
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y)
+    from sklearn.cross_validation import KFold
+    from sklearn.metrics import *
+    from sklearn.svm import SVC
 
-    # Machine Learning Stuff Here
-    from sklearn.linear_model import SGDClassifier
+    n = 4  # Number of folds
 
-    classifier = SGDClassifier()
-    classifier.fit(X_train, y_train)
+    kf = KFold(len(y), n_folds=n, shuffle=True)
+    accuracy = np.zeros(n)
+    precision = np.zeros(n)
+    recall = np.zeros(n)
+    f1 = np.zeros(n)
+    cm = np.zeros((2, 2))
 
-    y_pred = classifier.predict(X_test)
+    for index, (train, test) in enumerate(kf):
+        classifier = SVC(kernel='linear', C=0.8)
 
-    # Print confusion matrix to understand overall performance
-    cm = metrics.confusion_matrix(y_test, y_pred)
+        classifier.fit(X[train], y[train])
+        y_pred = classifier.predict(X[test])
+
+        # Store the measures obtained
+        accuracy[index] = accuracy_score(y[test], y_pred)
+        precision[index] = precision_score(y[test], y_pred)
+        recall[index] = recall_score(y[test], y_pred)
+        f1[index] = f1_score(y[test], y_pred)
+
+        cm += confusion_matrix(y[test], y_pred)
+
+    # Average scores across the K folds
+    print
+    print 'Performance Metrics'
+    print '-------------------'
+    print '(Using %s)' % str(kf)
+    print 'Accuracy: ', accuracy.mean()
+    print 'Precision: ', precision.mean()
+    print 'Recall: ', recall.mean()
+    print 'F1: ', recall.mean()
+
+    print
+    print 'Confusion Matrix'
+    print '----------------'
+    print '(Unlabelled vs Positive)'
     print cm
-
-    # Standard ML metrics
-    print 'Accuracy: ', metrics.accuracy_score(y_test, y_pred)
-
-    # Test out some pages
-    import requests
-    pages = [
-        'http://www.cnet.com/uk/news/linux-arrives-on-loaded-dell-ultrabook/',
-        'http://www.mirror.co.uk/news/uk-news/uk-average-salary-26500-figures-3002995',
-        'https://github.com/vasi/pixz',
-        'https://www.dlitz.net/software/pycrypto/',  # Python
-        'http://jakevdp.github.io/blog/2013/07/10/XKCD-plots-in-matplotlib/',  # Python
-        'http://jakevdp.github.io/blog/2012/10/07/xkcd-style-plots-in-matplotlib/',  # Python
-    ]
-
-    terms = sr_index.terms()
-
-    import matplotlib.pyplot as plt
-    from math import ceil
-
-    n = 20
-    figure, axes = plt.subplots(int(ceil(len(pages) / 3)), 3)
-
-    for count, p in enumerate(pages):
-
-        req = requests.get(p)
-
-        text = nltk.clean_html(req.text)
-        for token in textparser.word_tokenize(text, remove_case=True):
-            # Handle "or" case represented by "/"
-            for split_token in token.split('/'):
-                post_processed_token = post_process(split_token)
-                if post_processed_token:
-                    sr_index.add_term_occurrence(post_processed_token, p)
-
-        doc_vector = sr_index.generate_document_vector(p)
-
-        doc_prediction = classifier.predict(doc_vector)
-        print '%s: %s' % (p, doc_prediction)
-
-        items = zip(doc_vector, range(doc_vector.size))
-        items.sort(reverse=True)
-        items = items[:n]
-
-        i = count // 3
-        j = count % 3
-
-        color = 'g' if doc_prediction[0] == 1.0 else 'r'
-
-        axes[i, j].set_xticks(range(0, n, 1))
-        axes[i, j].set_xticklabels([terms[a[1]] for a in items], rotation=45, ha='right')
-        axes[i, j].set_title('{:.35s}'.format(p))
-        axes[i, j].scatter(range(n), [a[0] for a in items], color=color)
-
-    plt.show()
