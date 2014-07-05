@@ -41,13 +41,24 @@ class HashedIndex(object):
         return self._terms == other._terms and self._documents == other._documents
 
     def clear(self):
+        """
+        Resets the HashedIndex to a clean state without any terms or documents.
+        """
         self._terms = {}
         self._documents = {}
 
     def freeze(self):
+        """
+        Freezes the HashedIndex, preventing any new terms from being added
+        when calling add_term_occurrence.
+        """
         self._freeze = True
 
     def unfreeze(self):
+        """
+        Unfreezes (thaws) the HashedIndex, allowing new terms to be added
+        when calling add_term_occurrence.
+        """
         self._freeze = False
 
     def add_term_occurrence(self, term, document):
@@ -70,6 +81,10 @@ class HashedIndex(object):
         self._terms[term][document] += 1
 
     def get_total_term_frequency(self, term):
+        """
+        Gets the frequency of the specified term in the entire corpus
+        added to the HashedIndex.
+        """
         if term not in self._terms:
             raise IndexError(TERM_DOES_NOT_EXIST)
 
@@ -100,6 +115,9 @@ class HashedIndex(object):
             return len(self._terms[term])
 
     def get_document_length(self, document):
+        """
+        Returns the number of terms found within the specified document.
+        """
         if document in self._documents:
             return self._documents[document]
         else:
@@ -132,6 +150,12 @@ class HashedIndex(object):
             return 0.0
 
     def generate_document_vector(self, doc, mode='tfidf'):
+        """
+        Returns a representation of the specified document as a feature vector
+        weighted according the mode specified (by default tf-dif). The result
+        will be returned in the form of a numpy ndarray.
+        Available modes: tfidif, count, tf
+        """
         result = np.zeros(len(self._terms))
         for i, term in enumerate(self._terms):
             if mode == 'tfidf':
@@ -163,6 +187,13 @@ class HashedIndex(object):
         return result
 
     def prune(self, min_frequency=0.005, max_frequency=1.0):
+        """
+        Prunes the HashedIndex so that terms under the specified min_frequency
+        and over the specified max_frequency will be removed from the index. This
+        method is useful for performing feature selection based on term frequency
+        within the entire corpus. The values of min and max frequency should be
+        specified in the form of percentages.
+        """
         n = len(self._documents)
 
         garbage = []
