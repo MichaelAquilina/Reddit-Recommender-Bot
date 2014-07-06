@@ -20,6 +20,7 @@ domain_blacklist = frozenset([
     'vimeo.com', 'picasa.google.com', 'tinypic.com',
     'xkcd.com', 'smbc-comics.com', 'flickr.com',
     'reddit.com', 'youtu.be', 'flic.kr', 'pyvideo.org',
+    'londonreal.tv',
 ])
 
 MAX_LENGTH = 1 * 1024 * 1024  # Max 1mb size
