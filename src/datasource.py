@@ -75,8 +75,8 @@ def load_data_source(index, data_path, subreddit, page_samples, preprocess=lambd
         for post in post_data['data']['children']:
             # Only interested in link posts (but they all should ok)
             if post['kind'] == 't3':
-                directory, filename = get_path_from_url(pages_dir, post['data']['url'])
-                data[os.path.join(directory, filename)] = subreddit
+                url_path = get_path_from_url(pages_dir, post['data']['url'])
+                data[url_path] = subreddit
 
     # Add random sample from pages directory
     remaining = set(search_files(pages_dir)) - set(data.keys())
