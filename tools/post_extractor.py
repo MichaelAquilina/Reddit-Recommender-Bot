@@ -14,11 +14,12 @@ MAX_LIMIT = 100
 
 
 # List of domains which should be ignored
+# This should probably be converted into an external file
 domain_blacklist = frozenset([
     'youtube.com', 'imgur.com', 'i.imgur.com',
     'vimeo.com', 'picasa.google.com', 'tinypic.com',
     'xkcd.com', 'smbc-comics.com', 'flickr.com',
-    'reddit.com',
+    'reddit.com', 'youtu.be', 'flic.kr', 'pyvideo.org',
 ])
 
 MAX_LENGTH = 1 * 1024 * 1024  # Max 1mb size
