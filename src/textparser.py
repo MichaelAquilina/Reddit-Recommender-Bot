@@ -14,9 +14,13 @@ def normalize_unicode(text):
 
 
 def word_tokenize(text, remove_case=False):
-
+    """
+    Parses the given text and yields tokens which represent words within
+    the given text. Tokens are assumed to be divided by any form of
+    whitespace character. Results can be optionally be all returned in
+    lowercase format by setting the remove_case parameter to True.
+    """
     s_buffer = u''
-
     for c in text:
         if c in whitespace:
             if s_buffer:
@@ -33,6 +37,9 @@ def word_tokenize(text, remove_case=False):
 
 
 def isnumeric(text):
+    """
+    Returns a True if the text is purely numeric and False otherwise.
+    """
     try:
         float(text)
     except ValueError:
