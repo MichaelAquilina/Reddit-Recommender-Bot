@@ -31,7 +31,7 @@ _stopwords = frozenset(nltk.corpus.stopwords.words())
 
 # Helper function that performs post-processing on tokens
 # Should be an argument that can be passed
-def post_process(token):
+def pre_process(token):
     token = _parser.unescape(token)
     token = token.lower()
 
@@ -67,9 +67,9 @@ if __name__ == '__main__':
     # Set the parameters to the program over here
     force_reindex = False
     parameters = {
-        'samples': 900,
+        'samples': 800,
         'subreddit': 'python',
-        'min_frequency': 0.09,
+        'min_frequency': 0.06,
         'max_frequency': 1.00,
         'stemmer': str(_stemmer),
         'mode': 'tfidf',
@@ -92,13 +92,22 @@ if __name__ == '__main__':
 
         t0 = time.time()
         sr_index.clear()
-        data = load_data_source(sr_index, data_path, subreddit=parameters['subreddit'], page_samples=parameters['samples'], preprocess=post_process)
+        data = load_data_source(
+            sr_index, data_path,
+            subreddit=parameters['subreddit'],
+            page_samples=parameters['samples'],
+            preprocess=pre_process
+        )
 
         print 'Original shape: (%d, %d)' % (len(sr_index.documents()), len(sr_index.terms()))
 
         # Values larger than 0.01 for min_frequency can be considered "aggressive" pruning
+        t3 = time.time()
+
         sr_index.prune(min_frequency=parameters['min_frequency'], max_frequency=parameters['max_frequency'])
         sr_index.save(save_path, compressed=True, text_class=data, parameters=parameters)
+
+        print 'Pruning Runtime: {}'.format(time.time() - t3)
         print 'Indexing Runtime: {}'.format(time.time() - t0)
     else:
         print 'State File is up to date'
