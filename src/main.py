@@ -12,7 +12,7 @@ from HTMLParser import HTMLParser
 from string import punctuation
 
 from datasource import load_data_source
-from hashedindex import HashedIndex
+from hashedindex import HashedIndex, load_meta
 from utils import search_files
 
 
@@ -82,7 +82,7 @@ if __name__ == '__main__':
 
     if os.path.exists(save_path):
         # Possible to initially just load meta-data?
-        meta = sr_index.load(save_path, compressed=True)
+        meta = load_meta(save_path, compressed=True)
     else:
         meta = None
         force_reindex = True
@@ -111,6 +111,7 @@ if __name__ == '__main__':
         print 'Indexing Runtime: {}'.format(time.time() - t0)
     else:
         print 'State File is up to date'
+        meta = sr_index.load(save_path, compressed=True)
         data = meta['text_class']
 
     print

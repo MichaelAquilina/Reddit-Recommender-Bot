@@ -3,7 +3,7 @@ from __future__ import division
 import unittest
 import tempfile
 
-from hashedindex import HashedIndex
+from hashedindex import *
 
 
 def unordered_list_cmp(list1, list2):
@@ -316,3 +316,15 @@ class HashedIndexTest(unittest.TestCase):
         assert meta['documents'] == len(self.index._documents)
         assert meta['terms'] == len(self.index._terms)
         assert meta['custom'] == {'sometest': [1, 2, 3]}
+
+    def test_save_load_meta_only(self):
+        path = tempfile.mktemp()
+        self.index.save(path, comment='Data', custom={'sometest': [1, 2, 4, 8]})
+
+        meta = load_meta(path)
+
+        assert meta['comment'] == 'Data'
+        assert meta['data-structure'] == str(self.index)
+        assert meta['documents'] == len(self.index.documents())
+        assert meta['terms'] == len(self.index.terms())
+        assert meta['custom'] == {'sometest': [1, 2, 4, 8]}

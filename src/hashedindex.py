@@ -263,3 +263,47 @@ class HashedIndex(object):
         self._terms = data['terms']
 
         return data['meta']
+
+
+# Work in progress, there is a related issue in the github bug tracker
+def load_meta(path, compressed=False):
+    """
+    Loads the meta header from a JSON formatted HashedIndex state
+    file that was previously saved. If the file was compressed using
+    bz2, the compressed flag must be set to True. Returns the meta
+    data by itself.
+    """
+    import json
+
+    if compressed:
+        import bz2
+        fp = bz2.BZ2File(path, mode='r')
+    else:
+        fp = open(path, mode='r')
+
+    meta_found = False
+    meta_text = None
+    tags = 0  # Current number of open tags
+
+    while True:
+        text = fp.readline()
+
+        if meta_found:
+            if '{' in text:
+                tags += 1
+
+            if '}' in text:
+                tags -= 1
+
+            if not tags:
+                meta_text += '}'
+                break
+            else:
+                meta_text += text
+        elif '"meta":' in text:
+            meta_found = True
+            tags = 1
+            meta_text = '{\n'
+
+    # Should be valid JSON
+    return json.loads(meta_text)
