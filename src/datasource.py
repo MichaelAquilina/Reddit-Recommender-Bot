@@ -56,7 +56,7 @@ def get_path_from_url(target_dir, url):
     # Append special character to prevent conflicts with directories
     filename += '%$%'
 
-    return directory, filename
+    return os.path.join(directory, filename)
 
 
 def load_data_source(index, data_path, subreddit, page_samples, preprocess=lambda x: x):

@@ -24,8 +24,8 @@ def get_subreddit_files(pages_dir, subreddits_dir, subreddit):
 
         for post in data['data']['children']:
             url = Url(post['data']['url'])
-            directory, filename = get_path_from_url(pages_dir, url)
-            results.append(os.path.join(directory, filename))
+            url_path = get_path_from_url(pages_dir, url)
+            results.append(url_path)
 
     return results
 

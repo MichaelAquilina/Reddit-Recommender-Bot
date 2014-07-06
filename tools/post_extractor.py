@@ -47,12 +47,13 @@ class DownloaderThread(threading.Thread):
                 req = download_html_page(url.geturl(), timeout=8)
 
                 if req and MIN_LENGTH < len(req.text) < MAX_LENGTH:
-                    directory, filename = get_path_from_url(pages_dir, url)
+                    url_path = get_path_from_url(pages_dir, url)
 
+                    directory = os.path.dirname(url_path)
                     if not os.path.exists(directory):
                         os.makedirs(directory)
 
-                    with open(os.path.join(directory, filename), 'w') as fp:
+                    with open(url_path, 'w') as fp:
                         fp.write(req.text.encode('utf8'))
 
                     page_lock.acquire()
