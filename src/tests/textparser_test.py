@@ -8,11 +8,29 @@ def generator_cmp(gen, list1):
     return list(gen) == list1
 
 
+def test_null_stemmer():
+    stemmer = NullStemmer()
+    # No Change should be expected
+    assert stemmer.stem('Running, playing with men and dogs') == 'Running, playing with men and dogs'
+
+
+def test_clean_token():
+    assert clean_token('UPPERCASE') == 'uppercase'
+    assert clean_token('Calvin&amp;Hobbs') == 'calvin&hobbs'
+    assert clean_token('don\'t') == 'dont'
+    assert clean_token('@##hello@#') == 'hello'
+    assert clean_token('905!!!') is None
+
+
 def test_normalize_unicode():
     assert normalize_unicode(u'Klüft skräms inför på fédéral électoral große') == \
         'Kluft skrams infor pa federal electoral groe'
 
     assert normalize_unicode(u'don’t') == 'dont'
+
+
+def test_normalize_unicode_str():
+    assert normalize_unicode('This is a normal string') == 'This is a normal string'
 
 
 def test_word_tokenize():

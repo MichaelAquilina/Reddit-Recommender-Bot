@@ -1,8 +1,48 @@
+import nltk
 import unicodedata
 
 from string import ascii_letters, whitespace, digits, punctuation
+from HTMLParser import HTMLParser
 
+
+# Stemmer interface which returns token unchanged
+class NullStemmer(object):
+
+    def stem(self, x):
+        return x
+
+    def __str__(self):
+        return '<NullStemmer>'
+
+_parser = HTMLParser()
+_stopwords = frozenset(nltk.corpus.stopwords.words())
 _accepted = frozenset(ascii_letters + digits + punctuation)
+
+
+def clean_token(token):
+    """
+    Performs several cleaning steps on the given token so that it is normalised
+    and contains as little noise as possible. The following processes are performed:
+      * converted to lowercase
+      * html special sequences are unescaped
+      * unicode characters are normalised to ascii
+      * the "'" character is removed
+      * the token is ignored if it is a stopword or purely numeric
+    """
+    token = _parser.unescape(token)
+    token = token.lower()
+    token = normalize_unicode(token)
+
+    # Strip all punctuation from the edges of the string
+    token = token.strip(punctuation)
+
+    # Aggressively strip the following punctuation
+    token = token.replace('\'', '')
+
+    if token in _stopwords or len(token) <= 1 or isnumeric(token):
+        return None
+    else:
+        return token
 
 
 def normalize_unicode(text):
@@ -10,7 +50,10 @@ def normalize_unicode(text):
     Normalize any unicode characters to ascii equivalent
     https://docs.python.org/2/library/unicodedata.html#unicodedata.normalize
     """
-    return unicodedata.normalize('NFKD', text).encode('ascii', 'ignore')
+    if type(text) == unicode:
+        return unicodedata.normalize('NFKD', text).encode('ascii', 'ignore')
+    else:
+        return text
 
 
 def word_tokenize(text, remove_case=False):

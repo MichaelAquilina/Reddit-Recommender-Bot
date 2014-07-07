@@ -3,55 +3,13 @@
 from __future__ import division
 
 import os
-import nltk
 import numpy as np
 
 import textparser
 
-from HTMLParser import HTMLParser
-from string import punctuation
-
 from datasource import load_data_source
 from hashedindex import HashedIndex, load_meta
 from utils import search_files
-
-
-# Stemmer interface which returns token unchanged
-class NullStemmer(object):
-
-    def stem(self, x):
-        return x
-
-    def __str__(self):
-        return '<NullStemmer>'
-
-_parser = HTMLParser()
-_stopwords = frozenset(nltk.corpus.stopwords.words())
-
-
-# Helper function that performs post-processing on tokens
-# Should be an argument that can be passed
-def pre_process(token):
-    token = _parser.unescape(token)
-    token = token.lower()
-
-    # TODO: Check if email, url, date etc...
-    # Based on type you should parse accordingly
-    # Try conflate things to reduce space and decrease noise
-
-    token = textparser.normalize_unicode(token)
-
-    # Strip all punctuation from the edges of the string
-    token = token.strip(punctuation)
-
-    # Aggressively strip the following punctuation
-    token = token.replace('\'', '')
-
-    if token in _stopwords or len(token) <= 1 or textparser.isnumeric(token):
-        return None
-    else:
-        return _stemmer.stem(token)
-
 
 if __name__ == '__main__':
 
@@ -59,7 +17,7 @@ if __name__ == '__main__':
     t0 = time.time()
 
     # Lancaster Stemmer is very very slow
-    _stemmer = NullStemmer()
+    _stemmer = textparser.NullStemmer()
 
     data_path = '/home/michaela/Development/Reddit-Testing-Data'
     save_path = '/home/michaela/Development/python_sr.json.bz2'
@@ -96,7 +54,7 @@ if __name__ == '__main__':
             sr_index, data_path,
             subreddit=parameters['subreddit'],
             page_samples=parameters['samples'],
-            preprocess=pre_process
+            preprocess=textparser.clean_token
         )
 
         print 'Original shape: (%d, %d)' % (len(sr_index.documents()), len(sr_index.terms()))
