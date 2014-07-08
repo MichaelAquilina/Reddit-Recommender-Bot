@@ -29,7 +29,7 @@ if __name__ == '__main__':
     page = False
     page_text = ''
     pages = []
-    target = 500
+    target = 1000
     count = 0
 
     with bz2.BZ2File(path, 'r') as fp:
@@ -46,6 +46,10 @@ if __name__ == '__main__':
                 page_text += text
 
             if '</page>' in text:
+                if count % 5000 == 0:
+                    print('Performing some pruning...')
+                    index.prune(min_frequency=0.01)
+
                 count += 1
                 tree = etree.ElementTree(etree.XML(page_text))
                 root = tree.getroot()
