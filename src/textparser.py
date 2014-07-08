@@ -23,14 +23,12 @@ def clean_token(token):
     """
     Performs several cleaning steps on the given token so that it is normalised
     and contains as little noise as possible. The following processes are performed:
-      * converted to lowercase
       * html special sequences are unescaped
       * unicode characters are normalised to ascii
       * the "'" character is removed
       * the token is ignored if it is a stopword or purely numeric
     """
     token = _parser.unescape(token)
-    token = token.lower()
     token = normalize_unicode(token)
 
     # Strip all punctuation from the edges of the string
