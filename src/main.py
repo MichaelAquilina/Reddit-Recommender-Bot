@@ -1,6 +1,6 @@
 #! /usr/bin/python
 # ~*~ coding: utf-8 ~*~
-from __future__ import division
+from __future__ import division, print_function
 
 import os
 import numpy as np
@@ -33,8 +33,8 @@ if __name__ == '__main__':
         'mode': 'tfidf',
     }
 
-    print parameters
-    print 'Available pages: ', len(list(search_files(os.path.join(data_path, 'pages'))))
+    print(parameters)
+    print('Available pages: ', len(list(search_files(os.path.join(data_path, 'pages')))))
 
     sr_index = HashedIndex()
 
@@ -46,7 +46,7 @@ if __name__ == '__main__':
         force_reindex = True
 
     if force_reindex or meta['parameters'] != parameters:
-        print 'State File Parameters out of date. Re-Indexing...'
+        print('State File Parameters out of date. Re-Indexing...')
 
         t0 = time.time()
         sr_index.clear()
@@ -57,7 +57,7 @@ if __name__ == '__main__':
             preprocess=textparser.clean_token
         )
 
-        print 'Original shape: (%d, %d)' % (len(sr_index.documents()), len(sr_index.terms()))
+        print('Original shape: (%d, %d)' % (len(sr_index.documents()), len(sr_index.terms())))
 
         # Values larger than 0.01 for min_frequency can be considered "aggressive" pruning
         t3 = time.time()
@@ -65,23 +65,23 @@ if __name__ == '__main__':
         sr_index.prune(min_frequency=parameters['min_frequency'], max_frequency=parameters['max_frequency'])
         sr_index.save(save_path, compressed=True, text_class=data, parameters=parameters)
 
-        print 'Pruning Runtime: {}'.format(time.time() - t3)
-        print 'Indexing Runtime: {}'.format(time.time() - t0)
+        print('Pruning Runtime: {}'.format(time.time() - t3))
+        print('Indexing Runtime: {}'.format(time.time() - t0))
     else:
-        print 'State File is up to date'
+        print('State File is up to date')
         meta = sr_index.load(save_path, compressed=True)
         data = meta['text_class']
 
-    print
-    print 'Generating feature matrix'
+    print()
+    print('Generating feature matrix')
 
     t1 = time.time()
     X = sr_index.generate_feature_matrix(mode=parameters['mode'])
     sr_index.freeze()  # Prevent more terms from being added
 
-    print 'generation runtime = {}'.format(time.time() - t1)
+    print('generation runtime = {}'.format(time.time() - t1))
 
-    print 'Feature Matrix shape: (%d, %d)' % X.shape
+    print('Feature Matrix shape: (%d, %d)' % X.shape)
 
     # TODO: Move the generator code below to a function
     # This needs to be better tested, not sure if this is 100% correct
@@ -89,11 +89,11 @@ if __name__ == '__main__':
     for index, doc in enumerate(sr_index.documents()):
         y[index] = 0 if data[doc] is None else 1
 
-    print y
+    print(y)
 
-    print
-    print 'Unlabelled: ', np.sum(y == 0)
-    print 'Positive: ', np.sum(y == 1)
+    print()
+    print('Unlabelled: ', np.sum(y == 0))
+    print('Positive: ', np.sum(y == 1))
 
     from sklearn.cross_validation import StratifiedKFold
     from sklearn.metrics import *
@@ -129,17 +129,17 @@ if __name__ == '__main__':
         cm += confusion_matrix(y[test], y_pred)
 
     # Average scores across the K folds
-    print
-    print 'Performance Metrics'
-    print '-------------------'
-    print '(Using %s)' % str(classifier)
-    print 'Accuracy: ', accuracy.mean()
-    print 'Precision: ', precision.mean()
-    print 'Recall: ', recall.mean()
-    print 'F1: ', recall.mean()
+    print()
+    print('Performance Metrics')
+    print('-------------------')
+    print('(Using %s)' % str(classifier))
+    print('Accuracy: ', accuracy.mean())
+    print('Precision: ', precision.mean())
+    print('Recall: ', recall.mean())
+    print('F1: ', recall.mean())
 
-    print
-    print 'Confusion Matrix'
-    print '----------------'
-    print '(Unlabelled vs Positive)'
-    print cm
+    print()
+    print('Confusion Matrix')
+    print('----------------')
+    print('(Unlabelled vs Positive)')
+    print(cm)
