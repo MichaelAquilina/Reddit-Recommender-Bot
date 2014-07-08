@@ -15,8 +15,7 @@ def test_null_stemmer():
 
 
 def test_clean_token():
-    assert clean_token('UPPERCASE') == 'uppercase'
-    assert clean_token('Calvin&amp;Hobbs') == 'calvin&hobbs'
+    assert clean_token('Calvin&amp;Hobbs') == 'Calvin&Hobbs'
     assert clean_token('don\'t') == 'dont'
     assert clean_token('@##hello@#') == 'hello'
     assert clean_token('905!!!') is None
