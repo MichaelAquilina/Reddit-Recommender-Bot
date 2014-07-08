@@ -1,3 +1,5 @@
+#! /usr/bin/python
+
 from __future__ import print_function
 
 # lxml is much much faster than bs4
