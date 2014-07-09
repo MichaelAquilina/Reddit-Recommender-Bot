@@ -23,7 +23,7 @@ if __name__ == '__main__':
     save_path = '/home/michaela/Development/python_sr.json.bz2'
 
     # Set the parameters to the program over here
-    force_reindex = False
+    force_reindex = True
     parameters = {
         'samples': 800,
         'subreddit': 'python',
@@ -57,6 +57,7 @@ if __name__ == '__main__':
             preprocess=textparser.clean_token
         )
 
+        print('Indexing Runtime: {}'.format(time.time() - t0))
         print('Original shape: (%d, %d)' % (len(sr_index.documents()), len(sr_index.terms())))
 
         # Values larger than 0.01 for min_frequency can be considered "aggressive" pruning
@@ -66,7 +67,6 @@ if __name__ == '__main__':
         sr_index.save(save_path, compressed=True, text_class=data, parameters=parameters)
 
         print('Pruning Runtime: {}'.format(time.time() - t3))
-        print('Indexing Runtime: {}'.format(time.time() - t0))
     else:
         print('State File is up to date')
         meta = sr_index.load(save_path, compressed=True)
