@@ -9,7 +9,7 @@ from textparser import word_tokenize
 from hashedindex import HashedIndex
 from WikiExtractor import clean as clean_wiki_markup
 
-MIN_PAGE_SIZE = 1024
+MIN_PAGE_SIZE = 2 * 1024  # 2 KB min size
 
 # Just reading the entire Wikipedia corpus takes 1 hour 15 minutes
 # This means that an intermediate format is super important (HashedIndex
@@ -29,7 +29,7 @@ if __name__ == '__main__':
     page = False
     page_text = ''
     pages = []
-    target = 10000
+    target = 60000
     count = 0
 
     with bz2.BZ2File(path, 'r') as fp:
@@ -61,12 +61,8 @@ if __name__ == '__main__':
                 text = root.xpath('revision/text')[0].text
                 if len(text) > MIN_PAGE_SIZE:
                     clean_text = clean_wiki_markup(text)
-                    # This is not enough, wiki text contains a lot of markup which should be considered
-                    # Need a wiki parser module that handles things like links and special markup
-                    # Should probably use he `pre_process` method from main.py
                     for token in word_tokenize(clean_text):
-                        if token:
-                            index.add_term_occurrence(token, title)
+                        index.add_term_occurrence(token, title)
 
                     print('(Processed)')
                 else:
@@ -75,6 +71,7 @@ if __name__ == '__main__':
                 page_text = ''
                 page = False
 
+    index.prune(min_frequency=0.01)
     print('Total Runtime =', time.time() - t0)
 
     index.save('/home/michaela/wiki.index.json.bz2', compressed=True)
