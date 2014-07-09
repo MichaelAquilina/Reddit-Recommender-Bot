@@ -5,6 +5,7 @@ import random
 
 import textparser
 
+from HTMLParser import HTMLParser
 from utils import search_files
 from url import Url
 
@@ -16,6 +17,7 @@ from url import Url
 # t5_	Subreddit
 # t6_	Award
 # t8_	PromoCampaign
+_parser = HTMLParser()
 
 
 def get_url_from_path(target_dir, abs_path):
@@ -92,7 +94,8 @@ def load_data_source(index, data_path, subreddit, page_samples, preprocess=lambd
 
             # This currently provides good accuracy but does not
             # handle html tags very well
-            text = nltk.clean_html(html_text)
+            text = nltk.clean_html(html_text).decode('utf-8')
+            text = _parser.unescape(text)
 
             for token in textparser.word_tokenize(text):
 

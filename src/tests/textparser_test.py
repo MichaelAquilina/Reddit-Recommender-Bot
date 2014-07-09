@@ -40,21 +40,11 @@ def test_word_tokenize_stopwords():
     assert generator_cmp(word_tokenize(test_case, []), ['should', 'get', 'an', 'empty', 'list'])
 
 
-def test_word_tokenize_html():
-    assert generator_cmp(word_tokenize('Calvin&amp;Hobbes', html=True), ['calvin&hobbes'])
-    assert generator_cmp(word_tokenize('Fun &amp; Games', html=True), ['fun', 'games'])
-    assert generator_cmp(word_tokenize('punct&quot;uation', html=True), ['punct"uation'])
-
-
 def test_word_tokenize_single_letters():
     # Single letter tokens should be completely ignored
     assert generator_cmp(word_tokenize('a e i o u vowels', []), ['vowels'])
     assert generator_cmp(word_tokenize('!!!@#@##@#I Gold', []), ['gold'])
     assert generator_cmp(word_tokenize('aa i', []), ['aa'])
-
-
-def test_word_tokenize_type():
-    assert all(type(s) is unicode for s in word_tokenize('Hello World'))
 
 
 def test_word_tokenize_digits():

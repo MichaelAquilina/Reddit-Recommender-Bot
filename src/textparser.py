@@ -1,3 +1,4 @@
+import re
 import nltk
 import unicodedata
 
@@ -16,7 +17,10 @@ class NullStemmer(object):
 
 _parser = HTMLParser()
 _stopwords = frozenset(nltk.corpus.stopwords.words())
-_accepted = frozenset(ascii_letters + digits + punctuation) - set('\'')
+_accepted = frozenset(ascii_letters + digits + punctuation) - frozenset('\'')
+
+_re_punctuation = re.compile('[%s]' % re.escape(punctuation))
+_re_token = re.compile('[a-z0-9]+')
 
 
 def normalize_unicode(text):
@@ -30,32 +34,18 @@ def normalize_unicode(text):
         return text
 
 
-def word_tokenize(text, stopwords=_stopwords, html=False):
+def word_tokenize(text, stopwords=_stopwords):
     """
     Parses the given text and yields tokens which represent words within
     the given text. Tokens are assumed to be divided by any form of
     whitespace character.
     """
-    s_buffer = u''
-    for c in text:
-        if c in whitespace:
-            token = s_buffer
-            if html:
-                token = _parser.unescape(token)
+    text = re.sub(_re_punctuation, '', text)
 
-            token = token.strip(punctuation)
-            if len(token) > 1 and token not in stopwords and not isnumeric(token):
-                yield token
-            s_buffer = u''
-        elif c in _accepted:
-            s_buffer += c.lower()
-
-    token = s_buffer
-    if html:
-        token = _parser.unescape(token)
-    token = token.strip(punctuation)
-    if len(token) > 1 and token not in stopwords and not isnumeric(token):
-        yield token
+    for token in re.findall(_re_token, text.lower()):
+        token = token.strip(punctuation)
+        if len(token) > 1 and token not in stopwords and not isnumeric(token):
+            yield token
 
 
 def isnumeric(text):
