@@ -1,3 +1,9 @@
+__about__ = """
+    Utility module for loading Reddit Recommender Bot Data sources which follow the specification specified on the
+    Github wiki. Provides methods for generating paths from urls (and the reverse) as well as parsing and indexing
+    an entire data source into a HashedIndex for later use to generate a numpy feature matrix.
+"""
+
 import os
 import json
 import nltk
@@ -97,6 +103,7 @@ def load_data_source(index, data_path, subreddit, page_samples, preprocess=lambd
             text = nltk.clean_html(html_text).decode('utf-8')
             text = _parser.unescape(text)
 
+            # TODO: Email addresses? Domains?
             for token in textparser.word_tokenize(text):
 
                 # Handle "or" case represented by "/"
