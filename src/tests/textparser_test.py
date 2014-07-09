@@ -14,13 +14,6 @@ def test_null_stemmer():
     assert stemmer.stem('Running, playing with men and dogs') == 'Running, playing with men and dogs'
 
 
-def test_clean_token():
-    assert clean_token('Calvin&amp;Hobbs') == 'Calvin&Hobbs'
-    assert clean_token('don\'t') == 'dont'
-    assert clean_token('@##hello@#') == 'hello'
-    assert clean_token('905!!!') is None
-
-
 def test_normalize_unicode():
     assert normalize_unicode(u'Klüft skräms inför på fédéral électoral große') == \
         'Kluft skrams infor pa federal electoral groe'
@@ -33,10 +26,31 @@ def test_normalize_unicode_str():
 
 
 def test_word_tokenize():
-    assert generator_cmp(word_tokenize('Hello cruel world'), ['Hello', 'cruel', 'world'])
+    assert generator_cmp(word_tokenize('Hello cruel world'), ['hello', 'cruel', 'world'])
     assert generator_cmp(word_tokenize(''), [])
-    assert generator_cmp(word_tokenize('empty +@@ punctuation'), ['empty', '+@@', 'punctuation'])
-    assert generator_cmp(word_tokenize('This shouldn\'t fail'), ['This', 'shouldn\'t', 'fail'])
+    assert generator_cmp(word_tokenize('empty +@@ punctuation'), ['empty', 'punctuation'])
+    assert generator_cmp(word_tokenize('This shouldn\'t fail'), ['shouldnt', 'fail'])
+
+
+def test_word_tokenize_stopwords():
+    assert generator_cmp(word_tokenize('This is a lot of stopwords'), ['lot', 'stopwords'])
+
+    test_case = 'I should get an empty list'
+    assert generator_cmp(word_tokenize(test_case, test_case.split()), [])
+    assert generator_cmp(word_tokenize(test_case, []), ['should', 'get', 'an', 'empty', 'list'])
+
+
+def test_word_tokenize_html():
+    assert generator_cmp(word_tokenize('Calvin&amp;Hobbes', html=True), ['calvin&hobbes'])
+    assert generator_cmp(word_tokenize('Fun &amp; Games', html=True), ['fun', 'games'])
+    assert generator_cmp(word_tokenize('punct&quot;uation', html=True), ['punct"uation'])
+
+
+def test_word_tokenize_single_letters():
+    # Single letter tokens should be completely ignored
+    assert generator_cmp(word_tokenize('a e i o u vowels', []), ['vowels'])
+    assert generator_cmp(word_tokenize('!!!@#@##@#I Gold', []), ['gold'])
+    assert generator_cmp(word_tokenize('aa i', []), ['aa'])
 
 
 def test_word_tokenize_type():
@@ -44,20 +58,18 @@ def test_word_tokenize_type():
 
 
 def test_word_tokenize_digits():
-    assert generator_cmp(word_tokenize('gumball800 is cool'), ['gumball800', 'is', 'cool'])
-    assert generator_cmp(word_tokenize('90 + ten'), ['90', '+', 'ten'])
-
-
-def test_word_tokenize_remove_case():
-    assert generator_cmp(word_tokenize('Hello WORLD', remove_case=True), ['hello', 'world'])
+    # Pure digits should be ignored but combinations of digits and letters should be included
+    assert generator_cmp(word_tokenize('gumball800 is cool'), ['gumball800', 'cool'])
+    assert generator_cmp(word_tokenize('90 + ten'), ['ten'])
 
 
 def test_word_tokenize_punctuation():
-    assert generator_cmp(word_tokenize('My name is Michael!'), ['My', 'name', 'is', 'Michael!'])
+    # Punctuation should always be removed from front and back
+    assert generator_cmp(word_tokenize('!My name is Michael!'), ['name', 'michael'])
 
 
 def test_word_tokenize_large_whitespace():
-    assert generator_cmp(word_tokenize('This  \n   is \r a   \ttest'), ['This', 'is', 'a', 'test'])
+    assert generator_cmp(word_tokenize('This  \n   is \r a   \ttest'), ['test'])
 
 
 def test_isnumeric_not_words():

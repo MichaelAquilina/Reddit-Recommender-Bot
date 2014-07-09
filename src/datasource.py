@@ -94,13 +94,12 @@ def load_data_source(index, data_path, subreddit, page_samples, preprocess=lambd
             # handle html tags very well
             text = nltk.clean_html(html_text)
 
-            for token in textparser.word_tokenize(text, remove_case=True):
+            for token in textparser.word_tokenize(text):
 
                 # Handle "or" case represented by "/"
                 for split_token in token.split('/'):
-                    post_processed_token = preprocess(split_token)
-                    if post_processed_token:
-                        index.add_term_occurrence(post_processed_token, page_path)
+                    if split_token:
+                        index.add_term_occurrence(split_token, page_path)
 
     # Return list of data points
     return data

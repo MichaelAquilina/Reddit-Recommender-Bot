@@ -5,7 +5,7 @@ from __future__ import print_function
 # lxml is much much faster than bs4
 from lxml import etree
 
-from textparser import word_tokenize, clean_token
+from textparser import word_tokenize
 from hashedindex import HashedIndex
 from WikiExtractor import clean as clean_wiki_markup
 
@@ -29,7 +29,7 @@ if __name__ == '__main__':
     page = False
     page_text = ''
     pages = []
-    target = 1000
+    target = 10000
     count = 0
 
     with bz2.BZ2File(path, 'r') as fp:
@@ -64,8 +64,7 @@ if __name__ == '__main__':
                     # This is not enough, wiki text contains a lot of markup which should be considered
                     # Need a wiki parser module that handles things like links and special markup
                     # Should probably use he `pre_process` method from main.py
-                    for token in word_tokenize(clean_text, remove_case=True):
-                        token = clean_token(token)
+                    for token in word_tokenize(clean_text):
                         if token:
                             index.add_term_occurrence(token, title)
 
@@ -77,3 +76,7 @@ if __name__ == '__main__':
                 page = False
 
     print('Total Runtime =', time.time() - t0)
+
+    index.save('/home/michaela/wiki.index.json.bz2', compressed=True)
+    import pdb
+    pdb.set_trace()

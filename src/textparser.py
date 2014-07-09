@@ -16,31 +16,7 @@ class NullStemmer(object):
 
 _parser = HTMLParser()
 _stopwords = frozenset(nltk.corpus.stopwords.words())
-_accepted = frozenset(ascii_letters + digits + punctuation)
-
-
-def clean_token(token):
-    """
-    Performs several cleaning steps on the given token so that it is normalised
-    and contains as little noise as possible. The following processes are performed:
-      * html special sequences are unescaped
-      * unicode characters are normalised to ascii
-      * the "'" character is removed
-      * the token is ignored if it is a stopword or purely numeric
-    """
-    token = _parser.unescape(token)
-    token = normalize_unicode(token)
-
-    # Strip all punctuation from the edges of the string
-    token = token.strip(punctuation)
-
-    # Aggressively strip the following punctuation
-    token = token.replace('\'', '')
-
-    if token in _stopwords or len(token) <= 1 or isnumeric(token):
-        return None
-    else:
-        return token
+_accepted = frozenset(ascii_letters + digits + punctuation) - set('\'')
 
 
 def normalize_unicode(text):
@@ -54,27 +30,32 @@ def normalize_unicode(text):
         return text
 
 
-def word_tokenize(text, remove_case=False):
+def word_tokenize(text, stopwords=_stopwords, html=False):
     """
     Parses the given text and yields tokens which represent words within
     the given text. Tokens are assumed to be divided by any form of
-    whitespace character. Results can be optionally be all returned in
-    lowercase format by setting the remove_case parameter to True.
+    whitespace character.
     """
     s_buffer = u''
     for c in text:
         if c in whitespace:
-            if s_buffer:
-                yield s_buffer
+            token = s_buffer
+            if html:
+                token = _parser.unescape(token)
+
+            token = token.strip(punctuation)
+            if len(token) > 1 and token not in stopwords and not isnumeric(token):
+                yield token
             s_buffer = u''
         elif c in _accepted:
-            if remove_case:
-                s_buffer += c.lower()
-            else:
-                s_buffer += c
+            s_buffer += c.lower()
 
-    if s_buffer:
-        yield s_buffer
+    token = s_buffer
+    if html:
+        token = _parser.unescape(token)
+    token = token.strip(punctuation)
+    if len(token) > 1 and token not in stopwords and not isnumeric(token):
+        yield token
 
 
 def isnumeric(text):

@@ -54,7 +54,6 @@ if __name__ == '__main__':
             sr_index, data_path,
             subreddit=parameters['subreddit'],
             page_samples=parameters['samples'],
-            preprocess=textparser.clean_token
         )
 
         print('Indexing Runtime: {}'.format(time.time() - t0))
