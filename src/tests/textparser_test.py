@@ -43,7 +43,7 @@ def test_word_tokenize_stopwords():
 def test_word_tokenize_single_letters():
     # Single letter tokens should be completely ignored
     assert generator_cmp(word_tokenize('a e i o u vowels', []), ['vowels'])
-    assert generator_cmp(word_tokenize('!!!@#@##@#I Gold', []), ['gold'])
+    assert generator_cmp(word_tokenize('!!!@#@##@#I *a Gold', []), ['gold'])
     assert generator_cmp(word_tokenize('aa i', []), ['aa'])
 
 
