@@ -1,11 +1,7 @@
 # ~*~ coding:utf-8 ~*~
 
 from textparser import *
-
-
-def generator_cmp(gen, list1):
-    # Compares a generator to a list for equality
-    return list(gen) == list1
+from testutils import generator_cmp
 
 
 def test_null_stemmer():

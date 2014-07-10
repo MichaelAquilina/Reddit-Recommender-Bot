@@ -4,11 +4,7 @@ import unittest
 import tempfile
 
 from hashedindex import *
-
-
-def unordered_list_cmp(list1, list2):
-    # Check lengths first for slight improvement in performance
-    return len(list1) == len(list2) and sorted(list1) == sorted(list2)
+from testutils import unordered_list_cmp
 
 
 class HashedIndexTest(unittest.TestCase):
