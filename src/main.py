@@ -40,7 +40,6 @@ if __name__ == '__main__':
     sr_index = HashedIndex()
 
     if os.path.exists(save_path):
-        # Possible to initially just load meta-data?
         meta = load_meta(save_path, compressed=True)
     else:
         meta = None
@@ -60,13 +59,12 @@ if __name__ == '__main__':
         print('Indexing Runtime: {}'.format(time.time() - t0))
         print('Original shape: (%d, %d)' % (len(sr_index.documents()), len(sr_index.terms())))
 
-        # Values larger than 0.01 for min_frequency can be considered "aggressive" pruning
-        t3 = time.time()
+        t0 = time.time()
 
         sr_index.prune(min_frequency=parameters['min_frequency'], max_frequency=parameters['max_frequency'])
         sr_index.save(save_path, compressed=True, text_class=data, parameters=parameters)
 
-        print('Pruning Runtime: {}'.format(time.time() - t3))
+        print('Pruning Runtime: {}'.format(time.time() - t0))
     else:
         print('State File is up to date')
         meta = sr_index.load(save_path, compressed=True)
@@ -75,16 +73,15 @@ if __name__ == '__main__':
     print()
     print('Generating feature matrix')
 
-    t1 = time.time()
+    t0 = time.time()
     X = sr_index.generate_feature_matrix(mode=parameters['mode'])
     sr_index.freeze()  # Prevent more terms from being added
 
-    print('generation runtime = {}'.format(time.time() - t1))
+    print('generation runtime = {}'.format(time.time() - t0))
 
     print('Feature Matrix shape: (%d, %d)' % X.shape)
 
     # TODO: Move the generator code below to a function
-    # This needs to be better tested, not sure if this is 100% correct
     y = np.zeros(len(sr_index.documents()))
     for index, doc in enumerate(sr_index.documents()):
         y[index] = 0 if data[doc] is None else 1
