@@ -23,13 +23,14 @@ if __name__ == '__main__':
     save_path = '/home/michaela/Development/python_sr.json.bz2'
 
     # Set the parameters to the program over here
-    force_reindex = True
+    force_reindex = False
     parameters = {
         'samples': 800,
         'subreddit': 'python',
-        'min_frequency': 0.06,
+        'min_frequency': 0.05,
         'max_frequency': 1.00,
         'stemmer': str(_stemmer),
+        'data_path': data_path,
         'mode': 'tfidf',
     }
 
