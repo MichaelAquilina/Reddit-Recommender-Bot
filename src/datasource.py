@@ -84,18 +84,20 @@ def load_data_source(index, data_path, subreddit, page_samples, preprocess=lambd
             # Only interested in link posts (but they all should ok)
             if post['kind'] == 't3':
                 url_path = get_path_from_url(pages_dir, post['data']['url'])
-                data[url_path] = subreddit
+                rel_path = os.path.relpath(url_path, pages_dir)
+                data[rel_path] = subreddit
 
     # Add random sample from pages directory
-    remaining = set(search_files(pages_dir)) - set(data.keys())
-    for page_path in random.sample(remaining, page_samples):
-        data[page_path] = None   # Unlabelled data
+    remaining = set(search_files(pages_dir, relative=True)) - set(data.keys())
+    for rel_path in random.sample(remaining, page_samples):
+        data[rel_path] = None   # Unlabelled data
 
     # Add all the data to the index
-    for page_path, label in data.items():
+    for rel_path, label in data.items():
+        url_path = os.path.join(pages_dir, rel_path)
 
-        if os.path.exists(page_path):
-            with open(page_path, 'r') as html_file:
+        if os.path.exists(url_path):
+            with open(url_path, 'r') as html_file:
                 html_text = html_file.read()
 
             # This currently provides good accuracy but does not
@@ -109,7 +111,7 @@ def load_data_source(index, data_path, subreddit, page_samples, preprocess=lambd
                 # Handle "or" case represented by "/"
                 for split_token in token.split('/'):
                     if split_token:
-                        index.add_term_occurrence(split_token, page_path)
+                        index.add_term_occurrence(split_token, rel_path)
 
     # Return list of data points
     return data
