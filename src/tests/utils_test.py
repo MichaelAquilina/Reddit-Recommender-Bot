@@ -18,3 +18,18 @@ def test_search_files():
 
     assert generator_unordered_cmp(search_files(tempdir), expected_abs)
     assert generator_unordered_cmp(search_files(tempdir, relative=True), expected_rel)
+
+
+def test_search_files_recursive():
+    expected = []
+    tempdir = tempfile.mkdtemp()
+    current = tempdir
+
+    for i in xrange(10):
+        tf = tempfile.mktemp(suffix=str(i), dir=current)
+        expected.append(tf)
+        with open(tf, 'w') as fp:
+            fp.write('Temporary Data')
+        current = tempfile.mkdtemp(dir=current)
+
+    assert generator_unordered_cmp(search_files(tempdir), expected)
