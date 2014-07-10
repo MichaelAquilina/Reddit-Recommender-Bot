@@ -1,3 +1,8 @@
+__about__ = """
+Contains a bunch of helper methods often used in tests to perform assertions.
+"""
+
+
 def generator_unordered_cmp(gen, list1):
     # Compares a generator to a list for equality
     return unordered_list_cmp(list(gen), list1)
