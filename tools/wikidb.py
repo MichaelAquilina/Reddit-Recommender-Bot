@@ -17,10 +17,14 @@ if __name__ == '__main__':
         # Creates the necessary tables for the database to work
         cur = connection.cursor()
 
+        cur.execute('DROP TABLE IF EXISTS TermOccurrences;')
+        cur.execute('DROP TABLE IF EXISTS Pages;')
+        cur.execute('DROP TABLE IF EXISTS Terms;')
+
         cur.execute("""
             CREATE TABLE IF NOT EXISTS Pages (
                 PageID INT AUTO_INCREMENT PRIMARY KEY,
-                PageName VARCHAR(255) UNIQUE,
+                PageName VARCHAR(255) BINARY UNIQUE NOT NULL,
                 CreationDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             ) ENGINE=INNODB;
         """)
@@ -46,5 +50,7 @@ if __name__ == '__main__':
 
         cur.close()
         connection.close()
+
+        print('Successfully created the Wikipedia Table Indices')
     else:
         print('Missing db.json configuration file')
