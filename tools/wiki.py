@@ -20,6 +20,17 @@ MIN_PAGE_SIZE = 2 * 1024  # 2 KB min size
 # large without appropriate compression)
 
 
+# Should prune based on document frequency
+def prune():
+    cur.execute("""
+        DELETE FROM Terms
+        WHERE TermID IN (
+          SELECT TermID FROM TermOccurrences
+          WHERE Counter <= 2
+        );
+    """)
+
+
 # Perform a Bulk insert operation for significantly faster performance
 def add_term_occurrence(terms, page):
     var_list = Counter(terms)
@@ -132,6 +143,7 @@ if __name__ == '__main__':
 
                 # Commit the changes made in large batches
                 if count % 200 == 0:
+                    prune()
                     connection.commit()
 
     connection.commit()

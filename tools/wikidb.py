@@ -42,8 +42,8 @@ if __name__ == '__main__':
                 TermID INT NOT NULL,
                 PageID INT NOT NULL,
                 Counter INT DEFAULT 0,
-                FOREIGN KEY (TermID) REFERENCES Terms(TermID),
-                FOREIGN KEY (PageID) REFERENCES Pages(PageID),
+                FOREIGN KEY (TermID) REFERENCES Terms(TermID) ON DELETE CASCADE,
+                FOREIGN KEY (PageID) REFERENCES Pages(PageID) ON DELETE CASCADE,
                 PRIMARY KEY (TermID, PageID)
             ) ENGINE=INNODB;
         """)
