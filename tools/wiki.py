@@ -20,7 +20,39 @@ MIN_PAGE_SIZE = 2 * 1024  # 2 KB min size
 # large without appropriate compression)
 
 
-# Should prune based on document frequency
+def setup():
+    cur.execute('DROP TABLE IF EXISTS TermOccurrences;')
+    cur.execute('DROP TABLE IF EXISTS Pages;')
+    cur.execute('DROP TABLE IF EXISTS Terms;')
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS Pages (
+            PageID INT AUTO_INCREMENT PRIMARY KEY,
+            PageName VARCHAR(255) BINARY UNIQUE NOT NULL,
+            CreationDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=INNODB;
+    """)
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS Terms (
+            TermID INT AUTO_INCREMENT PRIMARY KEY,
+            TermName VARCHAR(100) UNIQUE,
+            CreationDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=INNODB;
+    """)
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS TermOccurrences (
+            TermID INT NOT NULL,
+            PageID INT NOT NULL,
+            Counter INT DEFAULT 0 NOT NULL,
+            FOREIGN KEY (TermID) REFERENCES Terms(TermID) ON DELETE CASCADE,
+            FOREIGN KEY (PageID) REFERENCES Pages(PageID) ON DELETE CASCADE,
+            PRIMARY KEY (TermID, PageID)
+        ) ENGINE=INNODB;
+    """)
+
+
 def prune():
     cur.execute("""
         DELETE FROM Terms
@@ -92,9 +124,7 @@ if __name__ == '__main__':
     connection.autocommit(False)
     cur = connection.cursor(cursorclass=MySQLdb.cursors.SSCursor)
 
-    cur.execute('DELETE FROM TermOccurrences;')
-    cur.execute('DELETE FROM Terms;')
-    cur.execute('DELETE FROM Pages;')
+    setup()
     connection.commit()
 
     t0 = time.time()
