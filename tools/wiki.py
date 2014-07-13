@@ -12,7 +12,7 @@ from collections import Counter
 from textparser import word_tokenize
 from WikiExtractor import clean as clean_wiki_markup
 
-MIN_PAGE_SIZE = 2 * 1024  # 2 KB min size
+MIN_PAGE_SIZE = 1 * 1024  # 1 KB min size
 
 # Just reading the entire Wikipedia corpus takes 1 hour 15 minutes
 # This means that an intermediate format is super important (HashedIndex
