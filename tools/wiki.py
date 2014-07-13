@@ -170,7 +170,7 @@ if __name__ == '__main__':
                 page = False
 
                 # Prune the database from noisy terms every now and so often
-                if count % 2000 == 0:
+                if count % 5000 == 0:
                     prune()
 
                 # Commit the changes made in large batches
