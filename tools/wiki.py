@@ -55,11 +55,14 @@ def setup():
 
 def prune():
     cur.execute("""
-        DELETE FROM Terms
-        WHERE TermID IN (
-          SELECT TermID FROM TermOccurrences
-          WHERE Counter <= 2
-        );
+        DELETE T1
+        FROM Terms AS T1
+        JOIN (
+          SELECT TermID
+          FROM TermOccurrences
+          GROUP BY TermID
+          HAVING SUM(Counter) <= 2
+        ) AS T2 ON T1.TermID = T2.TermID;
     """)
 
 
@@ -104,11 +107,6 @@ def add_term_occurrence(terms, page):
             INSERT INTO TermOccurrences (PageID, TermID, Counter)
             VALUES %s;
         """ % var_string, itertools.chain.from_iterable(termids))
-
-
-# Definitely possible to prune once term occurrences are implemented
-def prune():
-    pass
 
 if __name__ == '__main__':
     import bz2
@@ -171,9 +169,12 @@ if __name__ == '__main__':
                 page_text = ''
                 page = False
 
+                # Prune the database from noisy terms every now and so often
+                if count % 2000 == 0:
+                    prune()
+
                 # Commit the changes made in large batches
                 if count % 200 == 0:
-                    prune()
                     connection.commit()
 
     connection.commit()
