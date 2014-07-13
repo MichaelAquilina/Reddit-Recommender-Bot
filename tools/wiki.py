@@ -30,7 +30,7 @@ def setup():
             PageID INT AUTO_INCREMENT PRIMARY KEY,
             PageName VARCHAR(255) BINARY UNIQUE NOT NULL,
             CreationDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        ) ENGINE=INNODB;
+        ) ENGINE=MYISAM;
     """)
 
     cur.execute("""
@@ -38,7 +38,7 @@ def setup():
             TermID INT AUTO_INCREMENT PRIMARY KEY,
             TermName VARCHAR(100) UNIQUE,
             CreationDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        ) ENGINE=INNODB;
+        ) ENGINE=MYISAM;
     """)
 
     cur.execute("""
@@ -49,7 +49,7 @@ def setup():
             FOREIGN KEY (TermID) REFERENCES Terms(TermID) ON DELETE CASCADE,
             FOREIGN KEY (PageID) REFERENCES Pages(PageID) ON DELETE CASCADE,
             PRIMARY KEY (TermID, PageID)
-        ) ENGINE=INNODB;
+        ) ENGINE=MYISAM;
     """)
 
 
