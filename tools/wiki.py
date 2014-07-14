@@ -2,6 +2,7 @@
 
 from __future__ import print_function
 
+import time
 import MySQLdb
 import itertools
 
@@ -62,24 +63,32 @@ def setup():
             FOREIGN KEY (TermID) REFERENCES Terms(TermID) ON DELETE CASCADE,
             FOREIGN KEY (PageID) REFERENCES Pages(PageID) ON DELETE CASCADE,
             PRIMARY KEY (TermID, PageID)
-        ) ENGINE=MEMORY;
+        ) ENGINE=MYISAM;
     """)
 
 
 def prune():
+    prune_start = time.time()
+
     # Moves Items from the temporary TermOccurrences table to permanent storage
     cur.execute("""
         INSERT INTO TermOccurrences
-        SELECT TermID, PageID, Counter
-        FROM TermOccurrencesTemp
-        GROUP BY TermID
-        HAVING SUM(Counter) > 2;
+        SELECT T1.TermID, T1.PageID, T1.Counter
+        FROM TermOccurrencesTemp AS T1
+        INNER JOIN (
+            SELECT TermID
+            FROM TermOccurrencesTemp
+            GROUP BY TermID
+            HAVING SUM(Counter) > 2
+        ) AS T2 ON T1.TermID = T2.TermID;
     """)
 
     # Clear out the temporary storage
     cur.execute("""
         DELETE FROM TermOccurrencesTemp;
     """)
+
+    print('Pruning took: %d seconds' % (time.time() - prune_start))
 
 
 # Perform a Bulk insert operation for significantly faster performance
@@ -126,7 +135,6 @@ def add_term_occurrence(terms, page):
 
 if __name__ == '__main__':
     import bz2
-    import time
     import json
 
     path = '/home/michaela/Development/enwiki-20140502-pages-articles.xml.bz2'
