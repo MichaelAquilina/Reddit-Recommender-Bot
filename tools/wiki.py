@@ -14,6 +14,7 @@ from textparser import word_tokenize
 from WikiExtractor import clean as clean_wiki_markup
 
 MIN_PAGE_SIZE = 1 * 1024  # 1 KB min size
+MIN_PAGE_LENGTH = 300  # Minimum Page Length in terms
 
 # Just reading the entire Wikipedia corpus takes 1 hour 15 minutes
 # This means that an intermediate format is super important (HashedIndex
@@ -95,10 +96,7 @@ def prune():
 def add_term_occurrence(terms, page):
     var_list = Counter(terms)
 
-    # For term occurrence, will probably need to use the Counter class on the terms generator
-    # to group items which repeat (which is going to happen often)
-
-    if var_list:
+    if sum(var_list.values()) >= MIN_PAGE_LENGTH:
         var_string = u'(%s),' * len(var_list)
         var_string = var_string.rstrip(',')
 
