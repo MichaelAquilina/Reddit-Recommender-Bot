@@ -174,7 +174,7 @@ if __name__ == '__main__':
     last_speed_update = time.time()
 
     with bz2.BZ2File(path, 'r') as fp:
-        while count < target:
+        while count != target:
             text = fp.readline()
 
             if not text:
