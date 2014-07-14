@@ -21,6 +21,7 @@ MIN_PAGE_SIZE = 1 * 1024  # 1 KB min size
 
 
 def setup():
+    cur.execute('DROP TABLE IF EXISTS TermOccurrencesTemp;')
     cur.execute('DROP TABLE IF EXISTS TermOccurrences;')
     cur.execute('DROP TABLE IF EXISTS Pages;')
     cur.execute('DROP TABLE IF EXISTS Terms;')
@@ -52,19 +53,32 @@ def setup():
         ) ENGINE=MYISAM;
     """)
 
+    # Complete copy of TermOccurrences structure
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS TermOccurrencesTemp (
+            TermID INT NOT NULL,
+            PageID INT NOT NULL,
+            Counter INT DEFAULT 0 NOT NULL,
+            FOREIGN KEY (TermID) REFERENCES Terms(TermID) ON DELETE CASCADE,
+            FOREIGN KEY (PageID) REFERENCES Pages(PageID) ON DELETE CASCADE,
+            PRIMARY KEY (TermID, PageID)
+        ) ENGINE=MEMORY;
+    """)
+
 
 def prune():
-    # This can get slow when the tables grow large
-    # There are possible ways to optimise this
+    # Moves Items from the temporary TermOccurrences table to permanent storage
     cur.execute("""
-        DELETE T1
-        FROM Terms AS T1
-        JOIN (
-          SELECT TermID
-          FROM TermOccurrences
-          GROUP BY TermID
-          HAVING SUM(Counter) <= 2
-        ) AS T2 ON T1.TermID = T2.TermID;
+        INSERT INTO TermOccurrences
+        SELECT TermID, PageID, Counter
+        FROM TermOccurrencesTemp
+        GROUP BY TermID
+        HAVING SUM(Counter) > 2;
+    """)
+
+    # Clear out the temporary storage
+    cur.execute("""
+        DELETE FROM TermOccurrencesTemp;
     """)
 
 
@@ -106,7 +120,7 @@ def add_term_occurrence(terms, page):
         var_string = var_string.rstrip(',')
 
         cur.execute("""
-            INSERT INTO TermOccurrences (PageID, TermID, Counter)
+            INSERT INTO TermOccurrencesTemp (PageID, TermID, Counter)
             VALUES %s;
         """ % var_string, itertools.chain.from_iterable(termids))
 
@@ -139,7 +153,7 @@ if __name__ == '__main__':
     # Settings dictionary that can be one day stored in a file
     settings = {
         'commit-freq': 200,
-        'prune-freq': 5000,
+        'prune-freq': 2000,
         'speed-freq': 100,
     }
 
