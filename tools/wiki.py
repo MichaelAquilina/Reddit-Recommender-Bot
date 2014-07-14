@@ -54,6 +54,8 @@ def setup():
 
 
 def prune():
+    # This can get slow when the tables grow large
+    # There are possible ways to optimise this
     cur.execute("""
         DELETE T1
         FROM Terms AS T1
@@ -130,8 +132,18 @@ if __name__ == '__main__':
     page = False
     page_text = ''
     pages = []
-    target = 50000
+    target = 200000
     count = 0
+    speed = None
+
+    # Settings dictionary that can be one day stored in a file
+    settings = {
+        'commit-freq': 200,
+        'prune-freq': 5000,
+        'speed-freq': 100,
+    }
+
+    last_speed_update = time.time()
 
     with bz2.BZ2File(path, 'r') as fp:
         while count < target:
@@ -162,19 +174,29 @@ if __name__ == '__main__':
                     clean_text = clean_wiki_markup(text)
                     add_term_occurrence(word_tokenize(clean_text), title)
 
-                    print('(Processed)')
+                    print('(Processed)', end=' ')
                 else:
-                    print('(Ignored)')
+                    print('(Ignored)', end=' ')
+
+                if speed:
+                    print('(%d pages/sec)' % speed)
+                else:
+                    print('(...)')
 
                 page_text = ''
                 page = False
 
                 # Prune the database from noisy terms every now and so often
-                if count % 5000 == 0:
+                if count % settings['prune-freq'] == 0:
                     prune()
 
+                if count % settings['speed-freq'] == 0:
+                    # Print Estimated speed every commit
+                    speed = settings['commit-freq'] / (time.time() - last_speed_update)
+                    last_speed_update = time.time()
+
                 # Commit the changes made in large batches
-                if count % 200 == 0:
+                if count % settings['commit-freq'] == 0:
                     connection.commit()
 
     connection.commit()
