@@ -134,8 +134,14 @@ def add_term_occurrence(terms, page):
 if __name__ == '__main__':
     import bz2
     import json
+    import argparse
 
-    path = '/home/michaela/Development/enwiki-20140502-pages-articles.xml.bz2'
+    parser = argparse.ArgumentParser(description='Parse and Index a Wikipedia dump into an SQL database')
+    parser.add_argument('path', help='Path to sql data dump compressed in bz2')
+
+    args = parser.parse_args()
+
+    path = args.path
 
     with open('db.json', 'r') as fp:
         params = json.load(fp)
