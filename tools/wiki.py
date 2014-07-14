@@ -221,6 +221,8 @@ if __name__ == '__main__':
 
     cur.execute('DROP TABLE IF EXISTS TermOccurrencesTemp;')
 
+    cur.execute('DROP TABLE IF EXISTS DocumentLengths;')
+
     cur.execute("""
         CREATE TABLE IF NOT EXISTS DocumentLengths (
             PageID INT PRIMARY KEY,
