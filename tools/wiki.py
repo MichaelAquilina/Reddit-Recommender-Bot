@@ -221,6 +221,8 @@ if __name__ == '__main__':
                 if count % settings['commit-freq'] == 0:
                     connection.commit()
 
+    cur.execute('DROP TABLE IF EXISTS TermOccurrencesTemp;')
+
     connection.commit()
 
     import pdb
