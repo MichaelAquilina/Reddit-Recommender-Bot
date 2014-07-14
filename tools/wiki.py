@@ -28,7 +28,7 @@ def setup():
     cur.execute("""
         CREATE TABLE IF NOT EXISTS Pages (
             PageID INT AUTO_INCREMENT PRIMARY KEY,
-            PageName VARCHAR(255) BINARY UNIQUE NOT NULL,
+            PageName VARCHAR(255) NOT NULL,
             CreationDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=MYISAM;
     """)
