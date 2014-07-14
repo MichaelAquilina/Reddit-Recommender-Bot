@@ -121,15 +121,17 @@ def add_term_occurrence(terms, page):
         """ % var_string, var_list.keys())
 
         term_results = cur.fetchall()
-        termids = [(tid, var_list[name]) for (tid, name) in term_results]
 
-        var_string = u'({}, %s, %s),'.format(pageid) * len(term_results)
-        var_string = var_string.rstrip(',')
+        if term_results:
+            termids = [(tid, var_list[name]) for (tid, name) in term_results]
 
-        cur.execute("""
-            INSERT INTO TermOccurrencesTemp (PageID, TermID, Counter)
-            VALUES %s;
-        """ % var_string, itertools.chain.from_iterable(termids))
+            var_string = u'({}, %s, %s),'.format(pageid) * len(term_results)
+            var_string = var_string.rstrip(',')
+
+            cur.execute("""
+                INSERT INTO TermOccurrencesTemp (PageID, TermID, Counter)
+                VALUES %s;
+            """ % var_string, itertools.chain.from_iterable(termids))
 
 if __name__ == '__main__':
     import bz2
