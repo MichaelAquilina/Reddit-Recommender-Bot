@@ -32,6 +32,7 @@ def setup():
         CREATE TABLE IF NOT EXISTS Pages (
             PageID INT AUTO_INCREMENT PRIMARY KEY,
             PageName VARCHAR(255) NOT NULL,
+            Length INT NOT NULL,
             CreationDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=MYISAM;
     """)
@@ -95,15 +96,16 @@ def prune():
 # Perform a Bulk insert operation for significantly faster performance
 def add_term_occurrence(terms, page):
     var_list = Counter(terms)
+    doc_length = sum(var_list.values())
 
-    if sum(var_list.values()) >= MIN_PAGE_LENGTH:
+    if doc_length >= MIN_PAGE_LENGTH:
         var_string = u'(%s),' * len(var_list)
         var_string = var_string.rstrip(',')
 
         cur.execute("""
-            INSERT INTO Pages (PageName)
-            VALUES (%s);
-        """, (page, ))
+            INSERT INTO Pages (PageName, Length)
+            VALUES (%s, %s);
+        """, (page, doc_length))
 
         pageid = cur.lastrowid
 
@@ -228,26 +230,6 @@ if __name__ == '__main__':
                     connection.commit()
 
     cur.execute('DROP TABLE IF EXISTS TermOccurrencesTemp;')
-
-    cur.execute('DROP TABLE IF EXISTS DocumentLengths;')
-
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS DocumentLengths (
-            PageID INT PRIMARY KEY,
-            DocLength INT NOT NULL
-        );
-    """)
-
-    cur.execute("""
-        INSERT INTO DocumentLengths
-        SELECT T1.PageID, T2.DocLength
-        FROM Pages AS T1
-        JOIN (
-            SELECT PageID, SUM(Counter) AS DocLength
-            FROM TermOccurrences
-            GROUP BY PageID
-        ) AS T2 ON T2.PageID = T1.PageID
-    """)
 
     connection.commit()
 
