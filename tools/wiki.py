@@ -223,10 +223,25 @@ if __name__ == '__main__':
 
     cur.execute('DROP TABLE IF EXISTS TermOccurrencesTemp;')
 
-    connection.commit()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS DocumentLengths (
+            PageID INT PRIMARY KEY,
+            DocLength INT NOT NULL
+        );
+    """)
 
-    import pdb
-    pdb.set_trace()
+    cur.execute("""
+        INSERT INTO DocumentLengths
+        SELECT T1.PageID, T2.DocLength
+        FROM Pages AS T1
+        JOIN (
+            SELECT PageID, SUM(Counter) AS DocLength
+            FROM TermOccurrences
+            GROUP BY PageID
+        ) AS T2 ON T2.PageID = T1.PageID
+    """)
+
+    connection.commit()
 
     cur.close()
     connection.close()
