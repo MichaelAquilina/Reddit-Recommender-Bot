@@ -164,7 +164,7 @@ if __name__ == '__main__':
     page = False
     page_text = ''
     pages = []
-    target = 200000
+    target = -1
     count = 0
     speed = None
 
