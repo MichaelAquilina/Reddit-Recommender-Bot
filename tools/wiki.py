@@ -200,7 +200,7 @@ if __name__ == '__main__':
 
                 # Add the text of the page to the index
                 text = root.xpath('revision/text')[0].text
-                if len(text) > MIN_PAGE_SIZE:
+                if text and len(text) > MIN_PAGE_SIZE:
                     clean_text = clean_wiki_markup(text)
                     add_term_occurrence(word_tokenize(clean_text), title)
 
