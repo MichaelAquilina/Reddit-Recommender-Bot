@@ -34,7 +34,7 @@ def setup():
             PageName VARCHAR(255) NOT NULL,
             Length INT NOT NULL,
             CreationDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        ) ENGINE=MYISAM;
+        ) ENGINE=MYISAM CHARACTER SET=utf8;;
     """)
 
     cur.execute("""
@@ -42,7 +42,7 @@ def setup():
             TermID INT AUTO_INCREMENT PRIMARY KEY,
             TermName VARCHAR(100) UNIQUE,
             CreationDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        ) ENGINE=MYISAM;
+        ) ENGINE=MYISAM CHARACTER SET=utf8;;
     """)
 
     cur.execute("""
@@ -53,7 +53,7 @@ def setup():
             FOREIGN KEY (TermID) REFERENCES Terms(TermID) ON DELETE CASCADE,
             FOREIGN KEY (PageID) REFERENCES Pages(PageID) ON DELETE CASCADE,
             PRIMARY KEY (TermID, PageID)
-        ) ENGINE=MYISAM;
+        ) ENGINE=MYISAM CHARACTER SET=utf8;;
     """)
 
     # Complete copy of TermOccurrences structure
@@ -65,7 +65,7 @@ def setup():
             FOREIGN KEY (TermID) REFERENCES Terms(TermID) ON DELETE CASCADE,
             FOREIGN KEY (PageID) REFERENCES Pages(PageID) ON DELETE CASCADE,
             PRIMARY KEY (TermID, PageID)
-        ) ENGINE=MYISAM;
+        ) ENGINE=MYISAM CHARACTER SET=utf8;;
     """)
 
 
