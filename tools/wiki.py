@@ -21,6 +21,9 @@ MIN_PAGE_LENGTH = 300  # Minimum Page Length in terms
 # save and load method should suffice in these cases but they might be
 # large without appropriate compression)
 
+# List of Page titles to ignore when they have the following prefix
+IGNORE_LIST = ('Wikipedia:', 'Template:', 'File:', 'Category:')
+
 
 def setup():
     cur.execute('DROP TABLE IF EXISTS TermOccurrencesTemp;')
@@ -199,7 +202,7 @@ if __name__ == '__main__':
                 title = title.replace('\'', '')
 
                 meta = False
-                if '(disambiguation)' in title or title.startswith('Wikipedia'):
+                if title.endswith('(disambiguation)') or title.startswith(IGNORE_LIST):
                     meta = True
 
                 print(count, title, end=' ')
