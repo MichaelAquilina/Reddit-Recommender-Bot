@@ -142,12 +142,14 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Parse and Index a Wikipedia dump into an SQL database')
     parser.add_argument('path', help='Path to sql data dump compressed in bz2')
+    parser.add_argument('--db', help='Path to db connection settings', default='db.json')
 
     args = parser.parse_args()
 
     path = args.path
+    db = args.db
 
-    with open('db.json', 'r') as fp:
+    with open(db, 'r') as fp:
         params = json.load(fp)
 
     connection = MySQLdb.connect(charset='utf8', **params)
