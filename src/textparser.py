@@ -16,7 +16,7 @@ class NullStemmer(object):
         return '<NullStemmer>'
 
 _parser = HTMLParser()
-_stopwords = frozenset(nltk.corpus.stopwords.words())
+_stopwords = frozenset(nltk.corpus.stopwords.words('english'))
 _accepted = frozenset(ascii_letters + digits + punctuation) - frozenset('\'')
 
 _re_punctuation = re.compile('[%s]' % re.escape(punctuation))
