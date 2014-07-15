@@ -198,11 +198,15 @@ if __name__ == '__main__':
                 title = root.xpath('title')[0].text
                 title = title.replace('\'', '')
 
+                meta = False
+                if '(disambiguation)' in title or title.startswith('Wikipedia'):
+                    meta = True
+
                 print(count, title, end=' ')
 
                 # Add the text of the page to the index
                 text = root.xpath('revision/text')[0].text
-                if text and len(text) > MIN_PAGE_SIZE:
+                if not meta and text and len(text) > MIN_PAGE_SIZE:
                     clean_text = clean_wiki_markup(text)
                     add_term_occurrence(word_tokenize(clean_text), title)
 
