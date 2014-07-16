@@ -24,7 +24,7 @@ MIN_PAGE_LENGTH = 300  # Minimum Page Length in terms
 # large without appropriate compression)
 
 # List of Page titles to ignore when they have the following prefix
-IGNORE_LIST = ('Wikipedia:', 'Template:', 'File:', 'Category:')
+IGNORE_LIST = ('Wikipedia:', 'Template:', 'File:', 'Category:', 'Help:')
 
 
 def setup():
