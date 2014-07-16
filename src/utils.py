@@ -1,4 +1,23 @@
 import os
+import json
+
+
+def load_db_params():
+    params = None
+    search_path = [os.getcwd()]
+    if 'PYTHONPATH' in os.environ:
+        search_path += os.environ['PYTHONPATH'].split(':')
+
+    if 'PATH' in os.environ:
+        search_path += os.environ['PATH'].split(':')
+
+    for directory in search_path:
+        if 'db.json' in os.listdir(directory):
+            # DB-Settings for performing a connection
+            with open(os.path.join(directory, 'db.json'), 'r') as fp:
+                params = json.load(fp)
+
+    return params
 
 
 # TODO: Cover with tests

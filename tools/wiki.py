@@ -13,6 +13,8 @@ from collections import Counter
 from textparser import word_tokenize
 from WikiExtractor import clean as clean_wiki_markup
 
+from utils import load_db_params
+
 MIN_PAGE_SIZE = 1 * 1024  # 1 KB min size
 MIN_PAGE_LENGTH = 300  # Minimum Page Length in terms
 
@@ -140,20 +142,18 @@ def add_term_occurrence(terms, page):
 
 if __name__ == '__main__':
     import bz2
-    import json
     import argparse
 
     parser = argparse.ArgumentParser(description='Parse and Index a Wikipedia dump into an SQL database')
     parser.add_argument('path', help='Path to sql data dump compressed in bz2')
-    parser.add_argument('--db', help='Path to db connection settings', default='db.json')
 
     args = parser.parse_args()
 
     path = args.path
-    db = args.db
 
-    with open(db, 'r') as fp:
-        params = json.load(fp)
+    params = load_db_params()
+    if params is None:
+        raise ValueError('Could not find db.json')
 
     connection = MySQLdb.connect(charset='utf8', **params)
     connection.autocommit(False)
