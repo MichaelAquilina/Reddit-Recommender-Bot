@@ -26,6 +26,8 @@ def test_word_tokenize():
     assert generator_cmp(word_tokenize(''), [])
     assert generator_cmp(word_tokenize('empty +@@ punctuation'), ['empty', 'punctuation'])
     assert generator_cmp(word_tokenize('This shouldn\'t fail'), ['shouldnt', 'fail'])
+    assert generator_cmp(word_tokenize('Cat and dog'), ['cat', 'dog'])
+    assert generator_cmp(word_tokenize('I own a Dell laptop'), ['dell', 'laptop'])
 
 
 def test_word_tokenize_stopwords():
