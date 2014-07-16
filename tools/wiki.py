@@ -42,10 +42,14 @@ def setup():
         ) ENGINE=MYISAM CHARACTER SET=utf8;;
     """)
 
+    # Create an index on page name as it is used for many search operations
+    cur.execute('CREATE INDEX page_name_index ON Pages (PageName);')
+
+    # Using Unique will automatically use an index for TermName in MySQL
     cur.execute("""
         CREATE TABLE IF NOT EXISTS Terms (
             TermID INT AUTO_INCREMENT PRIMARY KEY,
-            TermName VARCHAR(100) UNIQUE,
+            TermName VARCHAR(100) NOT NULL UNIQUE,
             CreationDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=MYISAM CHARACTER SET=utf8;;
     """)
