@@ -176,7 +176,7 @@ if __name__ == '__main__':
 
     t0 = time.time()
 
-    page = False
+    is_page = False
     page_text = ''
     pages = []
     target = -1
@@ -200,9 +200,9 @@ if __name__ == '__main__':
                 break
 
             if '<page>' in text:
-                page = True
+                is_page = True
 
-            if page:
+            if is_page:
                 page_text += text
 
             if '</page>' in text:
@@ -235,7 +235,7 @@ if __name__ == '__main__':
                     print('(...)')
 
                 page_text = ''
-                page = False
+                is_page = False
 
                 # Prune the database from noisy terms every now and so often
                 if count % settings['prune-freq'] == 0:
