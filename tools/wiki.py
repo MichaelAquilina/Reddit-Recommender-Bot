@@ -92,6 +92,16 @@ def prune():
         ) AS T2 ON T1.TermID = T2.TermID;
     """)
 
+    # Delete the terms which were not added
+    cur.execute("""
+        DELETE Terms
+        FROM Terms
+        LEFT JOIN TermOccurrences ON Terms.TermID = TermOccurrences.TermID
+        WHERE PageID IS NULL;
+    """)
+
+    print('Pruned %d terms' % cur.rowcount)
+
     # Clear out the temporary storage
     cur.execute("""
         DELETE FROM TermOccurrencesTemp;
