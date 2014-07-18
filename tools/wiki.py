@@ -299,16 +299,16 @@ if __name__ == '__main__':
             if count % settings['prune-freq'] == 0:
                 prune()
 
-            if count % settings['speed-freq'] == 0:
-                # Print Estimated speed every commit
-                speed = settings['commit-freq'] / (time.time() - last_speed_update)
-                last_speed_update = time.time()
-
             # Commit the changes made in large batches
             if count % settings['commit-freq'] == 0:
                 connection.commit()
 
         # Calculate speed regardless of state
+        if count % settings['speed-freq'] == 0:
+            # Print Estimated speed every commit
+            speed = settings['commit-freq'] / (time.time() - last_speed_update)
+            last_speed_update = time.time()
+
         if speed:
             print('(%d pages/sec)' % speed)
         else:
