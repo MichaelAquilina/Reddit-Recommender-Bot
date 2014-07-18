@@ -36,10 +36,10 @@ def setup():
     cur.execute("""
         CREATE TABLE IF NOT EXISTS Pages (
             PageID INT AUTO_INCREMENT PRIMARY KEY,
-            PageName VARCHAR(255) NOT NULL,
+            PageName VARCHAR(150) NOT NULL,
             Length INT NOT NULL,
             CreationDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        ) ENGINE=MYISAM CHARACTER SET=utf8;;
+        ) ENGINE=MYISAM CHARACTER SET=utf8 ROW_FORMAT=FIXED;
     """)
 
     # Create an index on page name as it is used for many search operations
@@ -49,9 +49,9 @@ def setup():
     cur.execute("""
         CREATE TABLE IF NOT EXISTS Terms (
             TermID INT AUTO_INCREMENT PRIMARY KEY,
-            TermName VARCHAR(100) NOT NULL UNIQUE,
+            TermName VARCHAR(40) NOT NULL UNIQUE,
             CreationDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        ) ENGINE=MYISAM CHARACTER SET=utf8;;
+        ) ENGINE=MYISAM CHARACTER SET=utf8 ROW_FORMAT=FIXED;
     """)
 
     cur.execute("""
@@ -62,7 +62,7 @@ def setup():
             FOREIGN KEY (TermID) REFERENCES Terms(TermID) ON DELETE CASCADE,
             FOREIGN KEY (PageID) REFERENCES Pages(PageID) ON DELETE CASCADE,
             PRIMARY KEY (TermID, PageID)
-        ) ENGINE=MYISAM CHARACTER SET=utf8;;
+        ) ENGINE=MYISAM CHARACTER SET=utf8 ROW_FORMAT=FIXED;
     """)
 
     # Complete copy of TermOccurrences structure
@@ -71,10 +71,8 @@ def setup():
             TermID INT NOT NULL,
             PageID INT NOT NULL,
             Counter INT DEFAULT 0 NOT NULL,
-            FOREIGN KEY (TermID) REFERENCES Terms(TermID) ON DELETE CASCADE,
-            FOREIGN KEY (PageID) REFERENCES Pages(PageID) ON DELETE CASCADE,
             PRIMARY KEY (TermID, PageID)
-        ) ENGINE=MYISAM CHARACTER SET=utf8;;
+        ) ENGINE=MYISAM CHARACTER SET=utf8 ROW_FORMAT=FIXED;
     """)
 
 
