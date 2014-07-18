@@ -27,7 +27,13 @@ def test_word_tokenize():
     assert generator_cmp(word_tokenize('empty +@@ punctuation'), ['empty', 'punctuation'])
     assert generator_cmp(word_tokenize('This shouldn\'t fail'), ['shouldnt', 'fail'])
     assert generator_cmp(word_tokenize('Cat and dog'), ['cat', 'dog'])
-    assert generator_cmp(word_tokenize('I own a Dell laptop'), ['dell', 'laptop'])
+    assert generator_cmp(word_tokenize('I own a Dell laptop'), ['dell', 'laptop'])  # Regression test
+
+
+def test_word_tokenize_special_punctuation():
+    assert generator_cmp(word_tokenize('self-determination'), ['self', 'determination'])
+    assert generator_cmp(word_tokenize('Red/Green'), ['red', 'green'])
+    assert generator_cmp(word_tokenize('Red\\Green'), ['red', 'green'])
 
 
 def test_word_tokenize_stopwords():

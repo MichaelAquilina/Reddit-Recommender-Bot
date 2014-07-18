@@ -2,6 +2,7 @@ import re
 import nltk
 import unicodedata
 
+from copy import copy
 from string import ascii_letters, whitespace, digits, punctuation
 from HTMLParser import HTMLParser
 
@@ -19,7 +20,12 @@ _parser = HTMLParser()
 _stopwords = frozenset(nltk.corpus.stopwords.words('english'))
 _accepted = frozenset(ascii_letters + digits + punctuation) - frozenset('\'')
 
-_re_punctuation = re.compile('[%s]' % re.escape(punctuation))
+_punctuation = copy(punctuation)
+_punctuation = _punctuation.replace('\\', '')
+_punctuation = _punctuation.replace('/', '')
+_punctuation = _punctuation.replace('-', '')
+
+_re_punctuation = re.compile('[%s]' % re.escape(_punctuation))
 _re_token = re.compile('[a-z0-9]+')
 
 
@@ -44,6 +50,7 @@ def word_tokenize(text, stopwords=_stopwords):
 
     for token in re.findall(_re_token, text.lower()):
         token = token.strip(punctuation)
+
         if len(token) > 1 and token not in stopwords and not isnumeric(token):
             yield token
 
