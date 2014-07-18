@@ -65,12 +65,13 @@ def setup():
         ) ENGINE=MYISAM CHARACTER SET=utf8 ROW_FORMAT=FIXED;
     """)
 
-    # Complete copy of TermOccurrences structure
+    # Mirrors TermOccurrences structure
     cur.execute("""
         CREATE TABLE IF NOT EXISTS TermOccurrencesTemp (
             TermID INT NOT NULL,
             PageID INT NOT NULL,
             Counter INT DEFAULT 0 NOT NULL,
+            CreationDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (TermID, PageID)
         ) ENGINE=MYISAM CHARACTER SET=utf8 ROW_FORMAT=FIXED;
     """)
@@ -190,10 +191,15 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Parse and Index a Wikipedia dump into an SQL database')
     parser.add_argument('path', help='Path to sql data dump compressed in bz2')
+    parser.add_argument('--cont', help='Continues previous terminated index process', action='store_true')
 
     args = parser.parse_args()
 
     path = args.path
+    cont_flag = args.cont
+
+    last_page_id = None
+    last_page_title = None
 
     params = load_db_params()
     if params is None:
@@ -203,9 +209,48 @@ if __name__ == '__main__':
     connection.autocommit(False)
     cur = connection.cursor(cursorclass=MySQLdb.cursors.SSCursor)
 
-    setup()
-    connection.commit()
+    # Continue or perform fresh start
+    if cont_flag:
+        print('Continuing previous index operation')
 
+        cur.execute("""
+            SELECT PageID, PageName, CreationDate
+            FROM Pages
+            ORDER BY CreationDate DESC
+            LIMIT 1;
+        """)
+
+        last_page_id, last_page_title, creation_date = cur.fetchone()
+        cur.fetchall()
+
+        print('Last indexed page was: %s (PageID %d)' % (last_page_title, last_page_id))
+
+        # Delete any lingering items which were half way through processing
+        cur.execute("""
+            DELETE TermOccurrencesTemp
+            FROM TermOccurrencesTemp
+            WHERE CreationDate >= %s;
+        """, (creation_date, ))
+
+        cur.execute("""
+            DELETE Terms
+            FROM Terms
+            WHERE CreationDate >= %s;
+        """, (creation_date, ))
+
+        cur.execute("""
+            DELETE Pages
+            FROM Pages
+            WHERE PageID = %s;
+        """, (last_page_id, ))
+    else:
+        print('Setting up database from scratch')
+        setup()
+        connection.commit()
+
+    # Reopen a new cursor to prevent commands out of syncs
+    cur.close()
+    cur = connection.cursor(cursorclass=MySQLdb.cursors.SSCursor)
     t0 = time.time()
 
     # Settings dictionary that can be one day stored in a file
@@ -230,35 +275,44 @@ if __name__ == '__main__':
 
         print(count, page_title, end=' ')
 
-        meta = False
-        if page_title.endswith('(disambiguation)') or page_title.startswith(IGNORE_LIST):
-            meta = True
+        if cont_flag:
+            if page_title == last_page_title:
+                cont_flag = False
+                print('(Found!)', end=' ')
+            else:
+                print('(Skipping)', end=' ')
 
-        if not meta and page_text and len(page_text) > MIN_PAGE_SIZE:
-            clean_text = clean_wiki_markup(page_text)
-            add_term_occurrence(word_tokenize(clean_text), page_title)
+        if not cont_flag:
+            meta = False
+            if page_title.endswith('(disambiguation)') or page_title.startswith(IGNORE_LIST):
+                meta = True
 
-            print('(Processed)', end=' ')
-        else:
-            print('(Ignored)', end=' ')
+            if not meta and page_text and len(page_text) > MIN_PAGE_SIZE:
+                clean_text = clean_wiki_markup(page_text)
+                add_term_occurrence(word_tokenize(clean_text), page_title)
 
+                print('(Processed)', end=' ')
+            else:
+                print('(Ignored)', end=' ')
+
+            # Prune the database from noisy terms every now and so often
+            if count % settings['prune-freq'] == 0:
+                prune()
+
+            if count % settings['speed-freq'] == 0:
+                # Print Estimated speed every commit
+                speed = settings['commit-freq'] / (time.time() - last_speed_update)
+                last_speed_update = time.time()
+
+            # Commit the changes made in large batches
+            if count % settings['commit-freq'] == 0:
+                connection.commit()
+
+        # Calculate speed regardless of state
         if speed:
             print('(%d pages/sec)' % speed)
         else:
             print('(...)')
-
-        # Prune the database from noisy terms every now and so often
-        if count % settings['prune-freq'] == 0:
-            prune()
-
-        if count % settings['speed-freq'] == 0:
-            # Print Estimated speed every commit
-            speed = settings['commit-freq'] / (time.time() - last_speed_update)
-            last_speed_update = time.time()
-
-        # Commit the changes made in large batches
-        if count % settings['commit-freq'] == 0:
-            connection.commit()
 
     cur.execute('DROP TABLE IF EXISTS TermOccurrencesTemp;')
 
