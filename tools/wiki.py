@@ -24,7 +24,7 @@ MIN_PAGE_LENGTH = 300  # Minimum Page Length in terms
 # large without appropriate compression)
 
 # List of Page titles to ignore when they have the following prefix
-IGNORE_LIST = ('Wikipedia:', 'Template:', 'File:', 'Category:', 'Help:')
+IGNORE_LIST = ('Wikipedia:', 'Template:', 'File:', 'Category:', 'Help:', 'Portal:')
 
 
 def setup():
@@ -137,7 +137,7 @@ def add_term_occurrence(terms, page):
             termids = [(tid, var_list[name]) for (tid, name) in term_results]
 
             var_string = u'({}, %s, %s),'.format(pageid) * len(term_results)
-            var_string = var_string.rstrip(',')
+            var_string = var_string[:-1]
 
             cur.execute("""
                 INSERT INTO TermOccurrencesTemp (PageID, TermID, Counter)
