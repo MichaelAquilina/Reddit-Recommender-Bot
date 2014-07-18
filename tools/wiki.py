@@ -152,6 +152,38 @@ def add_term_occurrence(terms, page):
                 VALUES %s;
             """ % var_string, itertools.chain.from_iterable(termids))
 
+
+def extract_wiki_pages(corpus_path):
+    is_page = False
+    text_buffer = ''
+    text = 'non-empty'
+
+    with bz2.BZ2File(corpus_path, 'r') as fp:
+        while text:
+            text = fp.readline()
+
+            if '<page>' in text:
+                is_page = True
+
+            if is_page:
+                text_buffer += text
+
+            if '</page>' in text:
+                tree = etree.ElementTree(etree.XML(text_buffer))
+                root = tree.getroot()
+
+                title = root.xpath('title')[0].text
+                title = title.replace('\'', '')
+
+                # Add the text of the page to the index
+                text = root.xpath('revision/text')[0].text
+
+                text_buffer = ''
+                is_page = False
+
+                yield title, text
+
+
 if __name__ == '__main__':
     import bz2
     import argparse
@@ -176,13 +208,6 @@ if __name__ == '__main__':
 
     t0 = time.time()
 
-    is_page = False
-    page_text = ''
-    pages = []
-    target = -1
-    count = 0
-    speed = None
-
     # Settings dictionary that can be one day stored in a file
     settings = {
         'commit-freq': 200,
@@ -190,65 +215,50 @@ if __name__ == '__main__':
         'speed-freq': 100,
     }
 
+    count = 0
+    speed = None
+    target = -1
+
     last_speed_update = time.time()
 
-    with bz2.BZ2File(path, 'r') as fp:
-        while count != target:
-            text = fp.readline()
+    for page_title, page_text in extract_wiki_pages(path):
+        count += 1
 
-            if not text:
-                break
+        # If a target is set, break when reached
+        if count == target:
+            break
 
-            if '<page>' in text:
-                is_page = True
+        print(count, page_title, end=' ')
 
-            if is_page:
-                page_text += text
+        meta = False
+        if page_title.endswith('(disambiguation)') or page_title.startswith(IGNORE_LIST):
+            meta = True
 
-            if '</page>' in text:
-                count += 1
-                tree = etree.ElementTree(etree.XML(page_text))
-                root = tree.getroot()
+        if not meta and page_text and len(page_text) > MIN_PAGE_SIZE:
+            clean_text = clean_wiki_markup(page_text)
+            add_term_occurrence(word_tokenize(clean_text), page_title)
 
-                title = root.xpath('title')[0].text
-                title = title.replace('\'', '')
+            print('(Processed)', end=' ')
+        else:
+            print('(Ignored)', end=' ')
 
-                meta = False
-                if title.endswith('(disambiguation)') or title.startswith(IGNORE_LIST):
-                    meta = True
+        if speed:
+            print('(%d pages/sec)' % speed)
+        else:
+            print('(...)')
 
-                print(count, title, end=' ')
+        # Prune the database from noisy terms every now and so often
+        if count % settings['prune-freq'] == 0:
+            prune()
 
-                # Add the text of the page to the index
-                text = root.xpath('revision/text')[0].text
-                if not meta and text and len(text) > MIN_PAGE_SIZE:
-                    clean_text = clean_wiki_markup(text)
-                    add_term_occurrence(word_tokenize(clean_text), title)
+        if count % settings['speed-freq'] == 0:
+            # Print Estimated speed every commit
+            speed = settings['commit-freq'] / (time.time() - last_speed_update)
+            last_speed_update = time.time()
 
-                    print('(Processed)', end=' ')
-                else:
-                    print('(Ignored)', end=' ')
-
-                if speed:
-                    print('(%d pages/sec)' % speed)
-                else:
-                    print('(...)')
-
-                page_text = ''
-                is_page = False
-
-                # Prune the database from noisy terms every now and so often
-                if count % settings['prune-freq'] == 0:
-                    prune()
-
-                if count % settings['speed-freq'] == 0:
-                    # Print Estimated speed every commit
-                    speed = settings['commit-freq'] / (time.time() - last_speed_update)
-                    last_speed_update = time.time()
-
-                # Commit the changes made in large batches
-                if count % settings['commit-freq'] == 0:
-                    connection.commit()
+        # Commit the changes made in large batches
+        if count % settings['commit-freq'] == 0:
+            connection.commit()
 
     cur.execute('DROP TABLE IF EXISTS TermOccurrencesTemp;')
 
