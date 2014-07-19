@@ -177,12 +177,12 @@ def extract_wiki_pages(corpus_path):
                 title = title.replace('\'', '')
 
                 # Add the text of the page to the index
-                text = root.xpath('revision/text')[0].text
+                content = root.xpath('revision/text')[0].text
 
                 text_buffer = ''
                 is_page = False
 
-                yield title, text
+                yield title, content
 
 
 if __name__ == '__main__':
