@@ -64,6 +64,10 @@ def setup():
         ) ENGINE=MYISAM CHARACTER SET=utf8 ROW_FORMAT=FIXED;
     """)
 
+    # Having separate indices is important for numerous join operations
+    cur.execute('CREATE INDEX term_id_index ON TermOccurrences (TermID);')
+    cur.execute('CREATE INDEX page_id_index ON TermOccurrences (PageID);')
+
     # Mirrors TermOccurrences structure
     cur.execute("""
         CREATE TABLE IF NOT EXISTS TermOccurrencesTemp (
