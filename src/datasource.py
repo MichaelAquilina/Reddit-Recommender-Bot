@@ -67,7 +67,7 @@ def get_path_from_url(target_dir, url):
     return os.path.join(directory, filename)
 
 
-def load_data_source(index, data_path, subreddit, page_samples, preprocess=lambda x: x):
+def load_data_source(index, data_path, subreddit, page_samples):
     pages_dir = os.path.join(data_path, 'pages')
     subreddits_dir = os.path.join(data_path, 'subreddits')
     sr_path = os.path.join(subreddits_dir, subreddit)
