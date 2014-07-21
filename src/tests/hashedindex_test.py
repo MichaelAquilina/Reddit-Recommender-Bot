@@ -90,6 +90,10 @@ class HashedIndexTest(unittest.TestCase):
         # Adding words that exist should work though
         assert self.index.get_term_frequency('word', 'document1.txt') == 3
 
+        # Ensure documents are still added even if its term is not
+        self.index.add_term_occurrence('idonotexist', 'document20.txt')
+        assert 'document20.txt' in self.index.documents()
+
         self.index.add_term_occurrence('phone', 'document9.txt')
         self.index.add_term_occurrence('word', 'document1.txt')
 
