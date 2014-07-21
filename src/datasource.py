@@ -35,6 +35,16 @@ def get_url_from_path(target_dir, abs_path):
     return 'http://' + rel_path
 
 
+def add_html_to_index(index, html_text, doc_name):
+    # This currently provides good accuracy but does not
+    # handle html tags very well
+    text = nltk.clean_html(html_text).decode('utf-8')
+    text = _parser.unescape(text)
+
+    for token in textparser.word_tokenize(text):
+        index.add_term_occurrence(token, doc_name)
+
+
 def get_path_from_url(target_dir, url):
     if type(url) != Url:
         url = Url(url)
@@ -100,18 +110,7 @@ def load_data_source(index, data_path, subreddit, page_samples):
             with open(url_path, 'r') as html_file:
                 html_text = html_file.read()
 
-            # This currently provides good accuracy but does not
-            # handle html tags very well
-            text = nltk.clean_html(html_text).decode('utf-8')
-            text = _parser.unescape(text)
-
-            # TODO: Email addresses? Domains?
-            for token in textparser.word_tokenize(text):
-
-                # Handle "or" case represented by "/"
-                for split_token in token.split('/'):
-                    if split_token:
-                        index.add_term_occurrence(split_token, rel_path)
+            add_html_to_index(index, html_text, rel_path)
 
     # Return list of data points
     return data
