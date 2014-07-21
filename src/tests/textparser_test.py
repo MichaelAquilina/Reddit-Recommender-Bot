@@ -62,6 +62,18 @@ def test_word_tokenize_punctuation():
     assert generator_cmp(word_tokenize('!My name is Michael!'), ['name', 'michael'])
 
 
+def test_word_tokenize_remove_urls():
+    assert generator_cmp(
+        word_tokenize('This is a www.google.com hello', remove_urls=True),
+        ['hello']
+
+    )
+    assert generator_cmp(
+        word_tokenize('This is another maps.google.com without', remove_urls=False),
+        ['another', 'mapsgooglecom', 'without']
+    )
+
+
 def test_word_tokenize_large_whitespace():
     assert generator_cmp(word_tokenize('This  \n   is \r a   \ttest'), ['test'])
 
@@ -111,3 +123,4 @@ def test_is_url_sans_protocol():
 
 def test_is_url_invalid():
     assert not is_url('someone@google.com')
+    assert not is_url('hello world')

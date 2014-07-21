@@ -259,7 +259,7 @@ if __name__ == '__main__':
     # Settings dictionary that can be one day stored in a file
     settings = {
         'commit-freq': 200,
-        'prune-freq': 2000,
+        'prune-freq': 4000,
         'speed-freq': 100,
     }
 
@@ -292,7 +292,7 @@ if __name__ == '__main__':
 
             if not meta and page_text and len(page_text) > MIN_PAGE_SIZE:
                 clean_text = clean_wiki_markup(page_text)
-                add_term_occurrence(word_tokenize(clean_text), page_title)
+                add_term_occurrence(word_tokenize(clean_text, remove_urls=True), page_title)
 
                 print('(Processed)', end=' ')
             else:

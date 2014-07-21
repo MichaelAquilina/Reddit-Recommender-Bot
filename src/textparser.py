@@ -27,7 +27,10 @@ _punctuation = _punctuation.replace('-', '')
 
 _re_punctuation = re.compile('[%s]' % re.escape(_punctuation))
 _re_token = re.compile(r'[a-z0-9]+')
-_re_url = re.compile(r'^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$')
+
+_url_pattern = r'(https?:\/\/)?(([\da-z-]+)\.){1,2}.([a-z\.]{2,6})(/[\/\w \.-]*)*\/?'
+_re_full_url = re.compile(r'^%s$' % _url_pattern)
+_re_url = re.compile(_url_pattern)
 
 
 def normalize_unicode(text):
@@ -41,12 +44,15 @@ def normalize_unicode(text):
         return text
 
 
-def word_tokenize(text, stopwords=_stopwords):
+def word_tokenize(text, stopwords=_stopwords, remove_urls=False):
     """
     Parses the given text and yields tokens which represent words within
     the given text. Tokens are assumed to be divided by any form of
     whitespace character.
     """
+    if remove_urls:
+        text = re.sub(_re_url, '', text)
+
     text = re.sub(_re_punctuation, '', text)
 
     for token in re.findall(_re_token, text.lower()):
@@ -72,4 +78,4 @@ def is_url(text):
     """
     Returns a True if the text is a url and False otherwise.
     """
-    return bool(_re_url.match(text))
+    return bool(_re_full_url.match(text))
