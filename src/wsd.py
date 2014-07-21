@@ -29,9 +29,9 @@ class SearchResult(object):
         return '%s: %f' % (self.page_name, self.weight)
 
 
-def tfidf(tf, df, doc_length):
-    if doc_length and df:
-        return math.log(tf + 1) / math.log(doc_length + 1) * math.log(corpus / df)
+def tfidf(tf, df, norm_factor):
+    if norm_factor and df:
+        return (1 + math.log(tf)) / (1 + math.log(norm_factor)) * math.log(corpus / df)
     else:
         return 0
 
@@ -65,7 +65,7 @@ def word_concepts(text):
         token_lookup[token] = (i, df)
 
         # Calculate tfidf on the query vector
-        query[i] = tfidf(tokens[token], df, query_length)
+        query[i] = tfidf(tokens[token], df, 1)
 
         cur.execute("""
             SELECT T1.PageID, T1.PageName, T1.Length
