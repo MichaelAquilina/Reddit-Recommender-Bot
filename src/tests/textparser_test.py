@@ -91,3 +91,23 @@ def test_isnumeric_scientific_notation():
     assert isnumeric('42E-10')
 
     assert isnumeric('32e10')
+
+
+def test_is_url():
+    assert is_url('https://www.example.com')
+    assert is_url('http://www.example.co.uk/about')
+    assert is_url('http://www.example.com.mt')
+
+
+def test_is_url_subdomain():
+    assert is_url('http://my.domain.com')
+    assert is_url('maps.google.com')
+
+
+def test_is_url_sans_protocol():
+    assert is_url('www.google.com')
+    assert is_url('www.google.com/')
+
+
+def test_is_url_invalid():
+    assert not is_url('someone@google.com')

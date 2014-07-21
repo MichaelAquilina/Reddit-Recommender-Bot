@@ -26,7 +26,8 @@ _punctuation = _punctuation.replace('/', '')
 _punctuation = _punctuation.replace('-', '')
 
 _re_punctuation = re.compile('[%s]' % re.escape(_punctuation))
-_re_token = re.compile('[a-z0-9]+')
+_re_token = re.compile(r'[a-z0-9]+')
+_re_url = re.compile(r'^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$')
 
 
 def normalize_unicode(text):
@@ -65,3 +66,10 @@ def isnumeric(text):
         return False
     else:
         return True
+
+
+def is_url(text):
+    """
+    Returns a True if the text is a url and False otherwise.
+    """
+    return bool(_re_url.match(text))
