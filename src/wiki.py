@@ -193,7 +193,7 @@ def add_page_index(terms, page, intra_links):
         if term_results:
             termids = [(tid, var_list[name]) for (tid, name) in term_results]
 
-            var_string = u'({}, %s, %s),'.format(page_id) * len(term_results)
+            var_string = u'({},%s,%s),'.format(page_id) * len(term_results)
             var_string = var_string[:-1]
 
             cur.execute("""
@@ -201,6 +201,7 @@ def add_page_index(terms, page, intra_links):
                 VALUES %s;
             """ % var_string, itertools.chain.from_iterable(termids))
 
+        var_string = u''
         # TODO: Speed this up with join statements
         for link, counter in intra_links.items():
             cur.execute("""
@@ -210,12 +211,15 @@ def add_page_index(terms, page, intra_links):
             """, (link, ))
 
             target_page_id = cur.lastrowid
+            var_string += u'(%d,%d,%d),' % (page_id, target_page_id, counter)
 
-            # TODO: Make this one batch operation
+        # Perform one large batch insert rather than individual inserts
+        if var_string:
+            var_string = var_string[:-1]
             cur.execute("""
                 INSERT INTO PageLinks (PageID, TargetPageID, Counter)
-                VALUES (%s, %s, %s);
-            """, (page_id, target_page_id, counter))
+                VALUES %s;
+            """ % var_string)
 
 
 def extract_wiki_pages(corpus_path):
