@@ -1,6 +1,7 @@
 #! /usr/bin/python
 from __future__ import print_function
 
+import sys
 import time
 import MySQLdb
 import itertools
@@ -246,8 +247,14 @@ if __name__ == '__main__':
         """, (last_page_id, ))
     else:
         print('Setting up database from scratch')
-        setup()
-        connection.commit()
+        reply = raw_input('Are you sure you wish to delete the database \'%s\' and start over? (Y/n): ' % params['db'])
+
+        if reply.lower() in ('y', 'yes'):
+            setup()
+            connection.commit()
+        else:
+            print('Aborting operation...')
+            sys.exit(1)
 
     # Reopen a new cursor to prevent commands out of syncs
     cur.close()
