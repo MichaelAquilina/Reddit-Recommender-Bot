@@ -107,9 +107,7 @@ def prune():
     print('Pruned %d terms' % cur.rowcount)
 
     # Clear out the temporary storage
-    cur.execute("""
-        DELETE FROM TermOccurrencesTemp;
-    """)
+    cur.execute("""DELETE FROM TermOccurrencesTemp;""")
 
     print('Pruning took: %d seconds' % (time.time() - prune_start))
 
