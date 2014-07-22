@@ -25,3 +25,15 @@
 0 http://www.washingtonpost.com/world/middle_east/in-crowded-gaza-burying-those-killed-by-israeli-airstrikes-is-getting-more-dangerous/2014/07/21/31a711be-110b-11e4-98ee-daea85133bc9_story.html
 0 http://arstechnica.com/business/2014/07/liveblog-microsoft-ceo-satya-nadella-to-talk-q4-earnings-big-layoffs/
 0 https://github.com/atom/atom/issues/1711
+0 http://gawker.com/missing-teen-returns-home-nine-months-after-disappearin-1608704898
+0 http://scienceblogs.com/observations/2010/01/26/evolution-the-curious-case-of-dogs/
+0 https://computing.llnl.gov/tutorials/openMP/#Introduction
+1 https://developers.google.com/appengine/docs/python/ndb/properties
+0 http://www.pleasedontrobme.com/#/
+0 http://www.spareroom.co.uk/flatshare/flatshare_detail.pl?flatshare_id=2886319
+0 http://www.ign.com/articles/2014/07/21/oddworld-new-n-tasty-review
+0 http://en.wikipedia.org/wiki/A_Song_of_Ice_and_Fire
+0 http://southpark.cc.com/full-episodes
+0 http://www.theguardian.com/film/filmblog/2014/jul/22/how-i-played-a-dream-sequence-sausage-in-pudsey-the-dog-the-movie
+0 http://valgrind.org/info/tools.html
+1 http://jakevdp.github.io/blog/2014/06/14/frequentism-and-bayesianism-4-bayesian-in-python/
