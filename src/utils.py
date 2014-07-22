@@ -22,6 +22,7 @@ def load_db_params():
             # DB-Settings for performing a connection
             with open(os.path.join(directory, 'db.json'), 'r') as fp:
                 params = json.load(fp)
+            break
 
     return params
 
