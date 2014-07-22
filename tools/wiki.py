@@ -194,11 +194,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Parse and Index a Wikipedia dump into an SQL database')
     parser.add_argument('path', help='Path to sql data dump compressed in bz2')
     parser.add_argument('--cont', help='Continues previous terminated index process', action='store_true')
+    parser.add_argument('--force', '-f', help='Forces setting up database without warning prompt', action='store_true')
 
     args = parser.parse_args()
 
     path = args.path
     cont_flag = args.cont
+    force = args.force
 
     last_page_id = None
     last_page_title = None
@@ -247,14 +249,15 @@ if __name__ == '__main__':
         """, (last_page_id, ))
     else:
         print('Setting up database from scratch')
-        reply = raw_input('Are you sure you wish to delete the database \'%s\' and start over? (Y/n): ' % params['db'])
 
-        if reply.lower() in ('y', 'yes'):
-            setup()
-            connection.commit()
-        else:
-            print('Aborting operation...')
-            sys.exit(1)
+        if not force:
+            reply = raw_input('Are you sure you wish to delete the database \'%s\' and start over? (Y/n): ' % params['db'])
+            if reply.lower() not in ('y', 'yes'):
+                print('Aborting operation...')
+                sys.exit(1)
+
+        setup()
+        connection.commit()
 
     # Reopen a new cursor to prevent commands out of syncs
     cur.close()
