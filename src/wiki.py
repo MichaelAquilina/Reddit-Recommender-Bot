@@ -36,14 +36,16 @@ _re_link_pattern = re.compile(r'\[\[([\w ()-.,!?"\'+/\\]+)#?[\w ()-.,!?"\'+/\\]*
 def setup():
     cur.execute('DROP TABLE IF EXISTS TermOccurrencesTemp;')
     cur.execute('DROP TABLE IF EXISTS TermOccurrences;')
+    cur.execute('DROP TABLE IF EXISTS PageLinks;')
     cur.execute('DROP TABLE IF EXISTS Pages;')
     cur.execute('DROP TABLE IF EXISTS Terms;')
 
     cur.execute("""
         CREATE TABLE IF NOT EXISTS Pages (
             PageID INT AUTO_INCREMENT PRIMARY KEY,
-            PageName VARCHAR(150) NOT NULL,
-            Length INT NOT NULL,
+            PageName VARCHAR(150) UNIQUE NOT NULL,
+            Length INT NOT NULL DEFAULT 0,
+            Processed BOOL NOT NULL DEFAULT FALSE,
             CreationDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=MYISAM CHARACTER SET=utf8 ROW_FORMAT=FIXED;
     """)
@@ -59,6 +61,21 @@ def setup():
             CreationDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=MYISAM CHARACTER SET=utf8 ROW_FORMAT=FIXED;
     """)
+
+    # Table which provides information about links between pages
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS PageLinks (
+           PageID INT NOT NULL,
+           TargetPageID INT NOT NULL,
+           Counter INT NOT NULL DEFAULT 1,
+           FOREIGN KEY (PageID) REFERENCES Pages(PageID) ON DELETE CASCADE,
+           FOREIGN KEY (TargetPageID) REFERENCES Pages(PageID) ON DELETE CASCADE,
+           PRIMARY KEY (PageID, TargetPageID)
+        ) ENGINE=MYISAM CHARACTER SET=utf8 ROW_FORMAT=FIXED;
+    """)
+
+    cur.execute('CREATE INDEX page_id_index ON PageLinks (PageID);')
+    cur.execute('CREATE INDEX target_page_id_index ON PageLinks (TargetPageID);')
 
     cur.execute("""
         CREATE TABLE IF NOT EXISTS TermOccurrences (
@@ -114,13 +131,13 @@ def prune():
     print('Pruned %d terms' % cur.rowcount)
 
     # Clear out the temporary storage
-    cur.execute("""DELETE FROM TermOccurrencesTemp;""")
+    cur.execute('DELETE FROM TermOccurrencesTemp;')
 
     print('Pruning took: %d seconds' % (time.time() - prune_start))
 
 
 # Perform a Bulk insert operation for significantly faster performance
-def add_term_occurrence(terms, page):
+def add_page_index(terms, page, intra_links):
     var_list = Counter(terms)
     doc_length = sum(var_list.values())
 
@@ -129,11 +146,30 @@ def add_term_occurrence(terms, page):
         var_string = var_string.rstrip(',')
 
         cur.execute("""
-            INSERT INTO Pages (PageName, Length)
-            VALUES (%s, %s);
-        """, (page, doc_length))
+            SELECT PageID, Processed
+            FROM Pages
+            WHERE PageName=%s;
+        """, (page, ))
+        rows = cur.fetchone()
+        cur.fetchall()
 
-        pageid = cur.lastrowid
+        if rows:
+            page_id, processed = rows
+            if processed:
+                return  # No decent way to resolve this conflict
+            else:
+                cur.execute("""
+                    UPDATE Pages
+                    SET PageName=%s, Length=%s, Processed=TRUE
+                    WHERE PageID=%s;
+                """, (page, doc_length, page_id))
+        else:
+            # On duplicate command is a hack to prevent a select statement
+            cur.execute("""
+                INSERT INTO Pages (PageName, Length, Processed)
+                VALUES (%s, %s, TRUE)
+            """, (page, doc_length))
+            page_id = cur.lastrowid
 
         cur.execute("""
             INSERT IGNORE INTO Terms (TermName)
@@ -153,13 +189,29 @@ def add_term_occurrence(terms, page):
         if term_results:
             termids = [(tid, var_list[name]) for (tid, name) in term_results]
 
-            var_string = u'({}, %s, %s),'.format(pageid) * len(term_results)
+            var_string = u'({}, %s, %s),'.format(page_id) * len(term_results)
             var_string = var_string[:-1]
 
             cur.execute("""
                 INSERT INTO TermOccurrencesTemp (PageID, TermID, Counter)
                 VALUES %s;
             """ % var_string, itertools.chain.from_iterable(termids))
+
+        # TODO: Speed this up with join statements
+        for link, counter in intra_links.items():
+            cur.execute("""
+                INSERT INTO Pages (PageName, Processed)
+                VALUES (%s, FALSE)
+                ON DUPLICATE KEY UPDATE PageID=LAST_INSERT_ID(PageID);
+            """, (link, ))
+
+            target_page_id = cur.lastrowid
+
+            # TODO: Make this one batch operation
+            cur.execute("""
+                INSERT INTO PageLinks (PageID, TargetPageID, Counter)
+                VALUES (%s, %s, %s);
+            """, (page_id, target_page_id, counter))
 
 
 def extract_wiki_pages(corpus_path):
@@ -254,7 +306,7 @@ if __name__ == '__main__':
             WHERE PageID = %s;
         """, (last_page_id, ))
     else:
-        print('Setting up database from scratch')
+        print('Setting up \'%s\' database from scratch' % params['db'])
 
         if not force:
             reply = raw_input('Are you sure you wish to delete the database \'%s\' and start over? (Y/n): ' % params['db'])
@@ -305,8 +357,10 @@ if __name__ == '__main__':
                 meta = True
 
             if not meta and page_text and len(page_text) > MIN_PAGE_SIZE:
+                intra_links = Counter([link.lower() for link in _re_link_pattern.findall(page_text)])
+
                 clean_text = clean_wiki_markup(page_text)
-                add_term_occurrence(word_tokenize(clean_text, remove_urls=True), page_title)
+                add_page_index(word_tokenize(clean_text, remove_urls=True), page_title, intra_links)
 
                 print('(Processed)', end=' ')
             else:
