@@ -17,8 +17,9 @@ from WikiExtractor import clean as clean_wiki_markup
 from utils import load_db_params
 
 MIN_PAGE_SIZE = 1 * 1024  # 1 KB min size
-MIN_PAGE_LENGTH = 300  # Minimum Page Length in terms
+MIN_PAGE_LENGTH = 100  # Minimum Page Length in terms
 
+# NOTE ABOUT CORPUS SIZE
 # Just reading the entire Wikipedia corpus takes 1 hour 15 minutes
 # This means that an intermediate format is super important (HashedIndex
 # save and load method should suffice in these cases but they might be
