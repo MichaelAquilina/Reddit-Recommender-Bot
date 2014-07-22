@@ -38,7 +38,7 @@ def get_url_from_path(target_dir, abs_path):
 def add_html_to_index(index, html_text, doc_name):
     # This currently provides good accuracy but does not
     # handle html tags very well
-    text = nltk.clean_html(html_text).decode('utf-8')
+    text = unicode(nltk.clean_html(html_text))
     text = _parser.unescape(text)
 
     for token in textparser.word_tokenize(text):
