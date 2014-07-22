@@ -1,6 +1,7 @@
 #! /usr/bin/python
 from __future__ import print_function
 
+import re
 import sys
 import time
 import MySQLdb
@@ -25,6 +26,11 @@ MIN_PAGE_LENGTH = 300  # Minimum Page Length in terms
 
 # List of Page titles to ignore when they have the following prefix
 IGNORE_LIST = ('Wikipedia:', 'Template:', 'File:', 'Category:', 'Help:', 'Portal:')
+
+
+# Wikipedia inner link pattern
+# http://en.wikipedia.org/wiki/Wikipedia:Tutorial/Wikipedia_links
+_re_link_pattern = re.compile(r'\[\[([\w ()-.,!?"\'+/\\]+)#?[\w ()-.,!?"\'+/\\]*\|?[\w ()-.,!?"\'+/\\]*\]\]')
 
 
 def setup():
