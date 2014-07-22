@@ -3,6 +3,12 @@ import json
 
 
 def load_db_params():
+    """
+    Loads database parameters to perform a connection with from a json formatted
+    file 'db.json'. The method will search in the current working directory, the
+    directories in the current PYTHONPATH and PATH in that order. If no db.json
+    file is found, None will be returned.
+    """
     params = None
     search_path = [os.getcwd()]
     if 'PYTHONPATH' in os.environ:
