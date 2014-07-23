@@ -31,9 +31,8 @@ IGNORE_LIST = ('List of', 'Wikipedia:', 'Template:', 'File:', 'Category:', 'Help
 
 # Wikipedia inner link pattern
 # http://en.wikipedia.org/wiki/Wikipedia:Tutorial/Wikipedia_links
-# TODO: Simplify this to improve performance
 _re_link_pattern = re.compile(
-    r'\[\[([\w ()-.,!?"\'+/\\]+)#?[\w ()-.,!?"\'+/\\]*\|?[\w ()-.,!?"\'+/\\]*\]\]',
+    r'\[\[([^]^|^#]+)#?[^]^|]*\|?[^]]*\]\]',
     flags=re.UNICODE
 )
 
