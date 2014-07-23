@@ -214,11 +214,10 @@ def add_page_index(terms, page, intra_links):
 
             # Handles conflicts gracefully using a dictionary
             target_page_id = cur.lastrowid
-            key = target_page_id
-            if key not in page_links:
-                page_links[key] = 0
+            if target_page_id not in page_links:
+                page_links[target_page_id] = 0
 
-            page_links[key] += counter
+            page_links[target_page_id] += counter
 
         # Generate the link pairs from the built dictionary
         for target_page_id, counter in page_links.items():
