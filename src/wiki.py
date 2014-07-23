@@ -323,6 +323,12 @@ if __name__ == '__main__':
             FROM Pages
             WHERE PageID = %s;
         """, (last_page_id, ))
+
+        cur.execute("""
+            DELETE PageLinks
+            FROM PageLinks
+            WHERE PageID = %s
+        """, (last_page_id, ))
     else:
         print('Setting up \'%s\' database from scratch' % params['db'])
 
