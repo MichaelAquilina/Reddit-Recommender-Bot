@@ -11,7 +11,7 @@ import itertools
 from lxml import etree
 
 from collections import Counter
-from textparser import word_tokenize, normalize_unicode
+from textparser import word_tokenize
 from WikiExtractor import clean as clean_wiki_markup
 
 from utils import load_db_params
