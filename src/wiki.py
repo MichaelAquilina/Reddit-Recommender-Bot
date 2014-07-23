@@ -202,6 +202,8 @@ def add_page_index(terms, page, intra_links):
             """ % var_string, itertools.chain.from_iterable(termids))
 
         var_string = u''
+        page_links = {}
+
         # TODO: Speed this up with join statements
         for link, counter in intra_links.items():
             cur.execute("""
@@ -210,7 +212,16 @@ def add_page_index(terms, page, intra_links):
                 ON DUPLICATE KEY UPDATE PageID=LAST_INSERT_ID(PageID);
             """, (link, ))
 
+            # Handles conflicts gracefully
             target_page_id = cur.lastrowid
+            key = (page_id, target_page_id)
+            if key in page_links:
+                page_links[key] += counter
+            else:
+                page_links[key] = counter
+
+        # TODO: This part can probably be improved (in terms of performance)
+        for (page_id, target_page_id), counter in page_links.items():
             var_string += u'(%d,%d,%d),' % (page_id, target_page_id, counter)
 
         # Perform one large batch insert rather than individual inserts
@@ -366,7 +377,7 @@ if __name__ == '__main__':
 
             if not meta and page_text and len(page_text) > MIN_PAGE_SIZE:
                 # Lower and strip required to ensure articles conflate correctly in the Counter object
-                intra_links = Counter([normalize_unicode(link.lower().strip()) for link in _re_link_pattern.findall(page_text)])
+                intra_links = Counter(_re_link_pattern.findall(page_text))
 
                 clean_text = clean_wiki_markup(page_text)
                 add_page_index(word_tokenize(clean_text, remove_urls=True), page_title, intra_links)
