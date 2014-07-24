@@ -167,10 +167,14 @@ def add_page_index(terms, page, intra_links):
         else:
             # On duplicate command is a hack to prevent a select statement
             cur.execute("""
-                INSERT INTO Pages (PageName, Length, Processed)
+                INSERT IGNORE INTO Pages (PageName, Length, Processed)
                 VALUES (%s, %s, TRUE)
             """, (page, doc_length))
             page_id = cur.lastrowid
+
+            # There was a duplicate entry case
+            if page_id <= 0:
+                return
 
         cur.execute("""
             INSERT IGNORE INTO Terms (TermName)
@@ -300,7 +304,7 @@ if __name__ == '__main__':
         last_page_id, last_page_title, creation_date = cur.fetchone()
         cur.fetchall()
 
-        print('Last indexed page was: %s (PageID %d)' % (last_page_title, last_page_id))
+        print('Last indexed page was: %s (PageID %d on %s)' % (last_page_title, last_page_id, creation_date))
 
         # Delete any lingering items which were half way through processing
         cur.execute("""
