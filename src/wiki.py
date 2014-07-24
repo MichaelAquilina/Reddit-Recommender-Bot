@@ -44,18 +44,16 @@ def setup():
     cur.execute('DROP TABLE IF EXISTS Pages;')
     cur.execute('DROP TABLE IF EXISTS Terms;')
 
+    # Using Unique will automatically use an index for PageName in MySQL
     cur.execute("""
         CREATE TABLE IF NOT EXISTS Pages (
             PageID INT AUTO_INCREMENT PRIMARY KEY,
-            PageName VARCHAR(150) UNIQUE NOT NULL,
+            PageName VARCHAR(250) UNIQUE NOT NULL,
             Length INT NOT NULL DEFAULT 0,
             Processed BOOL NOT NULL DEFAULT FALSE,
             CreationDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        ) ENGINE=MYISAM CHARACTER SET=utf8 ROW_FORMAT=FIXED;
+        ) ENGINE=MYISAM CHARACTER SET=utf8D;
     """)
-
-    # Create an index on page name as it is used for many search operations
-    cur.execute('CREATE INDEX page_name_index ON Pages (PageName);')
 
     # Using Unique will automatically use an index for TermName in MySQL
     cur.execute("""
@@ -63,7 +61,7 @@ def setup():
             TermID INT AUTO_INCREMENT PRIMARY KEY,
             TermName VARCHAR(40) NOT NULL UNIQUE,
             CreationDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        ) ENGINE=MYISAM CHARACTER SET=utf8 ROW_FORMAT=FIXED;
+        ) ENGINE=MYISAM CHARACTER SET=utf8;
     """)
 
     # Table which provides information about links between pages
@@ -75,11 +73,10 @@ def setup():
            FOREIGN KEY (PageID) REFERENCES Pages(PageID) ON DELETE CASCADE,
            FOREIGN KEY (TargetPageID) REFERENCES Pages(PageID) ON DELETE CASCADE,
            PRIMARY KEY (PageID, TargetPageID)
-        ) ENGINE=MYISAM CHARACTER SET=utf8 ROW_FORMAT=FIXED;
+        ) ENGINE=MYISAM ROW_FORMAT=FIXED;
     """)
 
     cur.execute('CREATE INDEX page_id_index ON PageLinks (PageID);')
-    cur.execute('CREATE INDEX target_page_id_index ON PageLinks (TargetPageID);')
 
     cur.execute("""
         CREATE TABLE IF NOT EXISTS TermOccurrences (
@@ -89,7 +86,7 @@ def setup():
             FOREIGN KEY (TermID) REFERENCES Terms(TermID) ON DELETE CASCADE,
             FOREIGN KEY (PageID) REFERENCES Pages(PageID) ON DELETE CASCADE,
             PRIMARY KEY (TermID, PageID)
-        ) ENGINE=MYISAM CHARACTER SET=utf8 ROW_FORMAT=FIXED;
+        ) ENGINE=MYISAM ROW_FORMAT=FIXED;
     """)
 
     # Having separate indices is important for numerous join operations
@@ -104,7 +101,7 @@ def setup():
             Counter INT DEFAULT 0 NOT NULL,
             CreationDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (TermID, PageID)
-        ) ENGINE=MYISAM CHARACTER SET=utf8 ROW_FORMAT=FIXED;
+        ) ENGINE=MYISAM ROW_FORMAT=FIXED;
     """)
 
 
@@ -160,7 +157,7 @@ def add_page_index(terms, page, intra_links):
         if rows:
             page_id, processed = rows
             if processed:
-                return  # No decent way to resolve this conflict
+                return  # No decent way to resolve this conflict (Issue #76)
             else:
                 cur.execute("""
                     UPDATE Pages
