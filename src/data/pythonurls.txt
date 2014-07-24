@@ -37,3 +37,4 @@
 0 http://www.theguardian.com/film/filmblog/2014/jul/22/how-i-played-a-dream-sequence-sausage-in-pudsey-the-dog-the-movie
 0 http://valgrind.org/info/tools.html
 1 http://jakevdp.github.io/blog/2014/06/14/frequentism-and-bayesianism-4-bayesian-in-python/
+1 http://sender.readthedocs.org/en/latest/
