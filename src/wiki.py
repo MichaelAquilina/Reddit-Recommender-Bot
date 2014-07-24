@@ -49,7 +49,7 @@ def setup():
         CREATE TABLE IF NOT EXISTS Pages (
             PageID INT AUTO_INCREMENT PRIMARY KEY,
             PageName VARCHAR(250) UNIQUE NOT NULL,
-            Length INT NOT NULL DEFAULT 0,
+            Length SMALLINT UNSIGNED NOT NULL DEFAULT 0,
             Processed BOOL NOT NULL DEFAULT FALSE,
             CreationDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=MYISAM CHARACTER SET=utf8D;
@@ -69,7 +69,7 @@ def setup():
         CREATE TABLE IF NOT EXISTS PageLinks (
            PageID INT NOT NULL,
            TargetPageID INT NOT NULL,
-           Counter INT NOT NULL DEFAULT 1,
+           Counter SMALLINT UNSIGNED NOT NULL DEFAULT 1,
            FOREIGN KEY (PageID) REFERENCES Pages(PageID) ON DELETE CASCADE,
            FOREIGN KEY (TargetPageID) REFERENCES Pages(PageID) ON DELETE CASCADE,
            PRIMARY KEY (PageID, TargetPageID)
@@ -82,7 +82,7 @@ def setup():
         CREATE TABLE IF NOT EXISTS TermOccurrences (
             TermID INT NOT NULL,
             PageID INT NOT NULL,
-            Counter INT DEFAULT 0 NOT NULL,
+            Counter SMALLINT UNSIGNED DEFAULT 0 NOT NULL,
             FOREIGN KEY (TermID) REFERENCES Terms(TermID) ON DELETE CASCADE,
             FOREIGN KEY (PageID) REFERENCES Pages(PageID) ON DELETE CASCADE,
             PRIMARY KEY (TermID, PageID)
