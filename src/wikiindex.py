@@ -20,10 +20,13 @@ def tfidf(tf, df, norm_factor, corpus_size):
     else:
         return 0
 
+# TODO: Safer SQL queries when using lists as parameters
+
 
 class SearchResult(object):
 
-    def __init__(self, page_name, vector, weight):
+    def __init__(self, page_id, page_name, vector, weight):
+        self.page_id = page_id
         self.page_name = page_name
         self.vector = vector
         self.weight = weight
