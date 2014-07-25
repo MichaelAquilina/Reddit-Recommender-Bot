@@ -78,7 +78,7 @@ class WikiIndex(object):
         return self.cur.fetchall()
 
     def get_corpus_size(self):
-        self.cur.execute('SELECT COUNT(*) FROM Pages;')
+        self.cur.execute('SELECT COUNT(*) FROM Pages WHERE Processed=1;')
         (corpus, ) = self.cur.fetchone()
         self.cur.fetchall()
 
