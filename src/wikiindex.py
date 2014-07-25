@@ -55,6 +55,9 @@ class WikiIndex(object):
         self.connection.close()
 
     def get_document_frequencies(self, term_id_list):
+        """
+        Returns a list of (TermID, DocumentFrequency)
+        """
         var_string = u''
         for tid in term_id_list:
             var_string += u'%d,' % tid
@@ -69,6 +72,9 @@ class WikiIndex(object):
         return self.cur.fetchall()
 
     def get_term_ids(self, term_name_list):
+        """
+        Returns a list of (TermName, TermID)
+        """
         var_string = u''
         for term_name in term_name_list:
             var_string += u'\'%s\',' % term_name
@@ -82,6 +88,9 @@ class WikiIndex(object):
         return self.cur.fetchall()
 
     def get_page_ids(self, page_name_list):
+        """
+        Returns a list of (PageName, PageID)
+        """
         var_string = u''
         for term_name in page_name_list:
             var_string += u'\'%s\',' % term_name
@@ -95,6 +104,9 @@ class WikiIndex(object):
         return self.cur.fetchall()
 
     def get_page_links(self, page_id):
+        """
+        Returns a list of (TargetPageID, TargetPageName, LinkCounter)
+        """
         self.cur.execute("""
             SELECT T2.PageID, T2.PageName, T1.Counter
             FROM PageLinks T1
@@ -103,6 +115,35 @@ class WikiIndex(object):
         """, (page_id, ))
 
         return self.cur.fetchall()
+
+    def get_documents(self, term_id, min_counter=2, limit=200):
+        """
+        Returns a list of (PageID, PageName, TermFrequency)
+        Results are limited to the specified value and only terms
+        with a Counter larger than min_counter are returned. Returned
+        results are sorted in descending order by TermFrequency.
+        """
+        # Ordering by counter is super duper slow due to lack of index
+        # and large table size (needs to perform a filesort!)
+        self.cur.execute("""
+            SELECT T1.PageID, T1.PageName, T2.Counter
+            FROM Pages AS T1
+            INNER JOIN TermOccurrences AS T2 ON T1.PageID = T2.PageID
+            WHERE TermID = %s AND Counter > %s
+            ORDER BY Counter DESC
+            LIMIT %s
+        """, (term_id, min_counter, limit))
+        return self.cur.fetchall()
+
+    def get_corpus_size(self):
+        """
+        Returns the size of the corpus which excludes all unprocessed pages.
+        """
+        self.cur.execute('SELECT COUNT(*) FROM Pages WHERE Processed=1;')
+        (corpus, ) = self.cur.fetchone()
+        self.cur.fetchall()
+
+        return corpus
 
     def generate_link_matrix(self, page_id_list):
         size = len(page_id_list)
