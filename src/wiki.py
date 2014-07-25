@@ -56,8 +56,8 @@ def setup():
             Length SMALLINT UNSIGNED NOT NULL DEFAULT 0,
             Processed BOOL NOT NULL DEFAULT FALSE,
             CreationDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        ) ENGINE=MYISAM CHARACTER SET=utf8D;
-    """)
+        ) ENGINE=%s CHARACTER SET=utf8;
+    """, (engine, ))
 
     # Using Unique will automatically use an index for TermName in MySQL
     cur.execute("""
@@ -65,8 +65,8 @@ def setup():
             TermID INT AUTO_INCREMENT PRIMARY KEY,
             TermName VARCHAR(40) NOT NULL UNIQUE,
             CreationDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        ) ENGINE=MYISAM CHARACTER SET=utf8;
-    """)
+        ) ENGINE=%s CHARACTER SET=utf8;
+    """, (engine, ))
 
     # Table which provides information about links between pages
     cur.execute("""
@@ -77,8 +77,8 @@ def setup():
            FOREIGN KEY (PageID) REFERENCES Pages(PageID) ON DELETE CASCADE,
            FOREIGN KEY (TargetPageID) REFERENCES Pages(PageID) ON DELETE CASCADE,
            PRIMARY KEY (PageID, TargetPageID)
-        ) ENGINE=MYISAM ROW_FORMAT=FIXED;
-    """)
+        ) ENGINE=%s ROW_FORMAT=FIXED;
+    """, (engine, ))
 
     cur.execute('CREATE INDEX page_id_index ON PageLinks (PageID);')
 
@@ -90,8 +90,8 @@ def setup():
             FOREIGN KEY (TermID) REFERENCES Terms(TermID) ON DELETE CASCADE,
             FOREIGN KEY (PageID) REFERENCES Pages(PageID) ON DELETE CASCADE,
             PRIMARY KEY (TermID, PageID)
-        ) ENGINE=MYISAM ROW_FORMAT=FIXED;
-    """)
+        ) ENGINE=%s ROW_FORMAT=FIXED;
+    """, (engine, ))
 
     # Having separate indices is important for numerous join operations
     cur.execute('CREATE INDEX term_id_index ON TermOccurrences (TermID);')
@@ -106,8 +106,8 @@ def setup():
             Counter INT DEFAULT 0 NOT NULL,
             CreationDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (TermID, PageID)
-        ) ENGINE=MYISAM ROW_FORMAT=FIXED;
-    """)
+        ) ENGINE=%s ROW_FORMAT=FIXED;
+    """, (engine, ))
 
 
 def prune():
@@ -277,12 +277,14 @@ if __name__ == '__main__':
     parser.add_argument('path', help='Path to sql data dump compressed in bz2')
     parser.add_argument('--cont', help='Continues previous terminated index process', action='store_true')
     parser.add_argument('--force', '-f', help='Forces setting up database without warning prompt', action='store_true')
+    parser.add_argument('--engine', choices=('MYISAM', 'INNODB'), default='MYISAM', help='Specify what engine to create tables with')
 
     args = parser.parse_args()
 
     path = args.path
     cont_flag = args.cont
     force = args.force
+    engine = args.engine
 
     last_page_id = None
     last_page_title = None
@@ -336,7 +338,7 @@ if __name__ == '__main__':
             WHERE PageID = %s
         """, (last_page_id, ))
     else:
-        print('Setting up \'%s\' database from scratch' % params['db'])
+        print('Setting up \'%s\' database from scratch using %s' % (params['db'], engine))
 
         if not force:
             reply = raw_input('Are you sure you wish to delete the database \'%s\' and start over? (Y/n): ' % params['db'])
