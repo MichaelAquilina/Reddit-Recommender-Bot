@@ -41,31 +41,55 @@ class WikiIndex(object):
     def __init__(self, user, passwd, host, db):
         self.connection = MySQLdb.connect(user=user, passwd=passwd, host=host, db=db)
         self.cur = self.connection.cursor(cursorclass=MySQLdb.cursors.Cursor)
+        self._db = db
+        self._host = host
+
+    def __repr__(self):
+        return '<WikiIndex %s@%s>' % (self._db, self._host)
 
     def close(self):
         self.cur.close()
         self.connection.close()
 
-    def get_document_frequency(self, term):
+    def get_document_frequencies(self, term_id_list):
+        var_string = u''
+        for tid in term_id_list:
+            var_string += u'%d,' % tid
+        var_string = var_string[:-1]
+
         self.cur.execute("""
-            SELECT COUNT(*)
+            SELECT TermID, COUNT(*)
+            FROM TermOccurrences
+            WHERE TermID IN (%s)
+            GROUP BY TermID
+        """ % var_string)
+        return self.cur.fetchall()
+
+    def get_term_ids(self, term_name_list):
+        var_string = u''
+        for term_name in term_name_list:
+            var_string += u'\'%s\',' % term_name
+        var_string = var_string[:-1]
+
+        self.cur.execute("""
+            SELECT TermName, TermID
             FROM Terms
-            WHERE TermName=%s;
-        """, (term, ))
-        (df, ) = self.cur.fetchone()
-        self.cur.fetchall()
+            WHERE TermName IN (%s);
+        """ % var_string)
+        return self.cur.fetchall()
 
-        return df
+    def get_page_ids(self, page_name_list):
+        var_string = u''
+        for term_name in page_name_list:
+            var_string += u'\'%s\',' % term_name
+        var_string = var_string[:-1]
 
-    def get_page_id(self, page_name):
         self.cur.execute("""
-            SELECT PageID
+            SELECT PageName, PageID
             FROM Pages
-            WHERE PageName=%s;
-        """, (page_name, ))
-        (page_id, ) = self.cur.fetchone()
-        self.cur.fetchall()
-        return page_id
+            WHERE PageName IN (%s);
+        """ % var_string)
+        return self.cur.fetchall()
 
     def get_page_links(self, page_id):
         self.cur.execute("""
