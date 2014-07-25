@@ -125,3 +125,16 @@ class WikiIndex(object):
         self.cur.fetchall()
 
         return corpus
+
+    def get_documents(self, term_id, min_counter=2, limit=200):
+        # Ordering by counter is super duper slow due to lack of index
+        # and large table size (needs to perform a filesort!)
+        self.cur.execute("""
+            SELECT T1.PageID, T1.PageName, T2.Counter
+            FROM Pages AS T1
+            INNER JOIN TermOccurrences AS T2 ON T1.PageID = T2.PageID
+            WHERE TermID = %s AND Counter > %s
+            ORDER BY Counter DESC
+            LIMIT %s
+        """, (term_id, min_counter, limit))
+        return self.cur.fetchall()
