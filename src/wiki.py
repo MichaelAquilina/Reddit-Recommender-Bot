@@ -37,6 +37,10 @@ _re_link_pattern = re.compile(
 )
 
 
+# TODO: See the following for how to resolve articles that differ by capitalisation
+# http://en.wikipedia.org/wiki/Wikipedia:Naming_conventions_(capitalization)
+
+
 def setup():
     cur.execute('DROP TABLE IF EXISTS TermOccurrencesTemp;')
     cur.execute('DROP TABLE IF EXISTS TermOccurrences;')
