@@ -77,6 +77,21 @@ class WikiIndex(object):
 
         return self.cur.fetchall()
 
+    def generate_link_matrix(self, page_id_list):
+        size = len(page_id_list)
+        link_matrix = np.zeros(shape=(size, size))
+
+        # Build an index of page links
+        page_index = dict([(page_id, index) for index, page_id in enumerate(page_id_list)])
+
+        for i, page_id in enumerate(page_id_list):
+            for target_page_id, target_page_name, counter in self.get_page_links(page_id):
+                if target_page_id in page_index:
+                    j = page_index[target_page_id]
+                    link_matrix[i, j] = math.log(counter)
+
+        return link_matrix
+
     def get_corpus_size(self):
         self.cur.execute('SELECT COUNT(*) FROM Pages WHERE Processed=1;')
         (corpus, ) = self.cur.fetchone()
