@@ -105,16 +105,21 @@ class WikiIndex(object):
         """ % var_string)
         return self._cur.fetchall()
 
-    def get_page_links(self, page_id):
+    def get_page_links(self, page_id_list):
         """
-        Returns a list of (TargetPageID, TargetPageName, LinkCounter)
+        Returns a list of (PageID, TargetPageID, TargetPageName, LinkCounter)
         """
+        var_string = u''
+        for term_name in page_id_list:
+            var_string += u'\'%s\',' % term_name
+        var_string = var_string[:-1]
+
         self._cur.execute("""
-            SELECT T2.PageID, T2.PageName, T1.Counter
+            SELECT T1.PageID, T2.PageID, T2.PageName, T1.Counter
             FROM PageLinks T1
             INNER JOIN Pages T2 ON T1.TargetPageID = T2.PageID
-            WHERE T1.PageID = %s;
-        """, (page_id, ))
+            WHERE T1.PageID IN (%s);
+        """ % var_string)
 
         return self._cur.fetchall()
 
@@ -155,10 +160,10 @@ class WikiIndex(object):
         page_index = dict([(page_id, index) for index, page_id in enumerate(page_id_list)])
 
         for i, page_id in enumerate(page_id_list):
-            for target_page_id, target_page_name, counter in self.get_page_links(page_id):
+            for target_page_id, target_page_name, counter in self.get_page_links((page_id, )):
                 if target_page_id in page_index:
                     j = page_index[target_page_id]
-                    link_matrix[i, j] = math.log(counter)
+                    link_matrix[i, j] = counter
 
         return link_matrix
 
