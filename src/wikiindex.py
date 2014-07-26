@@ -84,6 +84,19 @@ class WikiIndex(object):
         """ % var_string)
         return self._cur.fetchall()
 
+    def get_term_names(self, term_id_list):
+        """
+        Returns a list of (TermID, TermName)
+        """
+        var_string = to_csv(term_id_list)
+
+        self._cur.execute("""
+            SELECT TermID, TermName
+            FROM Terms
+            WHERE TermID IN (%s);
+        """ % var_string)
+        return self._cur.fetchall()
+
     def get_page_ids(self, page_name_list):
         """
         Returns a list of (PageName, PageID)
@@ -94,6 +107,19 @@ class WikiIndex(object):
             SELECT PageName, PageID
             FROM Pages
             WHERE PageName IN (%s);
+        """ % var_string)
+        return self._cur.fetchall()
+
+    def get_page_names(self, page_id_list):
+        """
+        Returns a list of (PageID, PageName)
+        """
+        var_string = to_csv(page_id_list)
+
+        self._cur.execute("""
+            SELECT PageID, PageName
+            FROM Pages
+            WHERE PageID IN (%s);
         """ % var_string)
         return self._cur.fetchall()
 
