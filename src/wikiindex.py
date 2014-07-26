@@ -162,7 +162,7 @@ class WikiIndex(object):
         link_matrix = np.zeros(shape=(size, size))
 
         # Build an index of page links
-        page_index = dict(enumerate(page_id_list))
+        page_index = dict([(b, a) for a, b in enumerate(page_id_list)])
         page_links = self.get_page_links(page_id_list)
 
         for page_id, target_page_id, counter in page_links:
