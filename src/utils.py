@@ -2,10 +2,10 @@ import os
 import json
 
 
-def load_db_params():
+def load_db_params(filename='db.json'):
     """
     Loads database parameters to perform a connection with from a json formatted
-    file 'db.json'. The method will search in the current working directory, the
+    file (by default 'db.json'. The method will search in the current working directory, the
     directories in the current PYTHONPATH and PATH in that order. If no db.json
     file is found, None will be returned.
     """
@@ -18,9 +18,9 @@ def load_db_params():
         search_path += os.environ['PATH'].split(':')
 
     for directory in search_path:
-        if 'db.json' in os.listdir(directory):
+        if filename in os.listdir(directory):
             # DB-Settings for performing a connection
-            with open(os.path.join(directory, 'db.json'), 'r') as fp:
+            with open(os.path.join(directory, filename), 'r') as fp:
                 params = json.load(fp)
             break
 
