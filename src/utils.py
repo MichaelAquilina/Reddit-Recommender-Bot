@@ -27,6 +27,16 @@ def load_db_params(filename='db.json'):
     return params
 
 
+def to_csv(target_list):
+    var_string = u''
+    for item in target_list:
+        if type(item) in (str, unicode):
+            var_string += u'\'%s\',' % item
+        else:
+            var_string += u'%s,' % item
+    return var_string[:-1]
+
+
 # TODO: Cover with tests
 def search_files(path, relative=False):
     for p1 in os.listdir(path):

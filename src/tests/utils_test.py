@@ -4,6 +4,13 @@ from testutils import generator_unordered_cmp
 from utils import *
 
 
+def test_to_csv():
+    assert to_csv(['hello', 'world']) == u'\'hello\',\'world\''
+    assert to_csv([1, 2, 3, 4, 100]) == u'1,2,3,4,100'
+    assert to_csv([1, 'hello']) == u'1,\'hello\''
+    assert to_csv((u'tuple', 123)) == u'\'tuple\',123'
+
+
 def test_search_files():
     expected_abs = []
     expected_rel = []

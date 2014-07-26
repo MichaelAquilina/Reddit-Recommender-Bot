@@ -10,6 +10,7 @@ import numpy as np
 from numpy.linalg import norm
 from collections import Counter
 
+from utils import to_csv
 from textparser import word_tokenize
 
 
@@ -60,10 +61,7 @@ class WikiIndex(object):
         """
         Returns a list of (TermID, DocumentFrequency)
         """
-        var_string = u''
-        for tid in term_id_list:
-            var_string += u'%d,' % tid
-        var_string = var_string[:-1]
+        var_string = to_csv(term_id_list)
 
         self._cur.execute("""
             SELECT TermID, COUNT(*)
@@ -77,10 +75,7 @@ class WikiIndex(object):
         """
         Returns a list of (TermName, TermID)
         """
-        var_string = u''
-        for term_name in term_name_list:
-            var_string += u'\'%s\',' % term_name
-        var_string = var_string[:-1]
+        var_string = to_csv(term_name_list)
 
         self._cur.execute("""
             SELECT TermName, TermID
@@ -93,10 +88,7 @@ class WikiIndex(object):
         """
         Returns a list of (PageName, PageID)
         """
-        var_string = u''
-        for term_name in page_name_list:
-            var_string += u'\'%s\',' % term_name
-        var_string = var_string[:-1]
+        var_string = to_csv(page_name_list)
 
         self._cur.execute("""
             SELECT PageName, PageID
@@ -109,10 +101,7 @@ class WikiIndex(object):
         """
         Returns a list of (PageID, TargetPageID, LinkCounter)
         """
-        var_string = u''
-        for term_name in page_id_list:
-            var_string += u'\'%s\',' % term_name
-        var_string = var_string[:-1]
+        var_string = to_csv(page_id_list)
 
         self._cur.execute("""
             SELECT T1.PageID, T2.PageID, T1.Counter
