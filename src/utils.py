@@ -37,7 +37,6 @@ def to_csv(target_list):
     return var_string[:-1]
 
 
-# TODO: Cover with tests
 def search_files(path, relative=False):
     for p1 in os.listdir(path):
         abs_path = os.path.join(path, p1)
