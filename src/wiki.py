@@ -418,6 +418,8 @@ if __name__ == '__main__':
         else:
             print('(...)')
 
+    print('Finished reading from the Corpus, cleaning up...')
+
     cur.execute('DROP TABLE IF EXISTS TermOccurrencesTemp;')
 
     connection.commit()
