@@ -1,5 +1,6 @@
 import re
 import nltk
+import math
 import unicodedata
 
 from copy import copy
@@ -31,6 +32,14 @@ _re_token = re.compile(r'[a-z0-9]+')
 _url_pattern = r'(https?:\/\/)?(([\da-z-]+)\.){1,2}.([a-z\.]{2,6})(/[\/\w \.-]*)*\/?'
 _re_full_url = re.compile(r'^%s$' % _url_pattern)
 _re_url = re.compile(_url_pattern)
+
+
+# Determining the best way to calculate tfidf is proving difficult, might need more advanced techniques
+def tfidf(tf, df, norm_factor, corpus_size):
+    if norm_factor and df:
+        return (1 + math.log(tf)) / (1 + math.log(norm_factor)) * math.log(corpus_size / df)
+    else:
+        return 0
 
 
 def normalize_unicode(text):

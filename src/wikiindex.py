@@ -1,9 +1,5 @@
 from __future__ import division
 
-"""
-Utility file used to perform typical queries on the Wikipedia Index
-"""
-import math
 import MySQLdb
 import numpy as np
 
@@ -11,15 +7,7 @@ from numpy.linalg import norm
 from collections import Counter
 
 from utils import to_csv
-from textparser import word_tokenize
-
-
-# Determining the best way to calculate tfidf is proving difficult, might need more advanced techniques
-def tfidf(tf, df, norm_factor, corpus_size):
-    if norm_factor and df:
-        return (1 + math.log(tf)) / (1 + math.log(norm_factor)) * math.log(corpus_size / df)
-    else:
-        return 0
+from textparser import word_tokenize, tfidf
 
 # TODO: Safer SQL queries when using lists as parameters
 
