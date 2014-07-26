@@ -153,6 +153,11 @@ class WikiIndex(object):
         return corpus
 
     def generate_link_matrix(self, page_id_list):
+        """
+        Generates a matrix containing the number of links between
+        the a page (row) and a target page (column) in each cell. Only
+        pages specified in the page_id_list will be included in the matrix.
+        """
         size = len(page_id_list)
         link_matrix = np.zeros(shape=(size, size))
 
