@@ -137,22 +137,6 @@ class WikiIndex(object):
 
         return self._cur.fetchall()
 
-    def get_related_documents(self, term_id_list, min_counter=2):
-        """
-        Returns a list of (PageID, TermID)
-        Results are limited to the specified value and only terms
-        with a Counter larger than min_counter are returned. Returned
-        results are sorted in descending order by Counter.
-        """
-        var_string = to_csv(term_id_list)
-
-        self._cur.execute("""
-            SELECT SQL_NO_CACHE PageID, TermID
-            FROM TermOccurrences
-            WHERE TermID IN (%s) AND Counter > %s
-        """ % var_string, (min_counter, ))
-        return self._cur.fetchall()
-
     def get_documents(self, term_id, min_counter=2, limit=200):
         """
         Returns a list of (PageID, TermID)
@@ -168,21 +152,19 @@ class WikiIndex(object):
         """ % (term_id, min_counter, limit))
         return self._cur.fetchall()
 
-    def get_term_occurrences(self, page_id_list, term_id_list, cursor_type='cursor'):
+    def get_term_occurrences(self, page_id_list, term_id_list):
         """
         Returns a list of (PageID, TermID, Counter)
         """
-        cursor = self._sscur if cursor_type == 'sscursor' else self._cur
-
         v1 = to_csv(page_id_list)
         v2 = to_csv(term_id_list)
 
-        cursor.execute("""
+        self._cur.execute("""
             SELECT SQL_NO_CACHE PageID, TermID, Counter
             FROM TermOccurrences
             WHERE PageID IN (%s) AND TermID IN (%s);
         """ % (v1, v2))
-        return cursor.fetchall()
+        return self._cur.fetchall()
 
     def get_corpus_size(self):
         """
