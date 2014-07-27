@@ -103,9 +103,20 @@ class WikiIndex(object):
         Returns a list of (PageID, PageName)
         """
         var_string = to_csv(page_id_list)
-
         self._cur.execute("""
             SELECT PageID, PageName
+            FROM Pages
+            WHERE PageID IN (%s);
+        """ % var_string)
+        return self._cur.fetchall()
+
+    def get_page_data(self, page_id_list):
+        """
+        Returns a list of (PageID, PageName, Length)
+        """
+        var_string = to_csv(page_id_list)
+        self._cur.execute("""
+            SELECT PageID, PageName, Length
             FROM Pages
             WHERE PageID IN (%s);
         """ % var_string)
@@ -126,38 +137,52 @@ class WikiIndex(object):
 
         return self._cur.fetchall()
 
-    def get_documents(self, term_id, min_counter=2, limit=200):
+    def get_related_documents(self, term_id_list, min_counter=2):
         """
-        Returns a list of (PageID, PageName, TermFrequency)
+        Returns a list of (PageID, TermID)
         Results are limited to the specified value and only terms
         with a Counter larger than min_counter are returned. Returned
-        results are sorted in descending order by TermFrequency.
+        results are sorted in descending order by Counter.
         """
-        # Ordering by counter is super duper slow due to lack of index
-        # and large table size (needs to perform a filesort!)
+        var_string = to_csv(term_id_list)
+
         self._cur.execute("""
-            SELECT T1.PageID, T1.PageName, T2.Counter
-            FROM Pages AS T1
-            INNER JOIN TermOccurrences AS T2 ON T1.PageID = T2.PageID
-            WHERE TermID = %s AND Counter > %s
-            ORDER BY Counter DESC
-            LIMIT %s;
-        """, (term_id, min_counter, limit))
+            SELECT SQL_NO_CACHE PageID, TermID
+            FROM TermOccurrences
+            WHERE TermID IN (%s) AND Counter > %s
+        """ % var_string, (min_counter, ))
         return self._cur.fetchall()
 
-    def get_term_occurrences(self, page_id_list, term_id_list):
+    def get_documents(self, term_id, min_counter=2, limit=200):
+        """
+        Returns a list of (PageID, TermID)
+        Results are limited to the specified value and only terms
+        with a Counter larger than min_counter are returned. Returned
+        results are sorted in descending order by Counter.
+        """
+        self._cur.execute("""
+            SELECT SQL_NO_CACHE PageID
+            FROM TermOccurrences
+            WHERE TermID = %s AND Counter > %s
+            LIMIT %s
+        """ % (term_id, min_counter, limit))
+        return self._cur.fetchall()
+
+    def get_term_occurrences(self, page_id_list, term_id_list, cursor_type='cursor'):
         """
         Returns a list of (PageID, TermID, Counter)
         """
+        cursor = self._sscur if cursor_type == 'sscursor' else self._cur
+
         v1 = to_csv(page_id_list)
         v2 = to_csv(term_id_list)
 
-        self._cur.execute("""
-            SELECT PageID, TermID, Counter
+        cursor.execute("""
+            SELECT SQL_NO_CACHE PageID, TermID, Counter
             FROM TermOccurrences
             WHERE PageID IN (%s) AND TermID IN (%s);
         """ % (v1, v2))
-        return self._cur.fetchall()
+        return cursor.fetchall()
 
     def get_corpus_size(self):
         """
@@ -190,22 +215,54 @@ class WikiIndex(object):
 
         return link_matrix
 
-    def get_corpus_size(self):
-        self.cur.execute('SELECT COUNT(*) FROM Pages WHERE Processed=1;')
-        (corpus, ) = self.cur.fetchone()
-        self.cur.fetchall()
+    def word_concepts(self, text):
+        term_list = Counter(word_tokenize(text))
 
-        return corpus
+        term_ids = dict(self.get_term_ids(term_list.keys()))
+        document_frequencies = dict(self.get_document_frequencies(term_ids.values()))
 
-    def get_documents(self, term_id, min_counter=2, limit=200):
-        # Ordering by counter is super duper slow due to lack of index
-        # and large table size (needs to perform a filesort!)
-        self.cur.execute("""
-            SELECT T1.PageID, T1.PageName, T2.Counter
-            FROM Pages AS T1
-            INNER JOIN TermOccurrences AS T2 ON T1.PageID = T2.PageID
-            WHERE TermID = %s AND Counter > %s
-            ORDER BY Counter DESC
-            LIMIT %s
-        """, (term_id, min_counter, limit))
-        return self.cur.fetchall()
+        query_size = len(term_list)
+        query_length = sum(term_list.values())
+        query_vector = np.zeros(query_size)
+        corpus_size = self.get_corpus_size()
+
+        # Dictionary of page vectors organised by page_id
+        page_results = {}
+        term_index = {}
+
+        # TODO: Perform tfidf term filtering to reduce the number of terms in the query
+        # TODO: This can all be reduced to a single call to TermOccurrences (Where TermID IN ())
+
+        # Retrieve all related pages using the Inverted Index lookup
+        for i, (term_name, term_id) in enumerate(term_ids.items()):
+            df = document_frequencies[term_id]
+            query_vector[i] = tfidf(term_list[term_name], df, query_length, corpus_size)
+
+            term_index[term_id] = i
+
+            for (page_id, ) in self.get_documents(term_id, min_counter=4, limit=200):
+                if page_id not in page_results:
+                    page_results[page_id] = SearchResult(page_id, None, np.zeros(query_size), 0)
+
+        page_data = dict([(a, (b, c)) for a, b, c in self.get_page_data(page_results.keys())])
+
+        # Calculate the TFIDF vector for each page retrieved
+        term_occurrences = self.get_term_occurrences(page_results.keys(), term_ids.values())
+        for page_id, term_id, tf in term_occurrences:
+            vector = page_results[page_id].vector
+
+            index = term_index[term_id]
+            df = document_frequencies[term_id]
+            length = page_data[page_id][1]
+
+            vector[index] = tfidf(tf, df, length, corpus_size)
+
+        # Order results by Cosine Similarity
+        for page_id, search_result in page_results.items():
+            search_result.page_name = page_data[page_id][0]
+            search_result.weight = np.dot(query_vector, search_result.vector) / (norm(query_vector) * norm(search_result.vector))
+
+        results = page_results.values()
+        results.sort(key=lambda x: x.weight, reverse=True)
+
+        return results
