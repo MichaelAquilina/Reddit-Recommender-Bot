@@ -21,7 +21,7 @@ class SearchResult(object):
         self.weight = weight
 
     def __repr__(self):
-        return '%s: %f' % (self.page_name, self.weight)
+        return '%s (%d): %f' % (self.page_name, self.page_id, self.weight)
 
 
 class WikiIndex(object):
