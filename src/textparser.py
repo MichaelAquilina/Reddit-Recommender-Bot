@@ -35,9 +35,9 @@ _re_url = re.compile(_url_pattern)
 
 
 # Determining the best way to calculate tfidf is proving difficult, might need more advanced techniques
-def tfidf(tf, df, norm_factor, corpus_size):
-    if norm_factor and df:
-        return (1 + math.log(tf)) / (1 + math.log(norm_factor)) * math.log(corpus_size / df)
+def tfidf(tf, df, corpus_size):
+    if df and tf:
+        return (1 + math.log(tf)) * math.log(corpus_size / df)
     else:
         return 0
 

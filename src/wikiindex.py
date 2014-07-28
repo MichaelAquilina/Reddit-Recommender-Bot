@@ -207,8 +207,6 @@ class WikiIndex(object):
 
         term_ids = dict(self.get_term_ids(term_list.keys()))
         document_frequencies = dict(self.get_document_frequencies(term_ids.values()))
-
-        query_length = sum(term_list.values())
         corpus_size = self.get_corpus_size()
 
         page_results = {}  # Dictionary of page vectors organised by page_id
@@ -220,7 +218,7 @@ class WikiIndex(object):
         # Calculate the tfidf weighting of the query vector and filter out terms based on values
         for term_name, term_id in term_ids.items():
             df = document_frequencies[term_id]
-            weight = tfidf(term_list[term_name], df, query_length, corpus_size)
+            weight = tfidf(term_list[term_name], df, corpus_size)
 
             # Should this by dynamic based on some percentile?
             if weight > 0.5:
@@ -233,6 +231,7 @@ class WikiIndex(object):
         # Generate the query vector based on the tfidf values generated above
         query_size = len(final_terms)
         query_vector = np.asarray(final_weights)
+        query_vector /= norm(query_vector)
 
         # Retrieve related pages containing the final terms
         for term_id in final_terms:
@@ -249,12 +248,11 @@ class WikiIndex(object):
 
             index = term_index[term_id]
             df = document_frequencies[term_id]
-            length = page_data[page_id][1]
 
-            vector[index] = tfidf(tf, df, length, corpus_size)
+            vector[index] = tfidf(tf, df, corpus_size)
 
         # Order results by Cosine Similarity
-        for page_id, search_result in page_results.items():
+        for page_id, search_result in page_results.iteritems():
             search_result.page_name = page_data[page_id][0]
             search_result.weight = np.dot(query_vector, search_result.vector) / (norm(query_vector) * norm(search_result.vector))
 
