@@ -299,7 +299,7 @@ if __name__ == '__main__':
 
     # Continue or perform fresh start
     if cont_flag:
-        print('Continuing previous index operation')
+        print('Continuing previous index operation on \'%s\'' % params['db'])
 
         cur.execute("""
             SELECT PageID, PageName, CreationDate
