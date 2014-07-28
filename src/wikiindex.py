@@ -52,10 +52,9 @@ class WikiIndex(object):
         var_string = to_csv(term_id_list)
 
         self._cur.execute("""
-            SELECT TermID, COUNT(*)
-            FROM TermOccurrences
+            SELECT TermID, DocumentFrequency
+            FROM DocumentFrequencies
             WHERE TermID IN (%s)
-            GROUP BY TermID
         """ % var_string)
         return self._cur.fetchall()
 
