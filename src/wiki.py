@@ -304,6 +304,7 @@ if __name__ == '__main__':
         cur.execute("""
             SELECT PageID, PageName, CreationDate
             FROM Pages
+            WHERE Processed = 1
             ORDER BY CreationDate DESC
             LIMIT 1;
         """)
