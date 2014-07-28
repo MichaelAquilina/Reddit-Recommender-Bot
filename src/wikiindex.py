@@ -176,7 +176,7 @@ class WikiIndex(object):
 
         return corpus
 
-    def generate_link_matrix(self, page_id_list):
+    def generate_link_matrix(self, page_id_list, mode='count'):
         """
         Generates a matrix containing the number of links between
         the a page (row) and a target page (column) in each cell. Only
@@ -193,7 +193,10 @@ class WikiIndex(object):
             if target_page_id in page_index:
                 i = page_index[page_id]
                 j = page_index[target_page_id]
-                link_matrix[i, j] = counter
+                if mode == 'count':
+                    link_matrix[i, j] = counter
+                elif mode == 'single':
+                    link_matrix[i, j] = 1
 
         return link_matrix
 
