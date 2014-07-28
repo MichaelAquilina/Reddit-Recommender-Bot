@@ -200,39 +200,50 @@ class WikiIndex(object):
 
         return link_matrix
 
+    # TODO: Is it possible to reduce this to a single call to TermOccurrences (Where TermID IN ())
+    # TODO: Performance could deff. do with some improving
     def word_concepts(self, text):
         term_list = Counter(word_tokenize(text))
 
         term_ids = dict(self.get_term_ids(term_list.keys()))
         document_frequencies = dict(self.get_document_frequencies(term_ids.values()))
 
-        query_size = len(term_list)
         query_length = sum(term_list.values())
-        query_vector = np.zeros(query_size)
         corpus_size = self.get_corpus_size()
 
-        # Dictionary of page vectors organised by page_id
-        page_results = {}
-        term_index = {}
+        page_results = {}  # Dictionary of page vectors organised by page_id
+        term_index = {}  # Dictionary lookup of term index in vector representation
 
-        # TODO: Perform tfidf term filtering to reduce the number of terms in the query
-        # TODO: This can all be reduced to a single call to TermOccurrences (Where TermID IN ())
+        final_terms = []  # List of final term ids to be used for vector representation
+        final_weights = []  # List of query vector weights to be used
 
-        # Retrieve all related pages using the Inverted Index lookup
-        for i, (term_name, term_id) in enumerate(term_ids.items()):
+        # Calculate the tfidf weighting of the query vector and filter out terms based on values
+        for term_name, term_id in term_ids.items():
             df = document_frequencies[term_id]
-            query_vector[i] = tfidf(term_list[term_name], df, query_length, corpus_size)
+            weight = tfidf(term_list[term_name], df, query_length, corpus_size)
 
-            term_index[term_id] = i
+            # Should this by dynamic based on some percentile?
+            if weight > 0.5:
+                term_index[term_id] = len(final_terms)
+                final_terms.append(term_id)
+                final_weights.append(weight)
+            else:
+                del term_ids[term_name]
 
+        # Generate the query vector based on the tfidf values generated above
+        query_size = len(final_terms)
+        query_vector = np.asarray(final_weights)
+
+        # Retrieve related pages containing the final terms
+        for term_id in final_terms:
             for (page_id, ) in self.get_documents(term_id, min_counter=4, limit=200):
                 if page_id not in page_results:
                     page_results[page_id] = SearchResult(page_id, None, np.zeros(query_size), 0)
 
+        # Populate search results with TFIDF, PageName and Similarity Weight
         page_data = dict([(a, (b, c)) for a, b, c in self.get_page_data(page_results.keys())])
+        term_occurrences = self.get_term_occurrences(page_results.keys(), final_terms)
 
-        # Calculate the TFIDF vector for each page retrieved
-        term_occurrences = self.get_term_occurrences(page_results.keys(), term_ids.values())
         for page_id, term_id, tf in term_occurrences:
             vector = page_results[page_id].vector
 
@@ -250,4 +261,4 @@ class WikiIndex(object):
         results = page_results.values()
         results.sort(key=lambda x: x.weight, reverse=True)
 
-        return results
+        return query_vector, term_ids.keys(), results
