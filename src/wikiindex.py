@@ -144,9 +144,10 @@ class WikiIndex(object):
         results are sorted in descending order by Counter.
         """
         self._cur.execute("""
-            SELECT SQL_NO_CACHE PageID
+            SELECT PageID
             FROM TermOccurrences
             WHERE TermID = %s AND Counter > %s
+            ORDER BY Counter DESC
             LIMIT %s
         """ % (term_id, min_counter, limit))
         return self._cur.fetchall()
@@ -159,7 +160,7 @@ class WikiIndex(object):
         v2 = to_csv(term_id_list)
 
         self._cur.execute("""
-            SELECT SQL_NO_CACHE PageID, TermID, Counter
+            SELECT PageID, TermID, Counter
             FROM TermOccurrences
             WHERE PageID IN (%s) AND TermID IN (%s);
         """ % (v1, v2))
