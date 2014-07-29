@@ -38,13 +38,20 @@ def load_db_params(filename='db.json'):
     return params
 
 
-def to_csv(target_list):
+def to_csv(target_list, separate=False):
+    if separate:
+        format_str = u'(\'%s\'),'
+        format_non_str = u'(%s),'
+    else:
+        format_str = u'\'%s\','
+        format_non_str = u'%s,'
+
     var_string = u''
     for item in target_list:
         if type(item) in (str, unicode):
-            var_string += u'\'%s\',' % item
+            var_string += format_str % item
         else:
-            var_string += u'%s,' % item
+            var_string += format_non_str % item
     return var_string[:-1]
 
 
