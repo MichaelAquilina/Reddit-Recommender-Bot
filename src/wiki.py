@@ -143,13 +143,10 @@ def prune():
 
 # Perform a Bulk insert operation for significantly faster performance
 def add_page_index(terms, page, intra_links):
-    var_list = Counter(terms)
-    doc_length = sum(var_list.values())
+    term_list = Counter(terms)
+    doc_length = sum(term_list.values())
 
     if doc_length >= MIN_PAGE_LENGTH:
-        var_string = u'(%s),' * len(var_list)
-        var_string = var_string.rstrip(',')
-
         cur.execute("""
             SELECT PageID, Processed
             FROM Pages
@@ -180,23 +177,23 @@ def add_page_index(terms, page, intra_links):
             if page_id <= 0:
                 return
 
+        filtered_term_list = [a for (a, b) in term_list.items() if b > 1]
+        var_string = to_csv(filtered_term_list, separate=True)
         cur.execute("""
             INSERT IGNORE INTO Terms (TermName)
             VALUES %s;
-        """ % var_string, var_list.keys())
+        """ % var_string)
 
-        var_string = u'%s,' * len(var_list)
-        var_string = var_string.rstrip(',')
-
+        var_string = to_csv(filtered_term_list, separate=False)
         cur.execute("""
             SELECT TermID, TermName FROM Terms
             WHERE TermName IN (%s);
-        """ % var_string, var_list.keys())
+        """ % var_string)
 
         term_results = cur.fetchall()
 
         if term_results:
-            termids = [(tid, var_list[name]) for (tid, name) in term_results]
+            termids = [(tid, term_list[name]) for (tid, name) in term_results]
 
             var_string = u'({},%s,%s),'.format(page_id) * len(term_results)
             var_string = var_string[:-1]
