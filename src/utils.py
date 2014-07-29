@@ -2,6 +2,17 @@ import os
 import json
 
 
+def load_stopwords(path):
+    stopwords = set()
+    with open(path, 'r') as fp:
+        while True:
+            line = fp.readline()
+            if line:
+                stopwords.add(line[:-1])
+            else:
+                return stopwords
+
+
 def load_db_params(filename='db.json'):
     """
     Loads database parameters to perform a connection with from a json formatted
