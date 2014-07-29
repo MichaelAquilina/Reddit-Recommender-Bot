@@ -14,7 +14,7 @@ from collections import Counter
 from textparser import word_tokenize
 from WikiExtractor import clean as clean_wiki_markup
 
-from utils import load_db_params
+from utils import load_db_params, to_csv, load_stopwords
 
 MIN_PAGE_SIZE = 1 * 1024  # 1 KB min size
 MIN_PAGE_LENGTH = 200  # Minimum Page Length in terms
@@ -27,7 +27,6 @@ MIN_PAGE_LENGTH = 200  # Minimum Page Length in terms
 
 # List of Page titles to ignore when they have the following prefix
 IGNORE_LIST = ('List of', 'Wikipedia:', 'Template:', 'File:', 'Category:', 'Help:', 'Portal:')
-
 
 # Wikipedia inner link pattern
 # http://en.wikipedia.org/wiki/Wikipedia:Tutorial/Wikipedia_links
@@ -366,6 +365,8 @@ if __name__ == '__main__':
     speed = None
     target = -1
 
+    stopwords = load_stopwords('data/stopwords.txt')
+
     last_speed_update = time.time()
 
     for page_title, page_text in extract_wiki_pages(path):
@@ -394,7 +395,7 @@ if __name__ == '__main__':
                 intra_links = Counter(_re_link_pattern.findall(page_text))
 
                 clean_text = clean_wiki_markup(page_text)
-                add_page_index(word_tokenize(clean_text, remove_urls=True), page_title, intra_links)
+                add_page_index(word_tokenize(clean_text, remove_urls=True, stopwords=stopwords), page_title, intra_links)
 
                 print('(Processed)', end=' ')
             else:
