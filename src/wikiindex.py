@@ -262,4 +262,5 @@ class WikiIndex(object):
 
         results.sort(key=lambda x: x.weight, reverse=True)
 
-        return results, [term_names[tid] for tid in term_index], query_vector
+        term_sequence = sorted(term_index.items(), key=lambda x: x[1])
+        return results, [term_names[tid] for tid, index in term_sequence], query_vector
