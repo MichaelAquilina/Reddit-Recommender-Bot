@@ -212,6 +212,10 @@ class WikiIndex(object):
         webbrowser.open('http://en.wikipedia.org/wiki/%s' % page_name.replace(' ', '_'))
 
     def word_concepts(self, text, n=10):
+        """
+        Returns a list of word concepts associated with the text ranked in descending order by
+        how similar to the original text the concepts are.
+        """
         term_list = Counter(word_tokenize(text, stopwords=stopwords))
 
         term_names = dict([(b, a) for a, b in self.get_term_ids(term_list)])
