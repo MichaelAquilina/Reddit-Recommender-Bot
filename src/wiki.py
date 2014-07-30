@@ -26,7 +26,7 @@ MIN_PAGE_LENGTH = 200  # Minimum Page Length in terms
 # large without appropriate compression)
 
 # List of Page titles to ignore when they have the following prefix
-IGNORE_LIST = ('List of', 'Wikipedia:', 'Template:', 'File:', 'Category:', 'Help:', 'Portal:')
+IGNORE_LIST = ('List of', 'MediaWiki:', 'Wikipedia:', 'Template:', 'File:', 'Category:', 'Help:', 'Portal:')
 
 # Wikipedia inner link pattern
 # http://en.wikipedia.org/wiki/Wikipedia:Tutorial/Wikipedia_links
