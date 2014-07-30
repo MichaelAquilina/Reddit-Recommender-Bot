@@ -203,6 +203,14 @@ class WikiIndex(object):
 
         return link_matrix
 
+    def visit_article(self, page_id):
+        """
+        Opens a browser to view the specified article on en.Wikipedia.org
+        """
+        import webbrowser
+        (_, page_name) = self.get_page_names((page_id, ))[0]
+        webbrowser.open('http://en.wikipedia.org/wiki/%s' % page_name.replace(' ', '_'))
+
     def word_concepts(self, text, n=10):
         term_list = Counter(word_tokenize(text, stopwords=stopwords))
 
