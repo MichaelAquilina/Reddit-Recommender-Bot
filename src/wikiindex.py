@@ -1,5 +1,6 @@
 from __future__ import division
 
+import math
 import MySQLdb
 import numpy as np
 
@@ -140,7 +141,7 @@ class WikiIndex(object):
 
     def get_documents(self, term_id, min_counter=2, limit=200):
         """
-        Returns a list of (PageID, TermID)
+        Returns a list of (PageID)
         Results are limited to the specified value and only terms
         with a Counter larger than min_counter are returned. Returned
         results are sorted in descending order by Counter.
@@ -202,63 +203,63 @@ class WikiIndex(object):
 
         return link_matrix
 
-    # TODO: Is it possible to reduce this to a single call to TermOccurrences (Where TermID IN ())
-    # TODO: Performance could deff. do with some improving
-    def word_concepts(self, text):
-        term_list = Counter(word_tokenize(text))
+    def word_concepts(self, text, n=10):
+        term_list = Counter(word_tokenize(text, stopwords=stopwords))
 
-        term_ids = dict(self.get_term_ids(term_list.keys()))
-        document_frequencies = dict(self.get_document_frequencies(term_ids.values()))
+        term_names = dict([(b, a) for a, b in self.get_term_ids(term_list)])
+        document_frequencies = dict(self.get_document_frequencies(term_names))
         corpus_size = self.get_corpus_size()
 
-        page_results = {}  # Dictionary of page vectors organised by page_id
-        term_index = {}  # Dictionary lookup of term index in vector representation
-
-        final_terms = []  # List of final term ids to be used for vector representation
-        final_weights = []  # List of query vector weights to be used
-
-        # Calculate the tfidf weighting of the query vector and filter out terms based on values
-        for term_name, term_id in term_ids.items():
+        # Generate and filter the query vector
+        term_weights = {}
+        for term_id in term_names:
+            term_name = term_names[term_id]
             df = document_frequencies[term_id]
-            weight = tfidf(term_list[term_name], df, corpus_size)
+            tf = term_list[term_name]
 
-            # Should this by dynamic based on some percentile?
+            # Filter terms to remove low weighted terms
+            weight = tfidf(tf, df, corpus_size)
             if weight > 0.5:
-                term_index[term_id] = len(final_terms)
-                final_terms.append(term_id)
-                final_weights.append(weight)
-            else:
-                del term_ids[term_name]
+                term_weights[term_id] = weight
 
-        # Generate the query vector based on the tfidf values generated above
-        query_size = len(final_terms)
-        query_vector = np.asarray(final_weights)
-        query_vector /= norm(query_vector)
+        # Lookup table of term->index
+        term_index = dict([(b, a) for a, b in enumerate(term_weights.keys())])
 
-        # Retrieve related pages containing the final terms
-        for term_id in final_terms:
-            for (page_id, ) in self.get_documents(term_id, min_counter=4, limit=200):
-                if page_id not in page_results:
-                    page_results[page_id] = SearchResult(page_id, None, np.zeros(query_size), 0)
+        query_vector = np.asarray(term_weights.values())
+        query_vector_norm = norm(query_vector)
 
-        # Populate search results with TFIDF, PageName and Similarity Weight
-        page_data = dict([(a, (b, c)) for a, b, c in self.get_page_data(page_results.keys())])
-        term_occurrences = self.get_term_occurrences(page_results.keys(), final_terms)
+        # Determine which are the most representative terms
+        top_terms = term_weights.items()
+        top_terms.sort(key=lambda x: x[1], reverse=True)
 
+        # larger value of n means possibly more accuracy but at the cost of speed
+        pages = set()
+        for term_id, term_weight in top_terms[:n]:
+            for (page_id, ) in self.get_documents(term_id, min_counter=2, limit=50):
+                pages.add(page_id)
+
+        term_occurrences = self.get_term_occurrences(pages, term_index.keys())
+        page_data = self.get_page_data(pages)
+
+        page_vectors = {}
         for page_id, term_id, tf in term_occurrences:
-            vector = page_results[page_id].vector
-
-            index = term_index[term_id]
             df = document_frequencies[term_id]
+            index = term_index[term_id]
+            weight = tfidf(tf, df, corpus_size)
 
-            vector[index] = tfidf(tf, df, corpus_size)
+            if page_id not in page_vectors:
+                page_vectors[page_id] = np.zeros(query_vector.size)
 
-        # Order results by Cosine Similarity
-        for page_id, search_result in page_results.iteritems():
-            search_result.page_name = page_data[page_id][0]
-            search_result.weight = np.dot(query_vector, search_result.vector) / (norm(query_vector) * norm(search_result.vector))
+            page_vectors[page_id][index] = weight
 
-        results = page_results.values()
+        results = []
+        for page_id, page_name, page_length in page_data:
+            page_vector = page_vectors[page_id]
+            page_vector /= math.log(page_length)
+
+            similarity = np.dot(page_vector, query_vector) / (norm(page_vector) * query_vector_norm)
+            results.append(SearchResult(page_id, page_name, page_vector, similarity))
+
         results.sort(key=lambda x: x.weight, reverse=True)
 
-        return query_vector, term_ids.keys(), results
+        return results, [term_names[tid] for tid in term_index], query_vector
