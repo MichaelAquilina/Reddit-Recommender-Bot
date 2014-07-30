@@ -6,10 +6,12 @@ import numpy as np
 from numpy.linalg import norm
 from collections import Counter
 
-from utils import to_csv
+from utils import to_csv, load_stopwords
 from textparser import word_tokenize, tfidf
 
 # TODO: Safer SQL queries when using lists as parameters
+
+stopwords = load_stopwords('data/stopwords.txt')
 
 
 class SearchResult(object):
