@@ -200,6 +200,8 @@ class WikiIndex(object):
                 j = page_index[target_page_id]
                 if mode == 'count':
                     link_matrix[i, j] = counter
+                elif mode == 'log':
+                    link_matrix[i, j] = math.log(counter) + 1 if counter else 0
                 elif mode == 'single':
                     link_matrix[i, j] = 1
 
