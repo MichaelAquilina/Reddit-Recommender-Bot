@@ -22,6 +22,8 @@ class SearchResult(object):
         self.page_name = page_name
         self.vector = vector
         self.weight = weight
+        self.links_from = None
+        self.links_to = None
 
     def __repr__(self):
         return '%s (%d): %f' % (self.page_name, self.page_id, self.weight)
@@ -213,23 +215,37 @@ class WikiIndex(object):
         page_name = page_name.replace(' ', '_')
         webbrowser.open('http://en.wikipedia.org/wiki/%s' % urllib.quote(page_name))
 
-    def second_order_ranking(self, results):
-        # Dump results and some statistics on links
+    def second_order_ranking(self, results, alpha=0.4):
+        """
+        Order a set of results rated with cosine similarity using a combination of the
+        original similarity score and their linkage score.
+        """
         link_matrix = self.generate_link_matrix([sr.page_id for sr in results], mode='single')
+        links_from = link_matrix.sum(axis=0)
         links_to = link_matrix.sum(axis=1)
 
         new_weights = np.zeros(len(results))
 
         for j in xrange(link_matrix.shape[0]):
 
-            for i in xrange(link_matrix.shape[1]):
-                if link_matrix[i, j] > 0:
-                    new_weights[j] += (link_matrix[i, j] * results[i].weight) / (links_to[i])
+            # Items which have no links should not receive a score
+            if links_from[j] > 0:
+                for i in xrange(link_matrix.shape[1]):
+                    if link_matrix[i, j] > 0 and links_from[i] > 0:
+                        new_weights[j] += (alpha * link_matrix[i, j] * results[i].weight) / (links_to[i] / links_from[i])
 
-            new_weights[j] *= results[j].weight * results[j].weight
-            new_weights[j] += results[j].weight
+                new_weights[j] *= math.pow(results[j].weight, 2)
+                new_weights[j] += 2 * results[j].weight
 
-        return sorted(zip(results, new_weights), key=lambda x: x[1], reverse=True)
+            results[j].links_from = links_from[j]
+            results[j].links_to = links_to[j]
+
+        # Assign newly calculated weights
+        for i in xrange(len(results)):
+            results[i].weight = new_weights[i]
+
+        results.sort(key=lambda x: x.weight, reverse=True)
+        return results
 
     def word_concepts(self, text, n=10):
         """
