@@ -92,9 +92,6 @@ def setup():
         ) ENGINE=%s ROW_FORMAT=FIXED;
     """, (engine, ))
 
-    # Having separate indices is important for numerous join operations
-    cur.execute('CREATE INDEX term_id_index ON TermOccurrences (TermID);')
-    cur.execute('CREATE INDEX page_id_index ON TermOccurrences (PageID);')
     cur.execute('CREATE INDEX counter_index ON TermOccurrences (Counter);')
 
     # Mirrors TermOccurrences structure
