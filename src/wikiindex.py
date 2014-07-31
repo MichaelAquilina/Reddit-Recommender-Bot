@@ -130,6 +130,8 @@ class WikiIndex(object):
         """
         Returns a list of (PageID, TargetPageID, LinkCounter)
         """
+        # Attempting to speed this up with a TargetID IN will
+        # not work because there is no Index available on TargetID
         var_string = to_csv(page_id_list)
 
         self._cur.execute("""
@@ -220,7 +222,8 @@ class WikiIndex(object):
     def second_order_ranking(self, results, alpha=0.4):
         """
         Order a set of results rated with cosine similarity using a combination of the
-        original similarity score and their linkage score.
+        original similarity score and their linkage score. The influence of the link
+        score on the final results can be set by the parameter alpha.
         """
         link_matrix = self.generate_link_matrix([sr.page_id for sr in results], mode='single')
         links_from = link_matrix.sum(axis=0)
