@@ -388,13 +388,16 @@ if __name__ == '__main__':
                 meta = True
 
             if not meta and page_text and len(page_text) > MIN_PAGE_SIZE:
-                # Lower and strip required to ensure articles conflate correctly in the Counter object
-                intra_links = Counter(_re_link_pattern.findall(page_text))
+                try:
+                    # Lower and strip required to ensure articles conflate correctly in the Counter object
+                    intra_links = Counter(_re_link_pattern.findall(page_text))
 
-                clean_text = clean_wiki_markup(page_text)
-                add_page_index(word_tokenize(clean_text, remove_urls=True, stopwords=stopwords), page_title, intra_links)
-
-                print('(Processed)', end=' ')
+                    clean_text = clean_wiki_markup(page_text)
+                    add_page_index(word_tokenize(clean_text, remove_urls=True, stopwords=stopwords), page_title, intra_links)
+                except MySQLdb.ProgrammingError as e:
+                    print('(Sql Error: %s)' % e.message)
+                else:
+                    print('(Processed)', end=' ')
             else:
                 print('(Ignored)', end=' ')
 
