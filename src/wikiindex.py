@@ -213,6 +213,24 @@ class WikiIndex(object):
         page_name = page_name.replace(' ', '_')
         webbrowser.open('http://en.wikipedia.org/wiki/%s' % urllib.quote(page_name))
 
+    def second_order_ranking(self, results):
+        # Dump results and some statistics on links
+        link_matrix = self.generate_link_matrix([sr.page_id for sr in results], mode='single')
+        links_to = link_matrix.sum(axis=1)
+
+        new_weights = np.zeros(len(results))
+
+        for j in xrange(link_matrix.shape[0]):
+
+            for i in xrange(link_matrix.shape[1]):
+                if link_matrix[i, j] > 0:
+                    new_weights[j] += (link_matrix[i, j] * results[i].weight) / (links_to[i])
+
+            new_weights[j] *= results[j].weight * results[j].weight
+            new_weights[j] += results[j].weight
+
+        return sorted(zip(results, new_weights), key=lambda x: x[1], reverse=True)
+
     def word_concepts(self, text, n=10):
         """
         Returns a list of word concepts associated with the text ranked in descending order by
