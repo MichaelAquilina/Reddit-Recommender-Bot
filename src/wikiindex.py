@@ -219,7 +219,7 @@ class WikiIndex(object):
         page_name = page_name.replace(' ', '_')
         webbrowser.open('http://en.wikipedia.org/wiki/%s' % urllib.quote(page_name))
 
-    def second_order_ranking(self, results, alpha=0.4):
+    def second_order_ranking(self, results, alpha=0.5):
         """
         Order a set of results rated with cosine similarity using a combination of the
         original similarity score and their linkage score. The influence of the link
@@ -237,10 +237,10 @@ class WikiIndex(object):
             if links_from[j] > 0:
                 for i in xrange(link_matrix.shape[1]):
                     if link_matrix[i, j] > 0 and links_from[i] > 0:
-                        new_weights[j] += (alpha * link_matrix[i, j] * results[i].weight) / (links_to[i] / links_from[i])
+                        new_weights[j] += (alpha * link_matrix[i, j] * results[i].weight) / np.clip(links_to[i] / links_from[i], 1, 8)
 
                 new_weights[j] *= math.pow(results[j].weight, 2)
-                new_weights[j] += 2 * results[j].weight
+                new_weights[j] += 1.5 * results[j].weight
 
             results[j].links_from = links_from[j]
             results[j].links_to = links_to[j]
