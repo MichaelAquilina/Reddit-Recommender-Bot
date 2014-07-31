@@ -207,9 +207,11 @@ class WikiIndex(object):
         """
         Opens a browser to view the specified article on en.Wikipedia.org
         """
+        import urllib
         import webbrowser
         (_, page_name) = self.get_page_names((page_id, ))[0]
-        webbrowser.open('http://en.wikipedia.org/wiki/%s' % page_name.replace(' ', '_'))
+        page_name = page_name.replace(' ', '_')
+        webbrowser.open('http://en.wikipedia.org/wiki/%s' % urllib.quote(page_name))
 
     def word_concepts(self, text, n=10):
         """
