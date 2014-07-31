@@ -265,13 +265,14 @@ class WikiIndex(object):
         term_weights = {}
         for term_id in term_names:
             term_name = term_names[term_id]
-            df = document_frequencies[term_id]
-            tf = term_list[term_name]
+            if term_id in document_frequencies:
+                df = document_frequencies[term_id]
+                tf = term_list[term_name]
 
-            # Filter terms to remove low weighted terms
-            weight = tfidf(tf, df, corpus_size) / query_norm
-            if weight > 0.5:
-                term_weights[term_id] = weight
+                # Filter terms to remove low weighted terms
+                weight = tfidf(tf, df, corpus_size) / query_norm
+                if weight > 0.5:
+                    term_weights[term_id] = weight
 
         # Lookup table of term->index
         term_index = dict([(b, a) for a, b in enumerate(term_weights.keys())])
