@@ -7,6 +7,9 @@ import numpy as np
 
 import textparser
 
+from goose import Configuration, Goose
+from HTMLParser import HTMLParser
+
 from datasource import load_data_source
 from hashedindex import HashedIndex, load_meta
 from utils import search_files
@@ -15,6 +18,14 @@ if __name__ == '__main__':
 
     import time
     t0 = time.time()
+
+    _parser = HTMLParser()
+
+    _config = Configuration()
+    _config.enable_image_fetching = False
+    _config.use_meta_language = False
+
+    _goose = Goose(_config)
 
     # Lancaster Stemmer is very very slow
     _stemmer = textparser.NullStemmer()
@@ -50,11 +61,27 @@ if __name__ == '__main__':
 
         t0 = time.time()
         sr_index.clear()
+
+        page_path = os.path.join(data_path, 'pages')
+
         data = load_data_source(
-            sr_index, data_path,
+            data_path,
             subreddit=parameters['subreddit'],
             page_samples=parameters['samples'],
         )
+
+        for rel_path, label in data.items():
+            url_path = os.path.join(page_path, rel_path)
+
+            if os.path.exists(url_path):
+                with open(url_path, 'r') as html_file:
+                    html_text = html_file.read()
+
+                text = unicode(_goose.extract(raw_html=html_text).cleaned_text)
+                text = _parser.unescape(text)
+
+                for token in textparser.word_tokenize(text):
+                    sr_index.add_term_occurrence(token, rel_path)
 
         print('Indexing Runtime: {}'.format(time.time() - t0))
         print('Original shape: (%d, %d)' % (len(sr_index.documents()), len(sr_index.terms())))

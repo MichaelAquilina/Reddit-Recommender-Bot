@@ -8,10 +8,6 @@ import os
 import json
 import random
 
-import textparser
-
-from goose import Goose, Configuration
-from HTMLParser import HTMLParser
 from utils import search_files
 from url import Url
 
@@ -23,10 +19,6 @@ from url import Url
 # t5_	Subreddit
 # t6_	Award
 # t8_	PromoCampaign
-_parser = HTMLParser()
-_config = Configuration()
-_config.enable_image_fetching = False
-_goose = Goose(_config)
 
 
 def get_url_from_path(target_dir, abs_path):
@@ -36,16 +28,6 @@ def get_url_from_path(target_dir, abs_path):
         rel_path = rel_path[:-3]  # Remove special tag character
 
     return 'http://' + rel_path
-
-
-def add_html_to_index(index, html_text, doc_name):
-    # This currently provides good accuracy but does not
-    # handle html tags very well
-    text = unicode(_goose.extract(raw_html=html_text).cleaned_text)
-    text = _parser.unescape(text)
-
-    for token in textparser.word_tokenize(text):
-        index.add_term_occurrence(token, doc_name)
 
 
 def get_path_from_url(target_dir, url):
@@ -80,7 +62,15 @@ def get_path_from_url(target_dir, url):
     return os.path.join(directory, filename)
 
 
-def load_data_source(index, data_path, subreddit, page_samples):
+def load_data_source(data_path, subreddit, page_samples):
+    """
+    Generates a dictionary of labeled and unlabelled pages from a Reddit
+    Data Source as specified by the specification on the github Wiki.
+    :param data_path: path to a Reddit Data Source.
+    :param subreddit: labeled subreddit which is to be targeted.
+    :param page_samples: number of random unlabelled page samples to use.
+    :return: dictionary of (label, path)
+    """
     pages_dir = os.path.join(data_path, 'pages')
     subreddits_dir = os.path.join(data_path, 'subreddits')
     sr_path = os.path.join(subreddits_dir, subreddit)
@@ -105,15 +95,4 @@ def load_data_source(index, data_path, subreddit, page_samples):
     for rel_path in random.sample(remaining, page_samples):
         data[rel_path] = None   # Unlabelled data
 
-    # Add all the data to the index
-    for rel_path, label in data.items():
-        url_path = os.path.join(pages_dir, rel_path)
-
-        if os.path.exists(url_path):
-            with open(url_path, 'r') as html_file:
-                html_text = html_file.read()
-
-            add_html_to_index(index, html_text, rel_path)
-
-    # Return list of data points
     return data
