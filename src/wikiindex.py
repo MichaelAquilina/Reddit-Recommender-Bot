@@ -258,7 +258,11 @@ class WikiIndex(object):
         how similar to the original text the concepts are.
         """
         term_list = Counter(word_tokenize(text, stopwords=stopwords))
-        query_norm = math.log(sum(term_list.values()))
+        query_norm = math.log(1 + sum(term_list.values()))
+
+        # Nothing that can be done
+        if query_norm == 0:
+            return None, None, None
 
         term_names = dict([(b, a) for a, b in self.get_term_ids(term_list)])
         document_frequencies = dict(self.get_document_frequencies(term_names))
