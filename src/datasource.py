@@ -6,11 +6,11 @@ __about__ = """
 
 import os
 import json
-import nltk
 import random
 
 import textparser
 
+from goose import Goose, Configuration
 from HTMLParser import HTMLParser
 from utils import search_files
 from url import Url
@@ -24,6 +24,9 @@ from url import Url
 # t6_	Award
 # t8_	PromoCampaign
 _parser = HTMLParser()
+_config = Configuration()
+_config.enable_image_fetching = False
+_goose = Goose(_config)
 
 
 def get_url_from_path(target_dir, abs_path):
@@ -38,7 +41,7 @@ def get_url_from_path(target_dir, abs_path):
 def add_html_to_index(index, html_text, doc_name):
     # This currently provides good accuracy but does not
     # handle html tags very well
-    text = unicode(nltk.clean_html(html_text))
+    text = unicode(_goose.extract(raw_html=html_text).cleaned_text)
     text = _parser.unescape(text)
 
     for token in textparser.word_tokenize(text):
