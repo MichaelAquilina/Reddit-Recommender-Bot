@@ -188,6 +188,33 @@ class WikiIndex(object):
         """ % (v1, v2))
         return self._cur.fetchall()
 
+    def get_tfidf_values(self, page_id_list, term_id_list):
+        """
+        Returns a list of (PageID, TermID, Tfidf)
+        """
+        v1 = to_csv(page_id_list)
+        v2 = to_csv(term_id_list)
+
+        self._cur.execute("""
+            SELECT PageID, TermID, Tfidf
+            FROM TfidfValues
+            WHERE PageID IN (%s) AND TermID IN (%s);
+        """ % (v1, v2))
+        return self._cur.fetchall()
+
+    def get_tfidf_totals(self, page_id_list):
+        """
+        Returns a list of (PageID, Total)
+        """
+        var_string = to_csv(page_id_list)
+
+        self._cur.execute("""
+            SELECT PageID, Total
+            FROM TfidfTotals
+            WHERE PageID IN (%s);
+        """ % var_string)
+        return self._cur.fetchall()
+
     def get_corpus_size(self):
         """
         Returns the size of the corpus which excludes all unprocessed pages.
