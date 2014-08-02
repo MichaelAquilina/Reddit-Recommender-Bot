@@ -228,8 +228,8 @@ class WikiIndex(object):
     def generate_link_matrix(self, page_id_list, mode='count'):
         """
         Generates a matrix containing the number of links between
-        the a page (row) and a target page (column) in each cell. Only
-        pages specified in the page_id_list will be included in the matrix.
+        a target page (row) and link from an incoming page (column) in each cell.
+        Only pages specified in the page_id_list will be included in the matrix.
         """
         size = len(page_id_list)
         link_matrix = np.zeros(shape=(size, size))
@@ -240,8 +240,8 @@ class WikiIndex(object):
 
         for page_id, target_page_id, counter in page_links:
             if target_page_id in page_index:
-                i = page_index[page_id]
-                j = page_index[target_page_id]
+                i = page_index[target_page_id]
+                j = page_index[page_id]
                 if mode == 'count':
                     link_matrix[i, j] = counter
                 elif mode == 'log':
@@ -268,24 +268,24 @@ class WikiIndex(object):
         score on the final results can be set by the parameter alpha.
         """
         link_matrix = self.generate_link_matrix([sr.page_id for sr in results], mode='single')
-        links_from = link_matrix.sum(axis=0)
-        links_to = link_matrix.sum(axis=1)
+        incoming_links = link_matrix.sum(axis=1)
+        outgoing_links = link_matrix.sum(axis=0)
 
         new_weights = np.zeros(len(results))
 
-        for j in xrange(link_matrix.shape[0]):
+        for i in xrange(link_matrix.shape[0]):
 
             # Items which have no links should not receive a score
-            if links_from[j] > 0:
-                for i in xrange(link_matrix.shape[1]):
-                    if link_matrix[i, j] > 0 and links_from[i] > 0:
-                        new_weights[j] += (alpha * link_matrix[i, j] * results[i].weight) / np.clip(links_to[i] / links_from[i], 1, 8)
+            if incoming_links[i] > 0:
+                for j in xrange(link_matrix.shape[1]):
+                    if link_matrix[i, j] > 0 and incoming_links[j] > 0:
+                        new_weights[i] += (alpha * link_matrix[i, j] * results[j].weight) / np.clip(outgoing_links[j] / incoming_links[j], 1, 8)
 
-                new_weights[j] *= math.pow(results[j].weight, 2)
-                new_weights[j] += 1.5 * results[j].weight
+                new_weights[i] *= math.pow(results[i].weight, 2)
+                new_weights[i] += 1.5 * results[i].weight
 
-            results[j].links_from = links_from[j]
-            results[j].links_to = links_to[j]
+            results[i].links_from = incoming_links[i]
+            results[i].links_to = outgoing_links[i]
 
         # Assign newly calculated weights
         for i in xrange(len(results)):
