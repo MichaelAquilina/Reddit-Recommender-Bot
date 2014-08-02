@@ -351,10 +351,19 @@ class WikiIndex(object):
 
             page_vectors[page_id][index] = weight
 
+        if self.supports_table('TfidfTotals'):
+            tfidf_totals = dict(self.get_tfidf_totals(pages))
+        else:
+            tfidf_totals = None
+
         results = []
         for page_id, page_name, page_length in page_data:
             page_vector = page_vectors[page_id]
-            page_vector /= math.log(page_length)
+
+            if self.supports_table('TfidfTotals'):
+                page_vector /= math.log(tfidf_totals[page_id])
+            else:
+                page_vector /= math.log(page_length)
 
             similarity = np.dot(page_vector, query_vector) / (norm(page_vector) * query_vector_norm)
             results.append(SearchResult(page_id, page_name, page_vector, similarity))
