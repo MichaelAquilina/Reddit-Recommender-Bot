@@ -11,6 +11,7 @@ from utils import to_csv, load_stopwords
 from textparser import word_tokenize, tfidf
 
 # TODO: Safer SQL queries when using lists as parameters
+# TODO: If a fast lookup table is not available, use the slow technique
 
 stopwords = load_stopwords('data/stopwords.txt')
 
