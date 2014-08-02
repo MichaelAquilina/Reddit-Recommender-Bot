@@ -151,11 +151,10 @@ class WikiIndex(object):
         var_string = to_csv(page_id_list)
 
         self._cur.execute("""
-            SELECT T1.PageID, T2.PageID, T1.Counter
-            FROM PageLinks T1
-            INNER JOIN Pages T2 ON T1.TargetPageID = T2.PageID
-            WHERE T1.PageID IN (%s);
-        """ % var_string)
+            SELECT PageID, TargetPageID, Counter
+            FROM PageLinks
+            WHERE PageID IN (%s);
+        """ % (var_string, ))
 
         return self._cur.fetchall()
 
