@@ -42,6 +42,12 @@ class WikiIndex(object):
         self._db = db
         self._host = host
 
+        # Determine the level of support in this table
+        self._cur.execute('SHOW TABLES')
+        self._available_tables = set()
+        for (table, ) in self._cur.fetchall():
+            self._available_tables.add(table)
+
     def __repr__(self):
         return '<WikiIndex %s@%s>' % (self._db, self._host)
 
@@ -49,6 +55,9 @@ class WikiIndex(object):
         self._cur.close()
         self._sscur.close()
         self.connection.close()
+
+    def supports_table(self, table):
+        return table in self._available_tables
 
     def get_document_frequencies(self, term_id_list):
         """
