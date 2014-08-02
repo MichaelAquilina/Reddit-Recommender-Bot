@@ -51,6 +51,12 @@ class WikiIndex(object):
     def __repr__(self):
         return '<WikiIndex %s@%s>' % (self._db, self._host)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
     def close(self):
         self._cur.close()
         self._sscur.close()
