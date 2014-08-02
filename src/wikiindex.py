@@ -283,7 +283,7 @@ class WikiIndex(object):
         norm_weights[nonzero] = weights[nonzero] / authority[nonzero]
 
         A = alpha * np.dot(link_matrix, norm_weights)
-        A *= weights * weights
+        A *= weights ** 2
         A += 1.5 * weights
 
         # Assign newly calculated weights
