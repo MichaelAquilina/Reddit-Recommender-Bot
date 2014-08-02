@@ -268,28 +268,26 @@ class WikiIndex(object):
         score on the final results can be set by the parameter alpha.
         """
         link_matrix = self.generate_link_matrix([sr.page_id for sr in results], mode='single')
-        incoming_links = link_matrix.sum(axis=1)
-        outgoing_links = link_matrix.sum(axis=0)
+        incoming = link_matrix.sum(axis=1)
+        outgoing = link_matrix.sum(axis=0)
 
-        new_weights = np.zeros(len(results))
+        weights = np.asarray([sr.weight for sr in results])
 
-        for i in xrange(link_matrix.shape[0]):
+        nonzero = incoming > 0
+        authority = np.zeros(incoming.size)
+        authority[nonzero] = np.clip(outgoing[nonzero] / incoming[nonzero], 1, 8)
 
-            # Items which have no links should not receive a score
-            if incoming_links[i] > 0:
-                for j in xrange(link_matrix.shape[1]):
-                    if link_matrix[i, j] > 0 and incoming_links[j] > 0:
-                        new_weights[i] += (alpha * link_matrix[i, j] * results[j].weight) / np.clip(outgoing_links[j] / incoming_links[j], 1, 8)
+        nonzero = authority > 0
+        norm_weights = np.zeros(incoming.size)
+        norm_weights[nonzero] = weights[nonzero] / authority[nonzero]
 
-                new_weights[i] *= math.pow(results[i].weight, 2)
-                new_weights[i] += 1.5 * results[i].weight
-
-            results[i].links_from = incoming_links[i]
-            results[i].links_to = outgoing_links[i]
+        A = alpha * np.dot(link_matrix, norm_weights)
+        A *= weights * weights
+        A += 1.5 * weights
 
         # Assign newly calculated weights
         for i in xrange(len(results)):
-            results[i].weight = new_weights[i]
+            results[i].weight = A[i]
 
         results.sort(key=lambda x: x.weight, reverse=True)
         return results
