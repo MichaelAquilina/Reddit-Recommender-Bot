@@ -139,7 +139,7 @@ if __name__ == '__main__':
     classifier = None
     for index, (train, test) in enumerate(kf):
         from sklearn.svm import SVC
-        classifier = SVC(kernel='linear', C=1.0)
+        classifier = SVC(kernel='linear', C=1.0, probability=True)
 
         classifier.fit(X[train], y[train])
         y_pred = classifier.predict(X[test])
