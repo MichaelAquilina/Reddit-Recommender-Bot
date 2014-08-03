@@ -17,6 +17,8 @@ if __name__ == '__main__':
     pages_path = os.path.join(data_path, 'pages')
     index_path = '/home/michaela/concepts.json'
 
+    subreddit = 'python'
+
     perform_index = False
 
     if perform_index:
@@ -34,7 +36,7 @@ if __name__ == '__main__':
 
         params = load_db_params('wsd.db.json')
         with WikiIndex(**params) as wiki:
-            data_labels = load_data_source(data_path, 'python', 600)
+            data_labels = load_data_source(data_path, subreddit, 800)
             for index, (rel_path, label) in enumerate(data_labels.iteritems()):
                 abs_path = os.path.join(pages_path, rel_path)
                 if os.path.exists(abs_path):
@@ -43,20 +45,23 @@ if __name__ == '__main__':
 
                     article = goose.extract(raw_html=html_text)
                     print('%d: %s' % (index, rel_path[:-3]))
-                    print(article.title)
+                    print(article.title, '(%s)' % label)
 
                     text = article.cleaned_text
 
-                    if len(text) > 50:
-                        search_results, terms, query_vector = wiki.word_concepts(text, n=15)
-                        wiki.second_order_ranking(search_results)
+                    if len(text) > 500:
+                        search_results, terms, query_vector = wiki.word_concepts(text, n=20)
 
-                        results[rel_path] = [sr.page_id for sr in search_results[:use_concepts]]
+                        if search_results:
+                            wiki.second_order_ranking(search_results)
+                            results[rel_path] = [(sr.page_id, sr.weight) for sr in search_results[:use_concepts]]
 
-                        for search_result in search_results[:use_concepts]:
-                            concepts.add(search_result.page_id)
+                            for search_result in search_results[:use_concepts]:
+                                concepts.add(search_result.page_id)
 
-                        print(search_results[:use_concepts])
+                            print(search_results[:use_concepts])
+                        else:
+                            print('No word concepts returned')
                     else:
                         print('Document is of insufficient length')
 
@@ -79,7 +84,15 @@ if __name__ == '__main__':
 
     print(len(concepts))
 
+    positive_labels = filter(lambda x: x[1] == subreddit, data_labels.items())
+
+    print(len(positive_labels))
+    print(len(data_labels) - len(positive_labels))
+
     concepts_index = dict([(b, a) for (a, b) in enumerate(concepts)])
+
+    # TODO: Need to see what is going to be done about those documents that do not each the minimum length requirement
+    # Do you try to find another example page to replace or just deal with the fallout?
 
     print('Generating Feature Matrix')
 
@@ -89,9 +102,9 @@ if __name__ == '__main__':
     for i, (rel_path, page_list) in enumerate(results.iteritems()):
         label_vector[i] = 1 if data_labels[rel_path] is not None else 0
 
-        for page_id in page_list:
+        for page_id, weight in page_list:
             j = concepts_index[page_id]
-            feature_matrix[i, j] = 1  # TODO: Use weights instead!
+            feature_matrix[i, j] = weight
 
     from sklearn.svm import SVC
     from sklearn.cross_validation import train_test_split
@@ -107,4 +120,5 @@ if __name__ == '__main__':
     print(metrics.confusion_matrix(y_test, y_predict))
     print('Accuracy: ', metrics.accuracy_score(y_test, y_predict))
     print('Precision: ', metrics.precision_score(y_test, y_predict))
+    print('Recall: ', metrics.recall_score(y_test, y_predict))
     print('F1 Score:', metrics.f1_score(y_test, y_predict))
