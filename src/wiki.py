@@ -79,8 +79,6 @@ def setup():
         ) ENGINE=%s ROW_FORMAT=FIXED;
     """, (engine, ))
 
-    cur.execute('CREATE INDEX page_id_index ON PageLinks (PageID);')
-
     cur.execute("""
         CREATE TABLE IF NOT EXISTS TermOccurrences (
             TermID INT NOT NULL,
