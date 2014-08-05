@@ -292,7 +292,7 @@ class WikiIndex(object):
         results.sort(key=lambda x: x.weight, reverse=True)
         return results
 
-    def word_concepts(self, text, n=15):
+    def word_concepts(self, text, title=None, n=15):
         """
         Returns a list of word concepts associated with the text ranked in descending order by
         how similar to the original text the concepts are.
@@ -303,6 +303,12 @@ class WikiIndex(object):
         # Nothing that can be done
         if query_norm == 0:
             return None, None, None
+
+        # Boost the score of terms in the articles title
+        if title is not None:
+            title_tokens = Counter(word_tokenize(title, stopwords=stopwords))
+            for term, count in title_tokens.items():
+                term_list[term] += 2 * count
 
         term_names = dict([(b, a) for a, b in self.get_term_ids(term_list)])
         document_frequencies = dict(self.get_document_frequencies(term_names))
