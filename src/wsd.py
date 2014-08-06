@@ -64,33 +64,39 @@ if __name__ == '__main__':
 
     wiki = WikiIndex(**params)
 
-    t0 = time.time()
+    start_time = time.time()
 
-    target_url = 'http://jakevdp.github.io/blog/2013/01/13/hacking-super-mario-bros-with-python/'
+    import requests
+    req = requests.get('http://crsmithdev.com/arrow/')
+    html_text = req.text
 
     print('Extracting article...')
+
+    t0 = time.time()
     goose = Goose()
-    article = goose.extract(url=target_url)
+    article = goose.extract(raw_html=html_text)
+    print('Extraction took %f seconds' % (time.time() - t0))
 
     print('===%s===' % article.title)
     print(article.cleaned_text)
     print('(%d length)' % len(article.cleaned_text))
 
+    print(article.cleaned_text.lower().count('python'))
+
     print('Running word concepts....')
 
     t1 = time.time()
-    results, terms, query_vector = wiki.word_concepts(article.cleaned_text)
+    results, terms, query_vector = wiki.word_concepts(article.cleaned_text, n=20)
     print('Word Concepts Runtime = {}'.format(time.time() - t1))
 
+    dump_results('/home/michaela/target.vector', results, terms, query_vector)
+
     t2 = time.time()
-    wiki.second_order_ranking(results)
+    wiki.second_order_ranking(results, alpha=0.7)
     print('Second Order Runtime = {}'.format(time.time() - t2))
 
     print(results[:20])
-    print(search_for(175067, results))
 
-    print('Runtime = {}'.format(time.time() - t0))
-
-    dump_results('/home/michaela/Development/target.vector', results, terms, query_vector)
+    print('Runtime = {}'.format(time.time() - start_time))
 
     wiki.close()
