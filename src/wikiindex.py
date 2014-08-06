@@ -43,7 +43,7 @@ class WikiIndex(object):
         self._db = db
         self._host = host
 
-        # Determine the level of support in this table
+        # Determine the level of support in the specified database
         self._cur.execute('SHOW TABLES')
         self._available_tables = set()
         for (table, ) in self._cur.fetchall():
