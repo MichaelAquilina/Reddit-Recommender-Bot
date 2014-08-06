@@ -17,9 +17,13 @@ if __name__ == '__main__':
     pages_path = os.path.join(data_path, 'pages')
     index_path = '/home/michaela/concepts.json'
 
-    subreddit = 'python'
+    parameters = {
+        'data_path': '/home/michaela/Development/Reddit-Testing-Data',
+        'subreddit': 'python',
+        'n_samples': 800,
+    }
 
-    perform_index = False
+    perform_index = True
 
     if perform_index:
         print('Performing Index Operation from Scratch')
@@ -36,21 +40,21 @@ if __name__ == '__main__':
 
         params = load_db_params('wsd.db.json')
         with WikiIndex(**params) as wiki:
-            data_labels = load_data_source(data_path, subreddit, 800)
+            data_labels = load_data_source(parameters['data_path'], parameters['subreddit'], parameters['n_samples'])
             for index, (rel_path, label) in enumerate(data_labels.iteritems()):
                 abs_path = os.path.join(pages_path, rel_path)
                 if os.path.exists(abs_path):
+                    print('%d: http://%s' % (index, rel_path[:-3]))
                     with open(abs_path, 'r') as fp:
                         html_text = fp.read()
 
                     article = goose.extract(raw_html=html_text)
-                    print('%d: %s' % (index, rel_path[:-3]))
                     print(article.title, '(%s)' % label)
 
                     text = article.cleaned_text
 
                     if len(text) > 500:
-                        search_results, terms, query_vector = wiki.word_concepts(text, n=20)
+                        search_results, terms, query_vector = wiki.word_concepts(text, article.title, n=15)
 
                         if search_results:
                             wiki.second_order_ranking(search_results)
@@ -84,7 +88,7 @@ if __name__ == '__main__':
 
     print(len(concepts))
 
-    positive_labels = filter(lambda x: x[1] == subreddit, data_labels.items())
+    positive_labels = filter(lambda x: x[1] == parameters['subreddit'], data_labels.items())
 
     print(len(positive_labels))
     print(len(data_labels) - len(positive_labels))
@@ -94,9 +98,10 @@ if __name__ == '__main__':
     # TODO: Need to see what is going to be done about those documents that do not each the minimum length requirement
     # Do you try to find another example page to replace or just deal with the fallout?
 
-    print('Generating Feature Matrix')
+    shape = (len(results), len(concepts))
+    print('Generating Feature Matrix: %dx%d' % shape)
 
-    feature_matrix = np.zeros(shape=(len(results), len(concepts)))
+    feature_matrix = np.zeros(shape=shape)
     label_vector = np.zeros(len(results))
 
     for i, (rel_path, page_list) in enumerate(results.iteritems()):
@@ -106,19 +111,52 @@ if __name__ == '__main__':
             j = concepts_index[page_id]
             feature_matrix[i, j] = weight
 
-    from sklearn.svm import SVC
-    from sklearn.cross_validation import train_test_split
-    from sklearn import metrics
+    print('Running Machine Learning component...')
 
-    X_train, X_test, y_train, y_test = train_test_split(feature_matrix, label_vector)
+    from sklearn.cross_validation import StratifiedKFold
+    from sklearn.metrics import *
 
-    classifier = SVC(kernel='linear')
-    classifier.fit(X_train, y_train)
+    n = 4  # Number of folds
 
-    y_predict = classifier.predict(X_test)
+    kf = StratifiedKFold(label_vector, n_folds=n)
+    accuracy = np.zeros(n)
+    precision = np.zeros(n)
+    recall = np.zeros(n)
+    f1 = np.zeros(n)
+    cm = np.zeros((2, 2))
 
-    print(metrics.confusion_matrix(y_test, y_predict))
-    print('Accuracy: ', metrics.accuracy_score(y_test, y_predict))
-    print('Precision: ', metrics.precision_score(y_test, y_predict))
-    print('Recall: ', metrics.recall_score(y_test, y_predict))
-    print('F1 Score:', metrics.f1_score(y_test, y_predict))
+    # SVM
+    # Note: Optimised values of C are data-dependent and cannot be set
+    # with some pre-determined value. They need to be optimised with a
+    # cross validation study in order to make the most use of them.
+
+    classifier = None
+    for index, (train, test) in enumerate(kf):
+        from sklearn.svm import SVC
+        classifier = SVC(kernel='linear', C=1.0)
+        classifier.fit(feature_matrix[train], label_vector[train])
+        y_pred = classifier.predict(feature_matrix[test])
+
+        # Store the measures obtained
+        accuracy[index] = accuracy_score(label_vector[test], y_pred)
+        precision[index] = precision_score(label_vector[test], y_pred)
+        recall[index] = recall_score(label_vector[test], y_pred)
+        f1[index] = f1_score(label_vector[test], y_pred)
+
+        cm += confusion_matrix(label_vector[test], y_pred)
+
+    # Average scores across the K folds
+    print()
+    print('Performance Metrics')
+    print('-------------------')
+    print('(Using %s)' % str(classifier))
+    print('Accuracy: ', accuracy.mean())
+    print('Precision: ', precision.mean())
+    print('Recall: ', recall.mean())
+    print('F1: ', recall.mean())
+
+    print()
+    print('Confusion Matrix')
+    print('----------------')
+    print('(Unlabelled vs Positive)')
+    print(cm)
