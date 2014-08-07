@@ -21,6 +21,8 @@ if __name__ == '__main__':
         'data_path': '/home/michaela/Development/Reddit-Testing-Data',
         'subreddit': 'python',
         'n_samples': 800,
+        'n': 15,
+        'alpha': 0.5,
     }
 
     perform_index = True
@@ -54,10 +56,10 @@ if __name__ == '__main__':
                     text = article.cleaned_text
 
                     if len(text) > 500:
-                        search_results, terms, query_vector = wiki.word_concepts(text, article.title, n=15)
+                        search_results, terms, query_vector = wiki.word_concepts(text, article.title, n=parameters['n'])
 
                         if search_results:
-                            wiki.second_order_ranking(search_results)
+                            wiki.second_order_ranking(search_results, alpha=parameters['alpha'])
                             results[rel_path] = [(sr.page_id, sr.weight) for sr in search_results[:use_concepts]]
 
                             for search_result in search_results[:use_concepts]:
