@@ -31,7 +31,6 @@ if __name__ == '__main__':
     _stemmer = textparser.NullStemmer()
 
     data_path = '/home/michaela/Development/Reddit-Testing-Data'
-    save_path = '/home/michaela/Development/python_sr.json.bz2'
 
     # Set the parameters to the program over here
     force_reindex = False
@@ -44,6 +43,8 @@ if __name__ == '__main__':
         'data_path': data_path,
         'mode': 'tfidf',
     }
+
+    save_path = '/home/michaela/Development/%s_sr.json.bz2' % parameters['subreddit']
 
     print(parameters)
     print('Available pages: ', len(list(search_files(os.path.join(data_path, 'pages')))))
