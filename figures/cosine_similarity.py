@@ -47,7 +47,7 @@ arrow_params = {
 
 d = [point(4.5, 3), point(6, 2), point(1, 4)]
 
-ax.arrow(0, 0, d[0].x, d[0].y, fc='b', ec='b', label='d1', **arrow_params)
+ax.arrow(0, 0, d[0].x, d[0].y, fc='k', ec='k', label='d1', **arrow_params)
 ax.arrow(0, 0, d[1].x, d[1].y, fc='g', ec='g', label='d2', **arrow_params)
 ax.arrow(0, 0, d[2].x, d[2].y, fc='r', ec='r', label='d3', **arrow_params)
 
