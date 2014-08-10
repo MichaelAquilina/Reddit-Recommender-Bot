@@ -34,4 +34,5 @@ plot_svc_decision_function(classifier)
 plt.scatter(classifier.support_vectors_[:, 0], classifier.support_vectors_[:, 1],
             s=200, facecolors='none')
 
+plt.tight_layout()
 plt.show()

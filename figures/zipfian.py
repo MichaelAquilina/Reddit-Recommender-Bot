@@ -16,4 +16,5 @@ ax = plt.axes(xlim=(0, 800), ylim=(0, 2500), xmargin=0, ymargin=0)
 
 ax.fill_between(x, y)
 
+plt.tight_layout()
 plt.show()

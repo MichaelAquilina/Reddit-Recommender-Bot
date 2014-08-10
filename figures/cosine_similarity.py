@@ -61,6 +61,7 @@ ax.text(d[2].x + 0.1, d[2].y + 0.1, 'd3', horizontalalignment='left', verticalal
 ax.add_patch(arc12)
 ax.add_patch(arc13)
 
+plt.tight_layout()
 plt.gcf().canvas.set_window_title('Cosine Similarity')
 
 plt.show()
