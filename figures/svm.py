@@ -2,6 +2,7 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.colors import ListedColormap
 
 from sklearn.datasets.samples_generator import make_blobs
 X, y = make_blobs(n_samples=80, centers=2, cluster_std=0.60, random_state=7657)
@@ -28,11 +29,14 @@ classifier.fit(X, y)
 plt.scatter(X[:, 0], X[:, 1], c=y, s=80)
 plot_svc_decision_function(classifier)
 
+cm_bright = ListedColormap(['#FF0000', '#0000FF'])
+
 # Plot the support vectors
-plt.scatter(X[:, 0], X[:, 1], c=y, s=80)
-plot_svc_decision_function(classifier)
+plt.scatter(X[:, 0], X[:, 1], c=y, s=80, cmap=cm_bright)
 plt.scatter(classifier.support_vectors_[:, 0], classifier.support_vectors_[:, 1],
             s=200, facecolors='none')
+
+plt.gcf().canvas.set_window_title('svm')
 
 plt.tight_layout()
 plt.show()
