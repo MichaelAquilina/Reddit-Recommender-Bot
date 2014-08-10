@@ -90,15 +90,14 @@ if __name__ == '__main__':
 
     print(len(concepts))
 
+    # List of positive labels
     positive_labels = filter(lambda x: x[1] == parameters['subreddit'], data_labels.items())
 
-    print(len(positive_labels))
-    print(len(data_labels) - len(positive_labels))
+    # Statistics
+    print('Positive:', len(positive_labels))
+    print('Negative:', len(data_labels) - len(positive_labels))
 
     concepts_index = dict([(b, a) for (a, b) in enumerate(concepts)])
-
-    # TODO: Need to see what is going to be done about those documents that do not each the minimum length requirement
-    # Do you try to find another example page to replace or just deal with the fallout?
 
     shape = (len(results), len(concepts))
     print('Generating Feature Matrix: %dx%d' % shape)
@@ -119,6 +118,7 @@ if __name__ == '__main__':
     from sklearn.metrics import *
 
     n = 4  # Number of folds
+    print('Performing Evaluation with %d folds' % n)
 
     kf = StratifiedKFold(label_vector, n_folds=n)
     accuracy = np.zeros(n)
