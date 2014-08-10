@@ -21,9 +21,6 @@ MIN_PAGE_LENGTH = 200  # Minimum Page Length in terms
 
 # NOTE ABOUT CORPUS SIZE
 # Just reading the entire Wikipedia corpus takes 1 hour 15 minutes
-# This means that an intermediate format is super important (HashedIndex
-# save and load method should suffice in these cases but they might be
-# large without appropriate compression)
 
 # List of Page titles to ignore when they have the following prefix
 IGNORE_LIST = ('List of', 'MediaWiki:', 'Wikipedia:', 'Template:', 'File:', 'Category:', 'Help:', 'Portal:')
