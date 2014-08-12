@@ -3,7 +3,7 @@
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 
-from utils import plot_svc_decision_function
+from figutils import plot_svc_decision_function
 
 from sklearn.datasets.samples_generator import make_blobs
 X, y = make_blobs(n_samples=80, centers=2, cluster_std=0.60, random_state=7657)

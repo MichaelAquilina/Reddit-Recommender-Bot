@@ -3,7 +3,7 @@ from matplotlib.colors import ListedColormap
 from sklearn.datasets import make_circles
 from sklearn.svm import SVC
 
-from utils import plot_svc_decision_function
+from figutils import plot_svc_decision_function
 
 X, y = make_circles(n_samples=200, noise=0.11, random_state=0, factor=0.3)
 
