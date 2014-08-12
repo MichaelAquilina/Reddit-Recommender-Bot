@@ -2,15 +2,35 @@ import os
 import json
 
 
+def get_search_path():
+    search_path = [os.getcwd()]
+    if 'PYTHONPATH' in os.environ:
+        search_path += os.environ['PYTHONPATH'].split(':')
+
+    if 'PATH' in os.environ:
+        search_path += os.environ['PATH'].split(':')
+
+    return search_path
+
+
 def load_stopwords(path):
+    """
+    Loads a stopwords file using the given relative path. Searches in the
+    current working directory, PYTHONPATH and PATH before giving up.
+    """
     stopwords = set()
-    with open(path, 'r') as fp:
-        while True:
-            line = fp.readline()
-            if line:
-                stopwords.add(line[:-1])
-            else:
-                return stopwords
+    for directory in get_search_path():
+        abs_path = os.path.join(directory, path)
+        if os.path.exists(abs_path):
+            with open(path, 'r') as fp:
+                while True:
+                    line = fp.readline()
+                    if line:
+                        stopwords.add(line[:-1])
+                    else:
+                        return stopwords
+
+    raise IOError('Could not find stopwords file: %s' % path)
 
 
 def load_db_params(filename='db.json'):
@@ -21,14 +41,7 @@ def load_db_params(filename='db.json'):
     file is found, None will be returned.
     """
     params = None
-    search_path = [os.getcwd()]
-    if 'PYTHONPATH' in os.environ:
-        search_path += os.environ['PYTHONPATH'].split(':')
-
-    if 'PATH' in os.environ:
-        search_path += os.environ['PATH'].split(':')
-
-    for directory in search_path:
+    for directory in get_search_path():
         if filename in os.listdir(directory):
             # DB-Settings for performing a connection
             with open(os.path.join(directory, filename), 'r') as fp:

@@ -1,7 +1,17 @@
+import os
 import tempfile
 
 from testutils import generator_unordered_cmp
 from utils import *
+
+
+def test_get_search_path():
+    assert os.getcwd() in get_search_path()
+    os.environ['PYTHONPATH'] = '/test/path'
+    assert '/test/path' in get_search_path()
+
+    for p in os.environ['PATH'].split(':'):
+        assert p in get_search_path()
 
 
 def test_to_csv():
