@@ -62,6 +62,7 @@ def get_path_from_url(target_dir, url):
     return os.path.join(directory, filename)
 
 
+# TODO: Allow to return the title used for the post
 def load_data_source(data_path, subreddit, page_samples):
     """
     Generates a dictionary of labeled and unlabelled pages from a Reddit

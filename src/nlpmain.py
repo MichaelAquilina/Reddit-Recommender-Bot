@@ -13,6 +13,7 @@ from utils import load_db_params
 
 if __name__ == '__main__':
 
+    # TODO: Make this program arguments from the command line (argparse)
     data_path = '/home/michaela/Development/Reddit-Testing-Data'
     pages_path = os.path.join(data_path, 'pages')
     index_path = '/home/michaela/concepts.json'
