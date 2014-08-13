@@ -1,6 +1,6 @@
 # coding=utf-8
 
-from wiki import _re_link_pattern
+from wiki_setup import _re_link_pattern
 
 
 def test_link_pattern_test():
