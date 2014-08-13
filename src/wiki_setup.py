@@ -110,7 +110,7 @@ def tfidf_totals_setup():
           PageID INT PRIMARY KEY,
           Total FLOAT NOT NULL
         ) ENGINE=%s CHARACTER SET=utf8;
-    """)
+    """, (engine, ))
 
     cur.execute('CREATE INDEX tfidf_total_index ON TfidfTotals(Total);')
 
