@@ -38,6 +38,100 @@ _re_link_pattern = re.compile(
 # TODO: See the following for how to resolve articles that differ by capitalisation
 # http://en.wikipedia.org/wiki/Wikipedia:Naming_conventions_(capitalization)
 
+def corpus_size_setup():
+    cur.execute('DROP TABLE IF EXISTS CorpusSize;')
+
+    cur.execute("""
+      CREATE TABLE CorpusSize (
+        Size INT NOT NULL
+      ) ENGINE=%s CHARACTER SET=utf8;
+    """, (engine, ))
+
+    cur.execute("""
+        INSERT INTO CorpusSize
+        SELECT COUNT(*)
+        FROM Pages
+        WHERE Processed=1;
+    """)
+
+
+def document_frequencies_setup():
+    cur.execute('DROP TABLE IF EXISTS DocumentFrequencies;')
+
+    cur.execute("""
+        CREATE TABLE DocumentFrequencies (
+          TermID INT PRIMARY KEY,
+          DocumentFrequency INT NOT NULL,
+          FOREIGN KEY (TermID) REFERENCES Terms(TermID)
+        ) ENGINE=%s CHARACTER SET=utf8;
+    """, (engine, ))
+
+    cur.execute("""
+      INSERT INTO DocumentFrequencies
+      SELECT TermID, COUNT(*)
+      FROM TermOccurrences
+      GROUP BY TermID;
+    """)
+
+
+def tfidf_values_setup():
+    cur.execute('DROP TABLE IF EXISTS TfidfValues;')
+
+    cur.execute("""
+        CREATE TABLE TfidfValues (
+          TermID INT NOT NULL,
+          PageID INT NOT NULL,
+          Tfidf FLOAT NOT NULL,
+          PRIMARY KEY (TermID, PageID),
+          FOREIGN KEY (TermID) REFERENCES Terms(TermID),
+          FOREIGN KEY (PageID) REFERENCES Pages(PageID)
+        ) ENGINE=%s CHARACTER SET=utf8;
+    """, (engine, ))
+
+    cur.execute('CREATE INDEX tfidf_index ON TfidfValues(Tfidf);')
+
+    cur.execute("""
+      INSERT INTO TfidfValues
+      SELECT
+        T1.TermID,
+        T1.PageID,
+        ((1 + LOG(Counter)) / LOG(Length)) * LOG((SELECT Size FROM CorpusSize)/DocumentFrequency)
+      FROM TermOccurrences T1
+      INNER JOIN DocumentFrequencies T2 ON T1.TermID = T2.TermID
+      INNER JOIN Pages T3 ON T1.PageID = T3.PageID;
+    """)
+
+
+def tfidf_totals_setup():
+    cur.execute('DROP TABLE IF EXISTS TfidfTotals;')
+
+    cur.execute("""
+        CREATE TABLE TfidfTotals (
+          PageID INT PRIMARY KEY,
+          Total FLOAT NOT NULL
+        ) ENGINE=%s CHARACTER SET=utf8;
+    """)
+
+    cur.execute('CREATE INDEX tfidf_total_index ON TfidfTotals(Total);')
+
+    cur.execute("""
+        INSERT INTO TfidfTotals
+        SELECT PageID, SUM(Tfidf)
+        FROM TfidfValues
+        GROUP BY PageID;
+    """)
+
+
+def post_setup():
+    print('Creating fast look up for CorpusSize')
+    corpus_size_setup()
+    print('Creating fast look up for DocumentFrequencies')
+    document_frequencies_setup()
+    print('Creating fast look up for TfidfValues')
+    tfidf_values_setup()
+    print('Creating fast look up for TfidfTotals')
+    tfidf_totals_setup()
+
 
 def setup():
     cur.execute('DROP TABLE IF EXISTS TermOccurrencesTemp;')
@@ -265,6 +359,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Parse and Index a Wikipedia dump into an SQL database')
     parser.add_argument('path', help='Path to sql data dump compressed in bz2')
+    parser.add_argument('--post-setup-only', help='Performs a post setup operation', action='store_true')
     parser.add_argument('--cont', help='Continues previous terminated index process', action='store_true')
     parser.add_argument('--force', '-f', help='Forces setting up database without warning prompt', action='store_true')
     parser.add_argument('--engine', choices=('MYISAM', 'INNODB'), default='MYISAM', help='Specify what engine to create tables with')
@@ -272,6 +367,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     path = args.path
+    post_flag = args.post_setup_only
     cont_flag = args.cont
     force = args.force
     engine = args.engine
@@ -286,6 +382,16 @@ if __name__ == '__main__':
     connection = MySQLdb.connect(charset='utf8', **params)
     connection.autocommit(False)
     cur = connection.cursor(cursorclass=MySQLdb.cursors.SSCursor)
+
+    if post_flag:
+        print('Performing a post setup operation on \'%s\'' % params['db'])
+        reply = raw_input('Are you sure you wish to start over \'%s\'? (Y/n): ' % params['db'])
+        if reply.lower() not in ('y', 'yes'):
+            print('Aborting operation...')
+            sys.exit(1)
+
+        post_setup()
+        sys.exit(0)
 
     # Continue or perform fresh start
     if cont_flag:
@@ -415,6 +521,8 @@ if __name__ == '__main__':
             print('(...)')
 
     print('Finished reading from the Corpus, cleaning up...')
+
+    post_setup()
 
     cur.execute('DROP TABLE IF EXISTS TermOccurrencesTemp;')
 
