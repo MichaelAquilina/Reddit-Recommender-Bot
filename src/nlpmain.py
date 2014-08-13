@@ -23,9 +23,10 @@ if __name__ == '__main__':
     parameters = {
         'data_path': '/home/michaela/Development/Reddit-Testing-Data',
         'subreddit': 'python',
-        'n_samples': 800,
+        'n_samples': 600,
         'n': 15,
         'alpha': 0.5,
+        'concepts': 10,
     }
 
     perform_index = True
@@ -39,12 +40,12 @@ if __name__ == '__main__':
         config.use_meta_language = False
         goose = Goose(config)
 
-        use_concepts = 10
         concepts = set()
         results = {}
 
-        params = load_db_params('wsd.db.json')
-        with WikiIndex(**params) as wiki:
+        db_params = load_db_params('wsd.db.json')
+        with WikiIndex(**db_params) as wiki:
+
             data_labels = load_data_source(parameters['data_path'], parameters['subreddit'], parameters['n_samples'])
             for index, (rel_path, label) in enumerate(data_labels.iteritems()):
                 abs_path = os.path.join(pages_path, rel_path)
@@ -63,12 +64,12 @@ if __name__ == '__main__':
 
                         if search_results:
                             wiki.second_order_ranking(search_results, alpha=parameters['alpha'])
-                            results[rel_path] = [(sr.page_id, sr.weight) for sr in search_results[:use_concepts]]
+                            results[rel_path] = [(sr.page_id, sr.weight) for sr in search_results[:parameters['concepts']]]
 
-                            for search_result in search_results[:use_concepts]:
+                            for search_result in search_results[:parameters['concepts']]:
                                 concepts.add(search_result.page_id)
 
-                            print(search_results[:use_concepts])
+                            print(search_results[:parameters['concepts']])
                         else:
                             print('No word concepts returned')
                     else:
