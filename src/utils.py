@@ -22,7 +22,7 @@ def load_stopwords(path):
     for directory in get_search_path():
         abs_path = os.path.join(directory, path)
         if os.path.exists(abs_path):
-            with open(path, 'r') as fp:
+            with open(abs_path, 'r') as fp:
                 while True:
                     line = fp.readline()
                     if line:
