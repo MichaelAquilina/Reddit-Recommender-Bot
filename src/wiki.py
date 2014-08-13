@@ -23,7 +23,7 @@ MIN_PAGE_LENGTH = 200  # Minimum Page Length in terms
 # Just reading the entire Wikipedia corpus takes 1 hour 15 minutes
 
 # List of Page titles to ignore when they have the following prefix
-IGNORE_LIST = ('List of', 'MediaWiki:', 'Wikipedia:', 'Template:', 'File:', 'Category:', 'Help:', 'Portal:')
+IGNORE_LIST = ('List of', 'MediaWiki:', 'Module:', 'Draft:', 'Wikipedia:', 'Template:', 'File:', 'Category:', 'Help:', 'Portal:')
 
 # Wikipedia inner link pattern
 # http://en.wikipedia.org/wiki/Wikipedia:Tutorial/Wikipedia_links
