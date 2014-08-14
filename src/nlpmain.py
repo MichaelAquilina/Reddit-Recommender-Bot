@@ -97,10 +97,6 @@ if __name__ == '__main__':
     # List of positive labels
     positive_labels = filter(lambda x: x[1] == parameters['subreddit'], data_labels.items())
 
-    # Statistics
-    print('Positive:', len(positive_labels))
-    print('Negative:', len(data_labels) - len(positive_labels))
-
     concepts_index = dict([(b, a) for (a, b) in enumerate(concepts)])
 
     shape = (len(results), len(concepts))
@@ -115,6 +111,10 @@ if __name__ == '__main__':
         for page_id, weight in page_list:
             j = concepts_index[page_id]
             feature_matrix[i, j] = weight
+
+    # Statistics
+    print('Positive:', np.sum(label_vector == 1))
+    print('Negative:', np.sum(label_vector == 0))
 
     print('Running Machine Learning component...')
 
