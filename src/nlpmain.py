@@ -15,21 +15,32 @@ from utils import load_db_params
 
 if __name__ == '__main__':
 
-    # TODO: Make this program arguments from the command line (argparse)
-    data_path = '/home/michaela/Development/Reddit-Testing-Data'
+    import argparse
+    parser = argparse.ArgumentParser(description='Generates a community profile from a given subreddit in a Reddit Data Source')
+    parser.add_argument('data_path', type=str, help='Path to a Reddit Data Source')
+    parser.add_argument('output_path', type=str, help='File path for output profile')
+    parser.add_argument('subreddit', type=str, help='Name of the subreddit on which to train on')
+    parser.add_argument('--samples', type=int, default=600, help='Number of negative samples to use')
+    parser.add_argument('--alpha', type=float, default=0.5, help='alpha parameter for second order ranking')
+    parser.add_argument('--concepts', type=int, default=10, help='Number of concepts to return with each page')
+    parser.add_argument('--n', type=int, default=15, help='Complexity parameter for word_concepts')
+
+    args = parser.parse_args()
+
+    index_path = args.output_path
+    data_path = args.data_path
     pages_path = os.path.join(data_path, 'pages')
-    index_path = '/home/michaela/concepts.json'
 
     parameters = {
-        'data_path': '/home/michaela/Development/Reddit-Testing-Data',
-        'subreddit': 'python',
-        'n_samples': 600,
-        'n': 15,
-        'alpha': 0.5,
-        'concepts': 10,
+        'data_path': data_path,
+        'subreddit': args.subreddit,
+        'n_samples': args.samples,
+        'n': args.n,
+        'alpha': args.alpha,
+        'concepts': args.concepts,
     }
 
-    perform_index = True
+    perform_index = False
 
     if perform_index:
         print('Performing Index Operation from Scratch')
