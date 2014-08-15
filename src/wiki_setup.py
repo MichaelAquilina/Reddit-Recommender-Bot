@@ -3,6 +3,7 @@ from __future__ import print_function
 
 import re
 import sys
+import nltk
 import time
 import MySQLdb
 import itertools
@@ -11,7 +12,7 @@ import itertools
 from lxml import etree
 
 from collections import Counter
-from textparser import word_tokenize
+from textparser import word_tokenize, NullStemmer
 from WikiExtractor import clean as clean_wiki_markup
 
 from utils import load_db_params, to_csv, load_stopwords
@@ -34,7 +35,6 @@ _re_link_pattern = re.compile(
 
 
 # TODO: Write docstring explaining use of tool
-# TODO: Generation of TfidfValues, DocumentFrequencies, CorpusSize, TfidfTotals
 # TODO: See the following for how to resolve articles that differ by capitalisation
 # http://en.wikipedia.org/wiki/Wikipedia:Naming_conventions_(capitalization)
 
@@ -363,6 +363,7 @@ if __name__ == '__main__':
     parser.add_argument('--cont', help='Continues previous terminated index process', action='store_true')
     parser.add_argument('--force', '-f', help='Forces setting up database without warning prompt', action='store_true')
     parser.add_argument('--engine', choices=('MYISAM', 'INNODB'), default='MYISAM', help='Specify what engine to create tables with')
+    parser.add_argument('--stemmer', choices=('none', 'porter', 'lancaster'), default='none', help='Specify if a stemmer should be used')
 
     args = parser.parse_args()
 
@@ -371,6 +372,13 @@ if __name__ == '__main__':
     cont_flag = args.cont
     force = args.force
     engine = args.engine
+
+    if args.stemmer == 'porter':
+        stemmer = nltk.PorterStemmer()
+    elif args.stemmer == 'lancaster':
+        stemmer = nltk.LancasterStemmer()
+    else:
+        stemmer = NullStemmer()
 
     last_page_id = None
     last_page_title = None
@@ -493,7 +501,10 @@ if __name__ == '__main__':
                     intra_links = Counter(_re_link_pattern.findall(page_text))
 
                     clean_text = clean_wiki_markup(page_text)
-                    add_page_index(word_tokenize(clean_text, remove_urls=True, stopwords=stopwords), page_title, intra_links)
+                    add_page_index(
+                        word_tokenize(clean_text, remove_urls=True, stopwords=stopwords, stemmer=stemmer),
+                        page_title, intra_links
+                    )
                 except MySQLdb.ProgrammingError as e:
                     print('(Sql Error: %s)' % e.message)
                 else:

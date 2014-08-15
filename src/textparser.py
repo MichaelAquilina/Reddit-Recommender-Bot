@@ -53,7 +53,7 @@ def normalize_unicode(text):
         return text
 
 
-def word_tokenize(text, stopwords=_stopwords, remove_urls=False):
+def word_tokenize(text, stopwords=_stopwords, remove_urls=False, stemmer=NullStemmer()):
     """
     Parses the given text and yields tokens which represent words within
     the given text. Tokens are assumed to be divided by any form of
@@ -68,7 +68,7 @@ def word_tokenize(text, stopwords=_stopwords, remove_urls=False):
         token = token.strip(punctuation)
 
         if len(token) > 1 and token not in stopwords and not isnumeric(token):
-            yield token
+            yield stemmer.stem(token)
 
 
 def isnumeric(text):
