@@ -15,6 +15,8 @@ from utils import load_db_params
 
 if __name__ == '__main__':
 
+    # TODO: Consider providing an option for compressing the output with bz2
+
     import argparse
     parser = argparse.ArgumentParser(description='Generates a community profile from a given subreddit in a Reddit Data Source')
     parser.add_argument('data_path', type=str, help='Path to a Reddit Data Source')
@@ -40,7 +42,7 @@ if __name__ == '__main__':
         'concepts': args.concepts,
     }
 
-    perform_index = False
+    perform_index = True
 
     if perform_index:
         print('Performing Index Operation from Scratch')
@@ -71,10 +73,10 @@ if __name__ == '__main__':
                     text = article.cleaned_text
 
                     if len(text) > 500:
-                        search_results, terms, query_vector = wiki.word_concepts(text, article.title, n=parameters['n'])
+                        search_results, terms, query_vector, _ = wiki.word_concepts(text, article.title, n=parameters['n'], min_tfidf=0.6)
 
                         if search_results:
-                            wiki.second_order_ranking(search_results, alpha=parameters['alpha'])
+                            # wiki.second_order_ranking(search_results, alpha=parameters['alpha'])
                             results[rel_path] = [(sr.page_id, sr.weight) for sr in search_results[:parameters['concepts']]]
 
                             for search_result in search_results[:parameters['concepts']]:
@@ -87,6 +89,8 @@ if __name__ == '__main__':
                         print('Document is of insufficient length')
 
                     print()
+
+                    # Save the generated data to a JSON file
                     with open(index_path, 'w') as fp:
                         json.dump({
                             'Concepts': list(concepts),
@@ -140,7 +144,7 @@ if __name__ == '__main__':
     precision = np.zeros(n)
     recall = np.zeros(n)
     f1 = np.zeros(n)
-    cm = np.zeros((2, 2))
+    cm = np.zeros((2, 2))  # Confusion matrix tally
 
     # SVM
     # Note: Optimised values of C are data-dependent and cannot be set

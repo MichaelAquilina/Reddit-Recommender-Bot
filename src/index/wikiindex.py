@@ -318,7 +318,7 @@ class WikiIndex(object):
         results.sort(key=lambda x: x.weight, reverse=True)
         return results
 
-    def word_concepts(self, text, title=None, n=15, min_tfidf=0.5):
+    def word_concepts(self, text, title=None, n=15, m=25, min_tfidf=0.5):
         """
         Returns a list of word concepts associated with the text ranked in descending order by
         how similar to the original text the concepts are.
@@ -353,15 +353,15 @@ class WikiIndex(object):
                 if weight > min_tfidf:
                     term_weights[term_id] = weight
 
-        # Lookup table of term->index
-        term_index = dict([(b, a) for a, b in enumerate(term_weights.keys())])
-
-        query_vector = np.asarray(term_weights.values())
-        query_vector_norm = norm(query_vector)
-
         # Determine which are the most representative terms
         top_terms = term_weights.items()
         top_terms.sort(key=lambda x: x[1], reverse=True)
+
+        # Lookup table of term->index
+        term_index = dict([(b, a) for a, (b, c) in enumerate(top_terms[:m])])
+
+        query_vector = np.asarray([b for (a, b) in top_terms[:m]])
+        query_vector_norm = norm(query_vector)
 
         pages_list_results = []
 

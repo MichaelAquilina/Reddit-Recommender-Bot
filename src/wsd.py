@@ -22,10 +22,12 @@ def load_stopwords():
 
 
 def dump_results(path, results, terms, query_vector):
+    page_ids = [sr.page_id for sr in results]
 
     from numpy.linalg import norm
 
     with open(path, 'w') as fp:
+        fp.write('Vector Lengths = %d\n\n' % len(query_vector))
         fp.write('===Query Vector=== (weight=1.0, norm=%f, distance=0)\n' % norm(query_vector))
         for term, weight in zip(terms, query_vector):
             fp.write('%s: %f, ' % (term, weight))
@@ -35,8 +37,8 @@ def dump_results(path, results, terms, query_vector):
             distance = math.sqrt(np.sum((query_vector - sr.vector) ** 2))
             index = page_ids.index(sr.page_id)
             fp.write(
-                '===%s=== (weight=%f, norm=%f, distance=%f, page_id=%d, incoming=%s, outgoing=%s)\n' % (
-                    sr.page_name, sr.weight,
+                '%d) ===%s=== (weight=%f, norm=%f, distance=%f, page_id=%d, incoming=%s, outgoing=%s)\n' % (
+                    index, sr.page_name, sr.weight,
                     norm(sr.vector), distance, sr.page_id,
                     sr.incoming, sr.outgoing
                 )
@@ -68,7 +70,17 @@ if __name__ == '__main__':
     start_time = time.time()
 
     import requests
-    req = requests.get('http://crsmithdev.com/arrow/')
+    # req = requests.get('http://lucumr.pocoo.org/2014/8/16/the-python-i-would-like-to-see/', verify=False)
+    # req = requests.get('http://torrentfreak.com/pirating-uk-student-to-be-extradited-to-the-us-120313')  # TODO
+    # req = requests.get('http://arstechnica.com/information-technology/2014/02/neither-microsoft-nokia-nor-anyone-else-should-fork-android-its-unforkable?comments=1&amp;post=26199423')
+    # req = requests.get('http://hynek.me/articles/python-deployment-anti-patterns')
+    # req = requests.get('http://ginstrom.com/scribbles/2008/10/06/dont-overuse-classes-in-python/')
+    # req = requests.get('http://maximebf.com/blog/2012/10/building-websites-in-python-with-flask')
+    req = requests.get('http://peak5390.wordpress.com/2013/03/21/what-really-happened-at-pycon-2013')
+    # req = requests.get('http://pyimagesearch.com/2014/01/27/hobbits-and-histograms-a-how-to-guide-to-building-your-first-image-search-engine-in-python')
+    # req = requests.get('http://graph-tool.skewed.de/')
+    # req = requests.get('https://www.python.org/download/releases/3.0/')
+    # req = requests.get('http://sontek.net/turning-vim-into-a-modern-python-ide')
     html_text = req.text
 
     print('Extracting article...')
