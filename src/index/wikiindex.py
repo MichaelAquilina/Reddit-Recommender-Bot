@@ -292,7 +292,7 @@ class WikiIndex(object):
         results.sort(key=lambda x: x.weight, reverse=True)
         return results
 
-    def word_concepts(self, text, title=None, n=15):
+    def word_concepts(self, text, title=None, n=15, min_tfidf=0.5):
         """
         Returns a list of word concepts associated with the text ranked in descending order by
         how similar to the original text the concepts are.
@@ -324,7 +324,7 @@ class WikiIndex(object):
 
                 # Filter terms to remove low weighted terms
                 weight = tfidf(tf, df, corpus_size) / query_norm
-                if weight > 0.5:
+                if weight > min_tfidf:
                     term_weights[term_id] = weight
 
         # Lookup table of term->index
