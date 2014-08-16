@@ -5,7 +5,7 @@ from __future__ import print_function, division
 import math
 import numpy as np
 
-from wikiindex import WikiIndex
+from index.wikiindex import WikiIndex
 from utils import load_db_params
 
 

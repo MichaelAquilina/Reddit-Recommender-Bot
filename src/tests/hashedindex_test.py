@@ -3,7 +3,7 @@ from __future__ import division
 import unittest
 import tempfile
 
-from hashedindex import *
+from index.hashedindex import *
 from testutils import unordered_list_cmp
 
 

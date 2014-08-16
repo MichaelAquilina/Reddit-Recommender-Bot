@@ -11,7 +11,7 @@ from goose import Configuration, Goose
 from HTMLParser import HTMLParser
 
 from datasource import load_data_source
-from hashedindex import HashedIndex, load_meta
+from index.hashedindex import HashedIndex, load_meta
 from utils import search_files
 
 # Interestingly, nltk's clean_html method is faster and more accurate for bag of words

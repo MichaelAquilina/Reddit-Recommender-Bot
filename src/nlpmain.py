@@ -9,7 +9,7 @@ import numpy as np
 from goose import Goose, Configuration
 
 from datasource import load_data_source
-from wikiindex import WikiIndex
+from index.wikiindex import WikiIndex
 from utils import load_db_params
 
 
