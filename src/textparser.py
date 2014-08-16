@@ -62,6 +62,7 @@ def word_tokenize(text, stopwords=_stopwords, remove_urls=False, stemmer=NullSte
     if remove_urls:
         text = re.sub(_re_url, '', text)
 
+    text = re.sub(re.compile('\'s'), '', text)  # Simple heuristic
     text = re.sub(_re_punctuation, '', text)
 
     for token in re.findall(_re_token, text.lower()):
