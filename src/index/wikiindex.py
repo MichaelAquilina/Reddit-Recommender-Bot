@@ -318,7 +318,7 @@ class WikiIndex(object):
         results.sort(key=lambda x: x.weight, reverse=True)
         return results
 
-    def word_concepts(self, text, title=None, n=15, m=25, min_tfidf=0.5):
+    def word_concepts(self, text, title=None, n=15, m=25, alpha=0.5, min_tfidf=0.5):
         """
         Returns a list of word concepts associated with the text ranked in descending order by
         how similar to the original text the concepts are.
@@ -421,18 +421,14 @@ class WikiIndex(object):
 
             weights = np.asarray([sr.weight for sr in results])
 
-            nonzero = incoming > 0
-            authority = np.zeros(incoming.size)
-            authority[nonzero] = np.clip(outgoing[nonzero] / incoming[nonzero], 1, 8)
+            norm_weights = weights * incoming
 
-            nonzero = authority > 0
-            norm_weights = np.zeros(incoming.size)
-            norm_weights[nonzero] = weights[nonzero] / authority[nonzero]
+            nonzero = outgoing > 0
+            norm_weights[nonzero] /= outgoing[nonzero]
 
-            alpha = 0.5
             A = alpha * np.dot(link_matrix, norm_weights)
             A *= weights ** 2
-            A += 1.5 * weights
+            A += (1 - alpha) * weights
 
             # Assign newly calculated weights
             for i in xrange(len(results)):

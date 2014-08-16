@@ -38,11 +38,12 @@ if __name__ == '__main__':
         'subreddit': args.subreddit,
         'n_samples': args.samples,
         'n': args.n,
+        'm': 25,
         'alpha': args.alpha,
         'concepts': args.concepts,
     }
 
-    perform_index = True
+    perform_index = False
 
     if perform_index:
         print('Performing Index Operation from Scratch')
@@ -73,7 +74,11 @@ if __name__ == '__main__':
                     text = article.cleaned_text
 
                     if len(text) > 500:
-                        search_results, terms, query_vector, _ = wiki.word_concepts(text, article.title, n=parameters['n'], min_tfidf=0.6)
+                        search_results, terms, query_vector = wiki.word_concepts(
+                            text, article.title,
+                            n=parameters['n'],
+                            m=parameters['m'],
+                            min_tfidf=0.6)
 
                         if search_results:
                             # wiki.second_order_ranking(search_results, alpha=parameters['alpha'])
