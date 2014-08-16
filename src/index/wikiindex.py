@@ -225,6 +225,30 @@ class WikiIndex(object):
 
         return corpus
 
+    def generate_normalised_link_matrix(self, pages, page_id_lists, mode='count'):
+        if mode not in ('count', 'single'):
+            raise ValueError('Unrecognized mode: %s' % mode)
+
+        size = len(pages)
+        link_matrix = np.zeros(shape=(size, size))
+
+        # Build an index of page links
+        page_index = dict([(b, a) for a, b in enumerate(pages)])
+
+        for page_ids in page_id_lists:
+            if page_ids:
+                page_links = self.get_page_links(page_ids)
+                for page_id, target_page_id, counter in page_links:
+                    if target_page_id in page_index and target_page_id not in page_ids:
+                        i = page_index[target_page_id]
+                        j = page_index[page_id]
+                        if mode == 'count':
+                            link_matrix[i, j] += counter
+                        elif mode == 'single':
+                            link_matrix[i, j] = 1
+
+        return link_matrix
+
     def generate_link_matrix(self, page_id_list, mode='count'):
         """
         Generates a matrix containing the number of links between
@@ -337,11 +361,20 @@ class WikiIndex(object):
         top_terms = term_weights.items()
         top_terms.sort(key=lambda x: x[1], reverse=True)
 
+        pages_list_results = []
+
         # larger value of n means possibly more accuracy but at the cost of speed
         pages = set()
         for term_id, term_weight in top_terms[:n]:
-            for (page_id, ) in self.get_documents(term_id, min_counter=2, limit=50):
+            related_pages = self.get_documents(term_id, min_counter=2, limit=40)
+            temp_list = []
+
+            # TODO: Might be more pythonic to join the page_list_results
+            for (page_id, ) in related_pages:
+                temp_list.append(page_id)
                 pages.add(page_id)
+
+            pages_list_results.append(temp_list)
 
         term_occurrences = self.get_term_occurrences(pages, term_index.keys())
         page_data = self.get_page_data(pages)
@@ -377,4 +410,33 @@ class WikiIndex(object):
         results.sort(key=lambda x: x.weight, reverse=True)
 
         term_sequence = sorted(term_index.items(), key=lambda x: x[1])
-        return results, [term_names[tid] for tid, index in term_sequence], query_vector
+
+        if results:
+            # Second order ranking stuff
+            link_matrix = self.generate_normalised_link_matrix([sr.page_id for sr in results], pages_list_results, mode='single')
+            incoming = link_matrix.sum(axis=1)
+            outgoing = link_matrix.sum(axis=0)
+
+            weights = np.asarray([sr.weight for sr in results])
+
+            nonzero = incoming > 0
+            authority = np.zeros(incoming.size)
+            authority[nonzero] = np.clip(outgoing[nonzero] / incoming[nonzero], 1, 8)
+
+            nonzero = authority > 0
+            norm_weights = np.zeros(incoming.size)
+            norm_weights[nonzero] = weights[nonzero] / authority[nonzero]
+
+            alpha = 0.5
+            A = alpha * np.dot(link_matrix, norm_weights)
+            A *= weights ** 2
+            A += 1.5 * weights
+
+            # Assign newly calculated weights
+            for i in xrange(len(results)):
+                results[i].weight = A[i]
+
+            # Link matrix wont be returned in the right order because of resorting!!!!
+            results.sort(key=lambda x: x.weight, reverse=True)
+
+        return results, [term_names[tid] for tid, index in term_sequence], query_vector, pages_list_results
