@@ -237,9 +237,11 @@ class WikiIndex(object):
 
         for page_ids in page_id_lists:
             if page_ids:
+                current_pages = set(page_ids)
+
                 page_links = self.get_page_links(page_ids)
                 for page_id, target_page_id, counter in page_links:
-                    if target_page_id in page_index and target_page_id not in page_ids:
+                    if target_page_id in page_index and target_page_id not in current_pages:
                         i = page_index[target_page_id]
                         j = page_index[page_id]
                         if mode == 'count':
