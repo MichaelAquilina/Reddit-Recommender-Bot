@@ -287,37 +287,6 @@ class WikiIndex(object):
         page_name = page_name.replace(' ', '_')
         webbrowser.open('http://en.wikipedia.org/wiki/%s' % urllib.quote(page_name))
 
-    def second_order_ranking(self, results, alpha=0.5):
-        """
-        Order a set of results rated with cosine similarity using a combination of the
-        original similarity score and their linkage score. The influence of the link
-        score on the final results can be set by the parameter alpha.
-        """
-        link_matrix = self.generate_link_matrix([sr.page_id for sr in results], mode='single')
-        incoming = link_matrix.sum(axis=1)
-        outgoing = link_matrix.sum(axis=0)
-
-        weights = np.asarray([sr.weight for sr in results])
-
-        nonzero = incoming > 0
-        authority = np.zeros(incoming.size)
-        authority[nonzero] = np.clip(outgoing[nonzero] / incoming[nonzero], 1, 8)
-
-        nonzero = authority > 0
-        norm_weights = np.zeros(incoming.size)
-        norm_weights[nonzero] = weights[nonzero] / authority[nonzero]
-
-        A = alpha * np.dot(link_matrix, norm_weights)
-        A *= weights ** 2
-        A += 1.5 * weights
-
-        # Assign newly calculated weights
-        for i in xrange(len(results)):
-            results[i].weight = A[i]
-
-        results.sort(key=lambda x: x.weight, reverse=True)
-        return results
-
     def word_concepts(self, text, title=None, n=15, m=25, alpha=0.5, min_tfidf=0.5):
         """
         Returns a list of word concepts associated with the text ranked in descending order by
