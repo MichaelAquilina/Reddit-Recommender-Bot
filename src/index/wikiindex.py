@@ -23,8 +23,8 @@ class SearchResult(object):
         self.page_name = page_name
         self.vector = vector
         self.weight = weight
-        self.links_from = None
-        self.links_to = None
+        self.incoming = None
+        self.outgoing = None
 
     def __repr__(self):
         return '%s (%d): %f' % (self.page_name, self.page_id, self.weight)
@@ -435,8 +435,10 @@ class WikiIndex(object):
             # Assign newly calculated weights
             for i in xrange(len(results)):
                 results[i].weight = A[i]
+                results[i].incoming = incoming[i]
+                results[i].outgoing = outgoing[i]
 
             # Link matrix wont be returned in the right order because of resorting!!!!
             results.sort(key=lambda x: x.weight, reverse=True)
 
-        return results, [term_names[tid] for tid, index in term_sequence], query_vector, pages_list_results
+        return results, [term_names[tid] for tid, index in term_sequence], query_vector

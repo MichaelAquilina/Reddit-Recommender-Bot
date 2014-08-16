@@ -33,11 +33,12 @@ def dump_results(path, results, terms, query_vector):
 
         for index, (sr) in enumerate(results):
             distance = math.sqrt(np.sum((query_vector - sr.vector) ** 2))
+            index = page_ids.index(sr.page_id)
             fp.write(
-                '===%s=== (weight=%f, norm=%f, distance=%f, page_id=%d, from=%s, to=%s)\n' % (
+                '===%s=== (weight=%f, norm=%f, distance=%f, page_id=%d, incoming=%s, outgoing=%s)\n' % (
                     sr.page_name, sr.weight,
                     norm(sr.vector), distance, sr.page_id,
-                    sr.links_from, sr.links_to
+                    sr.incoming, sr.outgoing
                 )
             )
             for term, weight in zip(terms, sr.vector):
@@ -85,17 +86,29 @@ if __name__ == '__main__':
 
     print('Running word concepts....')
 
+    def print_results(results):
+        for res in results[:10]:
+            print('%s (%d): %f (%d/%d)' % (res.page_name, res.page_id, res.weight, res.incoming, res.outgoing), end=', ')
+        print()
+
     t1 = time.time()
-    results, terms, query_vector = wiki.word_concepts(article.cleaned_text, n=20)
+    results, terms, query_vector = wiki.word_concepts(article.cleaned_text, n=20, min_tfidf=0.7)
+
+    if results is None:
+        print('No results were returned, the document did not contain enough information')
+        import sys
+        sys.exit(1)
+
     print('Word Concepts Runtime = {}'.format(time.time() - t1))
 
+    print_results(results)
     dump_results('/home/michaela/target.vector', results, terms, query_vector)
 
-    t2 = time.time()
-    wiki.second_order_ranking(results, alpha=0.7)
-    print('Second Order Runtime = {}'.format(time.time() - t2))
-
-    print(results[:20])
+    # t2 = time.time()
+    # wiki.second_order_ranking(results, alpha=0.5)
+    # print('Second Order Runtime = {}'.format(time.time() - t2))
+    #
+    # print_results(results)
 
     print('Runtime = {}'.format(time.time() - start_time))
 
