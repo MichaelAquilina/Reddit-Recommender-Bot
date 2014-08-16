@@ -25,3 +25,6 @@ man
 
 # Recommender Bot
 *.json
+
+# Other
+*.orig
