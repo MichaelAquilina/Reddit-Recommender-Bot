@@ -85,7 +85,7 @@ if __name__ == '__main__':
                 text = unicode(_goose.extract(raw_html=html_text).cleaned_text)
                 text = _parser.unescape(text)
 
-                for token in textparser.word_tokenize(text):
+                for token in textparser.word_tokenize(text, stemmer=_stemmer):
                     sr_index.add_term_occurrence(token, rel_path)
 
         print('Indexing Runtime: {}'.format(time.time() - t0))
