@@ -104,7 +104,7 @@ if __name__ == '__main__':
         print()
 
     t1 = time.time()
-    results, terms, query_vector = wiki.word_concepts(article.cleaned_text, n=20, min_tfidf=0.7)
+    results, terms, query_vector = wiki.word_concepts(article.cleaned_text, n=20, m=30, min_tfidf=0.8, alpha=0.8)
 
     if results is None:
         print('No results were returned, the document did not contain enough information')
@@ -115,12 +115,6 @@ if __name__ == '__main__':
 
     print_results(results)
     dump_results('/home/michaela/target.vector', results, terms, query_vector)
-
-    # t2 = time.time()
-    # wiki.second_order_ranking(results, alpha=0.5)
-    # print('Second Order Runtime = {}'.format(time.time() - t2))
-    #
-    # print_results(results)
 
     print('Runtime = {}'.format(time.time() - start_time))
 
