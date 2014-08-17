@@ -378,10 +378,6 @@ class WikiIndex(object):
             similarity = np.dot(page_vector, query_vector) / (norm(page_vector) * query_vector_norm)
             results.append(SearchResult(page_id, page_name, page_vector, similarity))
 
-        results.sort(key=lambda x: x.weight, reverse=True)
-
-        term_sequence = sorted(term_index.items(), key=lambda x: x[1])
-
         if results:
             # Second order ranking stuff
             link_matrix = self.generate_normalised_link_matrix([sr.page_id for sr in results], pages_list_results, mode='single')
@@ -407,5 +403,7 @@ class WikiIndex(object):
 
             # Link matrix wont be returned in the right order because of resorting!!!!
             results.sort(key=lambda x: x.weight, reverse=True)
+
+        term_sequence = sorted(term_index.items(), key=lambda x: x[1])
 
         return results, [term_names[tid] for tid, index in term_sequence], query_vector
