@@ -48,7 +48,7 @@ class DownloaderThread(threading.Thread):
             try:
                 req = download_html_page(url.geturl(), timeout=8)
 
-                if req and MIN_LENGTH < len(req.text) < MAX_LENGTH:
+                if req and req.ok and MIN_LENGTH < len(req.text) < MAX_LENGTH:
                     url_path = get_path_from_url(pages_dir, url)
 
                     directory = os.path.dirname(url_path)
