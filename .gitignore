@@ -1,5 +1,6 @@
 # Other
 *.orig
+*.json.bz2
 
 # virtualenv
 share
