@@ -1,3 +1,6 @@
+# Other
+*.orig
+
 # virtualenv
 share
 bin
