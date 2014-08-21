@@ -294,7 +294,6 @@ def add_page_index(terms, page, intra_links):
         var_string = u''
         page_links = {}
 
-        # TODO: Speed this up with join statements
         for link, counter in intra_links.items():
             cur.execute("""
                 INSERT INTO Pages (PageName, Processed)

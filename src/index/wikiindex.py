@@ -10,9 +10,7 @@ from collections import Counter
 from utils import to_csv, load_stopwords
 from textparser import word_tokenize, tfidf
 
-# TODO: Safer SQL queries when using lists as parameters
-# TODO: If a fast lookup table is not available, use the slow technique
-
+# Will search in CWD, PYTHONPATH and PATH
 stopwords = load_stopwords('data/stopwords.txt')
 
 
@@ -340,7 +338,6 @@ class WikiIndex(object):
             related_pages = self.get_documents(term_id, min_counter=2, limit=40)
             temp_list = []
 
-            # TODO: Might be more pythonic to join the page_list_results
             for (page_id, ) in related_pages:
                 temp_list.append(page_id)
                 pages.add(page_id)

@@ -11,15 +11,6 @@ import random
 from utils import search_files
 from url import Url
 
-# Reddit Developer API Notes
-# t1_	Comment
-# t2_	Account
-# t3_	Link
-# t4_	Message
-# t5_	Subreddit
-# t6_	Award
-# t8_	PromoCampaign
-
 
 def get_url_from_path(target_dir, abs_path):
     rel_path = os.path.relpath(abs_path, target_dir)

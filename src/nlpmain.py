@@ -15,8 +15,6 @@ from utils import load_db_params
 
 if __name__ == '__main__':
 
-    # TODO: Consider providing an option for compressing the output with bz2
-
     import argparse
     parser = argparse.ArgumentParser(description='Generates a community profile from a given subreddit in a Reddit Data Source')
     parser.add_argument('data_path', type=str, help='Path to a Reddit Data Source')
