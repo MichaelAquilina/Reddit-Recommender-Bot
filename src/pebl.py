@@ -33,12 +33,14 @@ class PEBL(object):
     positive or negative.
     """
 
-    def __init__(self, C=1.0):
+    def __init__(self, **svm_args):
         self.classifier = None
-        self.C = C  # Complexity Parameter
+        self.svm_args = svm_args
+        self.iterations = 0
 
     def __repr__(self):
-        return 'PEBL(C=%0.1f)' % (self.C, )
+        parameters = ['%s=%s' % pair for pair in self.svm_args.items()]
+        return 'PEBL(%s)' % ', '.join(parameters)
 
     def predict(self, X):
         return self.classifier.predict(X)
@@ -60,7 +62,7 @@ class PEBL(object):
         i = 0
         NEG = N[0]
         while N[i].size > 0:
-            self.classifier = SVC(C=self.C, kernel='linear')
+            self.classifier = SVC(**self.svm_args)
 
             XX = np.concatenate((POS, NEG))
             yy = np.zeros(XX.shape[0])
@@ -74,3 +76,5 @@ class PEBL(object):
 
             NEG = np.concatenate((NEG, N[i + 1]))
             i += 1
+
+        self.iterations = i  # Store the number of iterations taken
