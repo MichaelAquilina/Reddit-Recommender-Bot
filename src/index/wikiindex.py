@@ -156,7 +156,7 @@ class WikiIndex(object):
 
         return self._cur.fetchall()
 
-    def get_documents(self, term_id, min_counter=2, limit=200):
+    def get_documents(self, term_id, min_tfidf=1.0, limit=200):
         """
         Returns a list of (PageID)
         Results are limited to the specified value and only terms
@@ -165,11 +165,11 @@ class WikiIndex(object):
         """
         self._cur.execute("""
             SELECT PageID
-            FROM TermOccurrences
-            WHERE TermID = %s AND Counter > %s
-            ORDER BY Counter DESC
+            FROM TfidfValues
+            WHERE TermID = %s AND Tfidf > %s
+            ORDER BY Tfidf DESC
             LIMIT %s
-        """ % (term_id, min_counter, limit))
+        """ % (term_id, min_tfidf, limit))
         return self._cur.fetchall()
 
     def get_term_occurrences(self, page_id_list, term_id_list):
@@ -335,7 +335,7 @@ class WikiIndex(object):
         # larger value of n means possibly more accuracy but at the cost of speed
         pages = set()
         for term_id, term_weight in top_terms[:n]:
-            related_pages = self.get_documents(term_id, min_counter=2, limit=40)
+            related_pages = self.get_documents(term_id, min_tfidf=1.0, limit=10)
             temp_list = []
 
             for (page_id, ) in related_pages:
@@ -382,6 +382,7 @@ class WikiIndex(object):
             outgoing = link_matrix.sum(axis=0)
 
             weights = np.asarray([sr.weight for sr in results])
+            weights[(incoming + outgoing < 2)] = 0
 
             norm_weights = weights * incoming
 

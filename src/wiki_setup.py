@@ -84,11 +84,10 @@ def tfidf_values_setup():
           Tfidf FLOAT NOT NULL,
           PRIMARY KEY (TermID, PageID),
           FOREIGN KEY (TermID) REFERENCES Terms(TermID),
-          FOREIGN KEY (PageID) REFERENCES Pages(PageID)
+          FOREIGN KEY (PageID) REFERENCES Pages(PageID),
+          INDEX (Tfidf)
         ) ENGINE=%s CHARACTER SET=utf8;
     """, (engine, ))
-
-    cur.execute('CREATE INDEX tfidf_index ON TfidfValues(Tfidf);')
 
     cur.execute("""
       INSERT INTO TfidfValues
@@ -108,11 +107,10 @@ def tfidf_totals_setup():
     cur.execute("""
         CREATE TABLE TfidfTotals (
           PageID INT PRIMARY KEY,
-          Total FLOAT NOT NULL
+          Total FLOAT NOT NULL,
+          INDEX (Total)
         ) ENGINE=%s CHARACTER SET=utf8;
     """, (engine, ))
-
-    cur.execute('CREATE INDEX tfidf_total_index ON TfidfTotals(Total);')
 
     cur.execute("""
         INSERT INTO TfidfTotals
@@ -179,11 +177,10 @@ def setup():
             Counter SMALLINT UNSIGNED DEFAULT 0 NOT NULL,
             FOREIGN KEY (TermID) REFERENCES Terms(TermID) ON DELETE CASCADE,
             FOREIGN KEY (PageID) REFERENCES Pages(PageID) ON DELETE CASCADE,
-            PRIMARY KEY (TermID, PageID)
+            PRIMARY KEY (TermID, PageID),
+            INDEX (Counter)
         ) ENGINE=%s ROW_FORMAT=FIXED;
     """, (engine, ))
-
-    cur.execute('CREATE INDEX counter_index ON TermOccurrences (Counter);')
 
     # Mirrors TermOccurrences structure
     cur.execute("""
