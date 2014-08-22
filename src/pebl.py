@@ -70,7 +70,7 @@ class PEBL(object):
             pred = self.classifier.predict(P[i])
 
             P.append(P[i][pred == 1.0])
-            N.append(N[i][pred == 0.0])
+            N.append(P[i][pred == 0.0])
 
             NEG = np.concatenate((NEG, N[i + 1]))
             i += 1
