@@ -47,8 +47,6 @@ class PEBL(object):
     def fit(self, X, y):
         strong_pos_features = get_strong_pos_features(X, y, threshold=2.0)
 
-        results = []
-
         P = []
         N = []
 
@@ -57,26 +55,22 @@ class PEBL(object):
 
         initial_class = np.dot(U, strong_pos_features)
         P.append(U[initial_class >= 1])
-        N.append(U[initial_class >= 0])
+        N.append(U[initial_class == 0])
 
         i = 0
         NEG = N[0]
         while N[i].size > 0:
-            classifier = SVC(C=self.C, kernel='linear')
+            self.classifier = SVC(C=self.C, kernel='linear')
 
             XX = np.concatenate((POS, NEG))
             yy = np.zeros(XX.shape[0])
-            yy[0:POS.shape[0]] = 1
+            yy[0:POS.shape[0]] = 1.0  # Create the label vector for this subspace
 
-            classifier.fit(XX, yy)
-            pred = classifier.predict(P[i])
+            self.classifier.fit(XX, yy)
+            pred = self.classifier.predict(P[i])
 
             P.append(P[i][pred == 1.0])
             N.append(N[i][pred == 0.0])
 
-            results.append(classifier)
-
             NEG = np.concatenate((NEG, N[i + 1]))
             i += 1
-
-        self.classifier = results[-1]
