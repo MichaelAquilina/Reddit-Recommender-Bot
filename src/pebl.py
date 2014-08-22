@@ -54,7 +54,7 @@ class PEBL(object):
         U = X[y == 0, :]  # Unlabelled set
 
         initial_class = np.dot(U, strong_pos_features)
-        P.append(U[initial_class >= 1])
+        P.append(U[initial_class > 0])
         N.append(U[initial_class == 0])
 
         i = 0
