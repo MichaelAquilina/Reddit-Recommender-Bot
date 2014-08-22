@@ -10,10 +10,10 @@ def get_strong_pos_features(X, y, threshold=1.0):
 
     # TODO: Decide which one is better!
     # Binarize X
-    # A = np.zeros(X.shape)
-    # A[X > 0] = 1.0
+    A = np.zeros(X.shape)
+    A[X > 0] = 1.0
     # Use X weights
-    A = X
+    # A = X
 
     pos_features = np.sum(A[y == 1, :], axis=0)
     unl_features = np.clip(np.sum(A[y == 0, :], axis=0), 1.0, np.inf)  # Prevent divide by 0s
@@ -37,6 +37,7 @@ class PEBL(object):
         self.classifier = None
         self.svm_args = svm_args
         self.iterations = 0
+        self.pages = None  # TODO: REMOVE ME
 
     def __repr__(self):
         parameters = ['%s=%s' % pair for pair in self.svm_args.items()]
@@ -47,17 +48,28 @@ class PEBL(object):
 
     # Using sklearns interface, but it may mean jumping through some extra hoops
     def fit(self, X, y):
-        strong_pos_features = get_strong_pos_features(X, y, threshold=2.0)
+        strong_pos_features = get_strong_pos_features(X, y, threshold=1.0)
 
         P = []
         N = []
 
-        POS = X[y == 1, :]  # Positive set
-        U = X[y == 0, :]  # Unlabelled set
+        P_index = []
+        N_index = []
+
+        index = np.arange(y.size)
+
+        POS = X[y == 1]  # Positive set
+        U = X[y == 0]  # Unlabelled set
+
+        POS_index = index[y == 1]
+        U_index = index[y == 0]
 
         initial_class = np.dot(U, strong_pos_features)
         P.append(U[initial_class > 0])
         N.append(U[initial_class == 0])
+
+        P_index.append(U_index[initial_class > 0])
+        N_index.append(U_index[initial_class == 0])
 
         i = 0
         NEG = N[0]
@@ -73,6 +85,9 @@ class PEBL(object):
 
             P.append(P[i][pred == 1.0])
             N.append(P[i][pred == 0.0])
+
+            P_index.append(P_index[i][pred == 1.0])
+            N_index.append(P_index[i][pred == 0.0])
 
             NEG = np.concatenate((NEG, N[i + 1]))
             i += 1
