@@ -382,6 +382,7 @@ class WikiIndex(object):
             outgoing = link_matrix.sum(axis=0)
 
             weights = np.asarray([sr.weight for sr in results])
+            weights[(incoming + outgoing < 2)] = 0
 
             norm_weights = weights * incoming
 
