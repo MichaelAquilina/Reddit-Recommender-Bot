@@ -46,6 +46,7 @@ if __name__ == '__main__':
             'min_tfidf': 0.8,
             'alpha': 0.8,
             'r': 15,
+            'second_order': True,
         }
     }
 

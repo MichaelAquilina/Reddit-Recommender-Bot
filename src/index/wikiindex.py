@@ -285,7 +285,7 @@ class WikiIndex(object):
         page_name = page_name.replace(' ', '_')
         webbrowser.open('http://en.wikipedia.org/wiki/%s' % urllib.quote(page_name))
 
-    def word_concepts(self, text, title=None, n=15, m=25, alpha=0.5, min_tfidf=0.5, r=40):
+    def word_concepts(self, text, title=None, n=15, m=25, alpha=0.5, min_tfidf=0.5, r=40, second_order=True):
         """
         Returns a list of word concepts associated with the text ranked in descending order by
         how similar to the original text the concepts are.
@@ -375,7 +375,7 @@ class WikiIndex(object):
             similarity = np.dot(page_vector, query_vector) / (norm(page_vector) * query_vector_norm)
             results.append(SearchResult(page_id, page_name, page_vector, similarity))
 
-        if results:
+        if results and second_order:
             # Second order ranking stuff
             link_matrix = self.generate_normalised_link_matrix([sr.page_id for sr in results], pages_list_results, mode='single')
             incoming = link_matrix.sum(axis=1)
