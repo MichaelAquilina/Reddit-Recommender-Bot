@@ -285,7 +285,7 @@ class WikiIndex(object):
         page_name = page_name.replace(' ', '_')
         webbrowser.open('http://en.wikipedia.org/wiki/%s' % urllib.quote(page_name))
 
-    def word_concepts(self, text, title=None, n=15, m=25, alpha=0.5, min_tfidf=0.5):
+    def word_concepts(self, text, title=None, n=15, m=25, alpha=0.5, min_tfidf=0.5, r=40):
         """
         Returns a list of word concepts associated with the text ranked in descending order by
         how similar to the original text the concepts are.
@@ -335,7 +335,7 @@ class WikiIndex(object):
         # larger value of n means possibly more accuracy but at the cost of speed
         pages = set()
         for term_id, term_weight in top_terms[:n]:
-            related_pages = self.get_documents(term_id, min_tfidf=1.0, limit=10)
+            related_pages = self.get_documents(term_id, min_tfidf=1.0, limit=r)
             temp_list = []
 
             for (page_id, ) in related_pages:
