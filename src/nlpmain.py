@@ -31,17 +31,27 @@ if __name__ == '__main__':
     data_path = args.data_path
     pages_path = os.path.join(data_path, 'pages')
 
+    # Higher r provides better recall but higher precision!
+    # n and m probably could show similar characteristics
+    # Is higher alpha also contributing to this?
+    # all of word_concepts seem highly sensitive to the values passed
     parameters = {
         'data_path': data_path,
-        'subreddit': args.subreddit,
-        'n_samples': args.samples,
-        'n': args.n,
-        'm': 25,
-        'alpha': args.alpha,
-        'concepts': args.concepts,
+        'subreddit': 'python',
+        'n_samples': 600,
+        'concepts': 8,
+        'word_concepts': {
+            'n': 20,
+            'm': 30,
+            'min_tfidf': 0.8,
+            'alpha': 0.8,
+            'r': 15,
+        }
     }
 
-    perform_index = False
+    print(parameters)
+
+    perform_index = True
 
     if perform_index:
         print('Performing Index Operation from Scratch')
@@ -72,14 +82,9 @@ if __name__ == '__main__':
                     text = article.cleaned_text
 
                     if len(text) > 500:
-                        search_results, terms, query_vector = wiki.word_concepts(
-                            text, article.title,
-                            n=parameters['n'],
-                            m=parameters['m'],
-                            min_tfidf=0.6)
+                        search_results, terms, query_vector = wiki.word_concepts(text, article.title, **parameters['word_concepts'])
 
                         if search_results:
-                            # wiki.second_order_ranking(search_results, alpha=parameters['alpha'])
                             results[rel_path] = [(sr.page_id, sr.weight) for sr in search_results[:parameters['concepts']]]
 
                             for search_result in search_results[:parameters['concepts']]:
@@ -139,7 +144,7 @@ if __name__ == '__main__':
     from sklearn.cross_validation import StratifiedKFold
     from sklearn.metrics import *
 
-    n = 4  # Number of folds
+    n = 6  # Number of folds
     print('Performing Evaluation with %d folds' % n)
 
     kf = StratifiedKFold(label_vector, n_folds=n)
@@ -147,7 +152,9 @@ if __name__ == '__main__':
     precision = np.zeros(n)
     recall = np.zeros(n)
     f1 = np.zeros(n)
-    cm = np.zeros((2, 2))  # Confusion matrix tally
+    cm = np.zeros((2, 1))
+
+    pages = np.array([a for (a, b) in results.items()])
 
     # SVM
     # Note: Optimised values of C are data-dependent and cannot be set
@@ -156,31 +163,26 @@ if __name__ == '__main__':
 
     classifier = None
     for index, (train, test) in enumerate(kf):
-        from sklearn.svm import SVC
-        classifier = SVC(kernel='linear', C=1.0)
+        # from sklearn.svm import SVC
+        # classifier = SVC(kernel='linear', C=0.8)
+        from pebl import PEBL
+        classifier = PEBL(C=0.8, kernel='linear')
+        classifier.pages = pages[train]
         classifier.fit(feature_matrix[train], label_vector[train])
+
+        # Only predict for positive instances, there are no such thing as "negative" examples
         y_pred = classifier.predict(feature_matrix[test])
 
         # Store the measures obtained
-        accuracy[index] = accuracy_score(label_vector[test], y_pred)
         precision[index] = precision_score(label_vector[test], y_pred)
         recall[index] = recall_score(label_vector[test], y_pred)
         f1[index] = f1_score(label_vector[test], y_pred)
-
-        cm += confusion_matrix(label_vector[test], y_pred)
 
     # Average scores across the K folds
     print()
     print('Performance Metrics')
     print('-------------------')
     print('(Using %s)' % str(classifier))
-    print('Accuracy: ', accuracy.mean())
     print('Precision: ', precision.mean())
     print('Recall: ', recall.mean())
-    print('F1: ', recall.mean())
-
-    print()
-    print('Confusion Matrix')
-    print('----------------')
-    print('(Unlabelled vs Positive)')
-    print(cm)
+    print('F1: ', f1.mean())

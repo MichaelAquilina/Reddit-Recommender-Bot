@@ -139,14 +139,15 @@ if __name__ == '__main__':
 
     classifier = None
     for index, (train, test) in enumerate(kf):
-        from sklearn.svm import SVC
-        classifier = SVC(kernel='linear', C=1.0, probability=True)
+        # from sklearn.svm import SVC
+        # classifier = SVC(kernel='linear', C=0.8)
+        from pebl import PEBL
+        classifier = PEBL(C=0.8)
 
         classifier.fit(X[train], y[train])
         y_pred = classifier.predict(X[test])
 
         # Store the measures obtained
-        accuracy[index] = accuracy_score(y[test], y_pred)
         precision[index] = precision_score(y[test], y_pred)
         recall[index] = recall_score(y[test], y_pred)
         f1[index] = f1_score(y[test], y_pred)
@@ -158,10 +159,9 @@ if __name__ == '__main__':
     print('Performance Metrics')
     print('-------------------')
     print('(Using %s)' % str(classifier))
-    print('Accuracy: ', accuracy.mean())
     print('Precision: ', precision.mean())
     print('Recall: ', recall.mean())
-    print('F1: ', recall.mean())
+    print('F1: ', f1.mean())
 
     print()
     print('Confusion Matrix')
