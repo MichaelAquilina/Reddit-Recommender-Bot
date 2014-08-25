@@ -4,6 +4,8 @@ import os
 import random
 import nltk
 import json
+import time
+import bz2
 
 from matplotlib import pyplot as plt
 
@@ -21,27 +23,32 @@ data_path = '/home/michaela/Development/Reddit-Testing-Data'
 pages_path = os.path.join(data_path, 'pages')
 
 available_pages = set(search_files(pages_path))
-sample_sizes = (200, 400, 600, 800, 1000)
+sample_sizes = (400, 600, 800, 1000, 1200)
 
 
 def test_wiki_index(cache_name, sample_set, sample_sizes, word_concepts_ags, db_params, n_concepts=10):
-    y = []
+    dimensions = []
+    runtimes = []
 
     if not os.path.exists('.cache'):
         os.mkdir('.cache')
 
     for n_samples in sample_sizes:
         # Check if a cached version is available
-        file_name = '.cache/%s_%d.json' % (cache_name, n_samples)
+        file_name = '.cache/%s_%d.json.bz2' % (cache_name, n_samples)
         if os.path.exists(file_name):
             print('Found cached version of %s (%d)' % (cache_name, n_samples))
-            with open(file_name, 'r') as fp:
-                concepts = json.load(fp)
+            with bz2.BZ2File(file_name, 'r') as fp:
+                loaded_data = json.load(fp)
+
+            concepts = loaded_data['concepts']
+            run = loaded_data['runtime']
         else:
             wiki = WikiIndex(**db_params)
             concepts = set()
 
             print('Running index on %s (%d)' % (cache_name, n_samples))
+            t0 = time.time()
             for index, page in enumerate(sample_set[:n_samples]):
                 with open(page, 'r') as fp:
                     html_text = fp.read()
@@ -50,16 +57,23 @@ def test_wiki_index(cache_name, sample_set, sample_sizes, word_concepts_ags, db_
                 for c in results[:n_concepts]:
                     concepts.add(c.page_id)
 
-            with open(file_name, 'w') as fp:
-                json.dump(list(concepts), fp)
+            run = time.time() - t0
 
-        y.append(len(concepts))
+            with bz2.BZ2File(file_name, 'w') as fp:
+                json.dump({
+                    'concepts': list(concepts),
+                    'runtime': run,
+                }, fp, indent=5)
 
-    return y
+        runtimes.append(run)
+        dimensions.append(len(concepts))
+
+    return dimensions, runtimes
 
 
 def test_hashed_index(cache_name, sample_set, sample_sizes, tokenize_args, prune, prune_args):
-    y = []
+    dimensions = []
+    runtimes = []
 
     if not os.path.exists('.cache'):
         os.mkdir('.cache')
@@ -71,9 +85,14 @@ def test_hashed_index(cache_name, sample_set, sample_sizes, tokenize_args, prune
         file_name = '.cache/%s_%d.json.bz2' % (cache_name, n_samples)
         if os.path.exists(file_name):
             print('Found cached version of %s (%d)' % (cache_name, n_samples))
-            bow.load(file_name, compressed=True)
+            with bz2.BZ2File(file_name, 'r') as fp:
+                loaded_data = json.load(fp)
+
+            bow.from_dict(loaded_data['index'])
+            run = loaded_data['runtime']
         else:
             print('Running index on %s (%d)' % (cache_name, n_samples))
+            t0 = time.time()
             for index, page in enumerate(sample_set[:n_samples]):
                 with open(page, 'r') as fp:
                     html_text = fp.read()
@@ -85,12 +104,19 @@ def test_hashed_index(cache_name, sample_set, sample_sizes, tokenize_args, prune
             if prune:
                 bow.prune(**prune_args)
 
+            run = time.time() - t0
+
             # Save to storage for fast loading
-            bow.save(file_name, compressed=True)
+            with bz2.BZ2File(file_name, 'w') as fp:
+                json.dump({
+                    'runtime': run,
+                    'index': bow.to_dict(),
+                }, fp, indent=5)
 
-        y.append(len(bow.terms()))
+        dimensions.append(len(bow.terms()))
+        runtimes.append(run)
 
-    return y
+    return dimensions, runtimes
 
 if __name__ == '__main__':
 
@@ -102,7 +128,7 @@ if __name__ == '__main__':
     sample_set = random.sample(available_pages, max(sample_sizes))
 
     print('Plain Bag of Words')
-    dimension_sizes = test_hashed_index(
+    dimension_sizes, runtimes = test_hashed_index(
         'bow',
         sample_set, sample_sizes,
         {'remove_urls': True},
@@ -111,7 +137,7 @@ if __name__ == '__main__':
     plt.plot(sample_sizes, dimension_sizes, label='BoW', **plot_params)
 
     print('Bag of Words with Porter Stemmer')
-    dimension_sizes = test_hashed_index(
+    dimension_sizes, runtimes = test_hashed_index(
         'bow_porter',
         sample_set, sample_sizes,
         {'remove_urls': True, 'stemmer': nltk.PorterStemmer()},
@@ -120,7 +146,7 @@ if __name__ == '__main__':
     plt.plot(sample_sizes, dimension_sizes, label='BoW Porter', **plot_params)
 
     print('Bag of Words with Lancaster Stemmer')
-    dimension_sizes = test_hashed_index(
+    dimension_sizes, runtimes = test_hashed_index(
         'bow_lancaster',
         sample_set, sample_sizes,
         {'remove_urls': True, 'stemmer': nltk.LancasterStemmer()},
@@ -128,19 +154,19 @@ if __name__ == '__main__':
     )
     plt.plot(sample_sizes, dimension_sizes, label='BoW Lancaster', **plot_params)
 
-    print('Bag of Words with aggressive Pruning')
-    dimension_sizes = test_hashed_index(
-        'bow_aggressive_prune',
+    print('Bag of Words with Pruning')
+    dimension_sizes, runtimes = test_hashed_index(
+        'bow_prune',
         sample_set, sample_sizes,
         {'remove_urls': True},
-        True, {'min_frequency': 0.01, 'max_frequency': 0.95}
+        True, {}
     )
     plt.plot(sample_sizes, dimension_sizes, label='BoW Pruned', **plot_params)
 
     params = load_db_params('wsd.db.json')
 
     print('Bag of Concepts')
-    dimension_sizes = test_wiki_index(
+    dimension_sizes, runtimes = test_wiki_index(
         'boc',
         sample_set, sample_sizes,
         {},

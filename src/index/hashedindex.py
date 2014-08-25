@@ -1,5 +1,6 @@
 from __future__ import division
 
+import datetime
 import numpy as np
 
 from math import log10
@@ -206,22 +207,7 @@ class HashedIndex(object):
         for term in garbage:
             del(self._terms[term])
 
-    def save(self, path, compressed=False, **kwargs):
-        """
-        Saves the state of the HashedIndex as a JSON formatted
-        file to the specified path. The optional use of bz2
-        compression is also available. Additional meta data can
-        be stored through the use of kwargs.
-        """
-        import json
-        import datetime
-
-        if compressed:
-            import bz2
-            fp = bz2.BZ2File(path, 'w')
-        else:
-            fp = open(path, 'w')
-
+    def to_dict(self, **kwargs):
         meta_data = {
             'data-structure': str(self),
             'date': '{}'.format(datetime.datetime.now()),
@@ -233,13 +219,34 @@ class HashedIndex(object):
         for key, value in kwargs.items():
             meta_data[key] = value
 
-        json.dump({
+        return {
             # Store meta-data for analytical purposes
             'meta': meta_data,
             # Actual HashedIndex data
             'documents': self._documents,
             'terms': self._terms,
-        }, fp, indent=5)
+        }
+
+    def from_dict(self, data):
+        self._documents = data['documents']
+        self._terms = data['terms']
+
+    def save(self, path, compressed=False, **kwargs):
+        """
+        Saves the state of the HashedIndex as a JSON formatted
+        file to the specified path. The optional use of bz2
+        compression is also available. Additional meta data can
+        be stored through the use of kwargs.
+        """
+        import json
+
+        if compressed:
+            import bz2
+            fp = bz2.BZ2File(path, 'w')
+        else:
+            fp = open(path, 'w')
+
+        json.dump(self.to_dict(**kwargs), fp, indent=5)
         fp.close()
 
     def load(self, path, compressed=False):
