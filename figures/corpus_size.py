@@ -14,11 +14,6 @@ from utils import search_files, load_db_params
 from index.hashedindex import HashedIndex
 from index.wikiindex import WikiIndex
 
-plt.title('Dimension growth with relation to corpus size')
-
-plt.ylabel('Number of Dimensions')
-plt.xlabel('Corpus Size')
-
 data_path = '/home/michaela/Development/Reddit-Testing-Data'
 pages_path = os.path.join(data_path, 'pages')
 
@@ -134,7 +129,10 @@ if __name__ == '__main__':
         {'remove_urls': True},
         False, None
     )
+    plt.figure(1)
     plt.plot(sample_sizes, dimension_sizes, label='BoW', **plot_params)
+    plt.figure(2)
+    plt.plot(sample_sizes, runtimes, label='Bow', **plot_params)
 
     print('Bag of Words with Porter Stemmer')
     dimension_sizes, runtimes = test_hashed_index(
@@ -143,7 +141,10 @@ if __name__ == '__main__':
         {'remove_urls': True, 'stemmer': nltk.PorterStemmer()},
         False, None
     )
+    plt.figure(1)
     plt.plot(sample_sizes, dimension_sizes, label='BoW Porter', **plot_params)
+    plt.figure(2)
+    plt.plot(sample_sizes, runtimes, label='Bow Porter', **plot_params)
 
     print('Bag of Words with Lancaster Stemmer')
     dimension_sizes, runtimes = test_hashed_index(
@@ -152,7 +153,10 @@ if __name__ == '__main__':
         {'remove_urls': True, 'stemmer': nltk.LancasterStemmer()},
         False, None
     )
+    plt.figure(1)
     plt.plot(sample_sizes, dimension_sizes, label='BoW Lancaster', **plot_params)
+    plt.figure(2)
+    plt.plot(sample_sizes, runtimes, label='Bow Lancaster', **plot_params)
 
     print('Bag of Words with Pruning')
     dimension_sizes, runtimes = test_hashed_index(
@@ -161,7 +165,10 @@ if __name__ == '__main__':
         {'remove_urls': True},
         True, {}
     )
+    plt.figure(1)
     plt.plot(sample_sizes, dimension_sizes, label='BoW Pruned', **plot_params)
+    plt.figure(2)
+    plt.plot(sample_sizes, runtimes, label='Bow Pruned', **plot_params)
 
     params = load_db_params('wsd.db.json')
 
@@ -173,11 +180,26 @@ if __name__ == '__main__':
         params,
         n_concepts=10
     )
+    plt.figure(1)
     plt.plot(sample_sizes, dimension_sizes, label='BoC', **plot_params)
+    plt.figure(2)
+    plt.plot(sample_sizes, runtimes, label='BoC', **plot_params)
 
-    #plt.yscale('log')
+    plt.figure(1)
+    plt.title('Dimension growth with relation to corpus size')
+    plt.ylabel('Number of Dimensions')
+    plt.xlabel('Corpus Size')
+    # plt.yscale('log')
     plt.xticks(sample_sizes)
-
     plt.tight_layout(pad=0.5)
     plt.legend(loc='upper left')
+
+    plt.figure(2)
+    plt.title('Runtime with relation to corpus size')
+    plt.ylabel('Total Runtime (seconds)')
+    plt.xlabel('Corpus Size')
+    plt.xticks(sample_sizes)
+    plt.tight_layout(pad=0.5)
+    plt.legend(loc='upper left')
+
     plt.show()
