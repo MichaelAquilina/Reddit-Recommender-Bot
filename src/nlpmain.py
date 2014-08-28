@@ -99,13 +99,13 @@ if __name__ == '__main__':
 
                     print()
 
-                    # Save the generated data to a JSON file
-                    with open(index_path, 'w') as fp:
-                        json.dump({
-                            'Concepts': list(concepts),
-                            'Results': results,
-                            'Labels': data_labels,
-                        }, fp, indent=5)
+        # Save the generated data to a JSON file
+        with open(index_path, 'w') as fp:
+            json.dump({
+                'Concepts': list(concepts),
+                'Results': results,
+                'Labels': data_labels,
+            }, fp, indent=5)
     else:
         print('Loading Previously Indexed Data')
 
