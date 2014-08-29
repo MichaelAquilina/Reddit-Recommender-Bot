@@ -21,7 +21,7 @@ available_pages = set(search_files(pages_path))
 sample_sizes = (400, 600, 800, 1000, 1200)
 
 
-def test_wiki_index(cache_name, sample_set, sample_sizes, word_concepts_ags, db_params, n_concepts=10):
+def test_wiki_index(cache_name, label, color, sample_set, sample_sizes, word_concepts_ags, db_params, n_concepts=10):
     dimensions = []
     runtimes = []
 
@@ -63,10 +63,18 @@ def test_wiki_index(cache_name, sample_set, sample_sizes, word_concepts_ags, db_
         runtimes.append(run)
         dimensions.append(len(concepts))
 
+    plt.figure(1)
+    plt.plot(sample_sizes, dimensions, label=label, color=color, **plot_params)
+    plt.scatter(sample_sizes, dimensions, color=color, **scatter_params)
+
+    plt.figure(2)
+    plt.plot(sample_sizes, runtimes, label=label, color=color, **plot_params)
+    plt.scatter(sample_sizes, runtimes, color=color, **scatter_params)
+
     return dimensions, runtimes
 
 
-def test_hashed_index(cache_name, sample_set, sample_sizes, tokenize_args, prune, prune_args):
+def test_hashed_index(cache_name, label, color, sample_set, sample_sizes, tokenize_args, prune, prune_args):
     dimensions = []
     runtimes = []
 
@@ -111,12 +119,23 @@ def test_hashed_index(cache_name, sample_set, sample_sizes, tokenize_args, prune
         dimensions.append(len(bow.terms()))
         runtimes.append(run)
 
+    plt.figure(1)
+    plt.plot(sample_sizes, dimensions, label=label, color=color, **plot_params)
+    plt.scatter(sample_sizes, dimensions, color=color, **scatter_params)
+
+    plt.figure(2)
+    plt.plot(sample_sizes, runtimes, label=label, color=color, **plot_params)
+    plt.scatter(sample_sizes, runtimes, color=color, **scatter_params)
+
     return dimensions, runtimes
 
 if __name__ == '__main__':
 
     plot_params = {
         'linewidth': 2,
+    }
+    scatter_params = {
+        's': 40,  # Size of the markers
     }
 
     # Always use the same random seed
@@ -125,70 +144,64 @@ if __name__ == '__main__':
     print('Plain Bag of Words')
     dimension_sizes, runtimes = test_hashed_index(
         'bow',
+        'BoW',
+        'b',
         sample_set, sample_sizes,
         {'remove_urls': True},
         False, None
     )
-    plt.figure(1)
-    plt.plot(sample_sizes, dimension_sizes, label='BoW', **plot_params)
-    plt.figure(2)
-    plt.plot(sample_sizes, runtimes, label='Bow', **plot_params)
 
     print('Bag of Words with Porter Stemmer')
     dimension_sizes, runtimes = test_hashed_index(
         'bow_porter',
+        'BoW Porter',
+        'g',
         sample_set, sample_sizes,
         {'remove_urls': True, 'stemmer': nltk.PorterStemmer()},
         False, None
     )
-    plt.figure(1)
-    plt.plot(sample_sizes, dimension_sizes, label='BoW Porter', **plot_params)
-    plt.figure(2)
-    plt.plot(sample_sizes, runtimes, label='Bow Porter', **plot_params)
 
     print('Bag of Words with Lancaster Stemmer')
     dimension_sizes, runtimes = test_hashed_index(
         'bow_lancaster',
+        'BoW Lancaster',
+        'r',
         sample_set, sample_sizes,
         {'remove_urls': True, 'stemmer': nltk.LancasterStemmer()},
         False, None
     )
-    plt.figure(1)
-    plt.plot(sample_sizes, dimension_sizes, label='BoW Lancaster', **plot_params)
-    plt.figure(2)
-    plt.plot(sample_sizes, runtimes, label='Bow Lancaster', **plot_params)
 
     print('Bag of Words with Pruning')
     dimension_sizes, runtimes = test_hashed_index(
         'bow_prune',
+        'BoW Pruned',
+        'c',
         sample_set, sample_sizes,
         {'remove_urls': True},
         True, {}
     )
-    plt.figure(1)
-    plt.plot(sample_sizes, dimension_sizes, label='BoW Pruned', **plot_params)
-    plt.figure(2)
-    plt.plot(sample_sizes, runtimes, label='Bow Pruned', **plot_params)
 
+    # Load Wikipedia Index parameters
     params = load_db_params('wsd.db.json')
 
     print('Bag of Concepts')
     dimension_sizes, runtimes = test_wiki_index(
         'boc',
+        'BoC',
+        'm',
         sample_set, sample_sizes,
         {},
         params,
         n_concepts=10
     )
-    plt.figure(1)
-    plt.plot(sample_sizes, dimension_sizes, label='BoC', **plot_params)
-    plt.figure(2)
-    plt.plot(sample_sizes, runtimes, label='BoC', **plot_params)
+
+    # Set up the figure configuration
 
     plt.figure(1)
     plt.title('Dimension growth with relation to corpus size')
     plt.ylabel('Number of Dimensions')
     plt.xlabel('Corpus Size')
+    plt.xlim(min(sample_sizes), max(sample_sizes))
     # plt.yscale('log')
     plt.xticks(sample_sizes)
     plt.tight_layout(pad=0.5)
@@ -198,6 +211,7 @@ if __name__ == '__main__':
     plt.title('Runtime with relation to corpus size')
     plt.ylabel('Total Runtime (seconds)')
     plt.xlabel('Corpus Size')
+    plt.xlim(min(sample_sizes), max(sample_sizes))
     plt.xticks(sample_sizes)
     plt.tight_layout(pad=0.5)
     plt.legend(loc='upper left')
