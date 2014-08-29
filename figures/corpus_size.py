@@ -138,6 +138,10 @@ if __name__ == '__main__':
         's': 40,  # Size of the markers
     }
 
+    # Create the figures and set their size in inches
+    plt.figure(1, figsize=(11, 5))
+    plt.figure(2, figsize=(11, 5))
+
     # Always use the same random seed
     sample_set = random.sample(available_pages, max(sample_sizes))
 
@@ -202,7 +206,7 @@ if __name__ == '__main__':
     plt.ylabel('Number of Dimensions')
     plt.xlabel('Corpus Size')
     plt.xlim(min(sample_sizes), max(sample_sizes))
-    # plt.yscale('log')
+    plt.ylim(0)
     plt.xticks(sample_sizes)
     plt.tight_layout(pad=0.5)
     plt.legend(loc='upper left')
