@@ -72,6 +72,19 @@ def word_tokenize(text, stopwords=_stopwords, remove_urls=False, stemmer=NullSte
             yield stemmer.stem(token)
 
 
+# This version is *much* faster but doesn't handle all cases
+# 5E-07 Fails
+# 4.5 Fails
+# -23 Fails
+# def isnumeric(text):
+#     """
+#     Returns a True if the text is purely numeric and False otherwise.
+#     """
+#     for w in text:
+#         if w not in DIGITS_SET:
+#             return False
+#     return True
+
 def isnumeric(text):
     """
     Returns a True if the text is purely numeric and False otherwise.
