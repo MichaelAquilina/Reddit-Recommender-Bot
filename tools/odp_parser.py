@@ -1,8 +1,8 @@
-__about__ = """
-    Parse an Open Directory Project (ODP) contents file and extracts the urls to be placed in a list.
-    The data can then be stored accordingly to how one sees fit. Data from the list can be randomly
-    accessed for random samples on the web. Part of the Reddit Recommender Bot project for generating
-    unlabeled data.
+"""
+Parse an Open Directory Project (ODP) contents file and extracts the urls to be placed in a list.
+The data can then be stored accordingly to how one sees fit. Data from the list can be randomly
+accessed for random samples on the web. Part of the Reddit Recommender Bot project for generating
+unlabeled data.
 """
 
 import gzip

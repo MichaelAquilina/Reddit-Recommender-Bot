@@ -1,7 +1,7 @@
-__about__ = """
-    Utility module for loading Reddit Recommender Bot Data sources which follow the specification specified on the
-    Github wiki. Provides methods for generating paths from urls (and the reverse) as well as parsing and indexing
-    an entire data source into a HashedIndex for later use to generate a numpy feature matrix.
+"""
+Utility module for loading Reddit Recommender Bot Data sources which follow the specification specified on the
+Github wiki. Provides methods for generating paths from urls (and the reverse) as well as parsing and indexing
+an entire data source into a HashedIndex for later use to generate a numpy feature matrix.
 """
 
 import os

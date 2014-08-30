@@ -1,9 +1,7 @@
 #! /usr/bin/python
-
-__about__ = \
-    """
-    Data Store Tool for viewing, removing and maintaining data available in a Reddit Data Store.
-    """
+"""
+Data Store Tool for viewing, removing and maintaining data available in a Reddit Data Store.
+"""
 
 import os
 import json
@@ -105,7 +103,7 @@ def list_subreddits(path):
 if __name__ == '__main__':
 
     import argparse
-    parser = argparse.ArgumentParser(description=__about__)
+    parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest='command')
     parser.add_argument('path', help='Path of the Data Store on which to operate on', type=str)
 
