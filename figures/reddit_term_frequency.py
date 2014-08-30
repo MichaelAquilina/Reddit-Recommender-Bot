@@ -14,7 +14,7 @@ subreddit_list = ['python', 'science', 'programming', 'technology']
 
 rows = int(math.ceil(len(subreddit_list) / 2.0))
 
-figure, axes = plt.subplots(rows, 2)
+figure, axes = plt.subplots(rows, 2, figsize=(15, 8))
 
 for subreddit_index, subreddit in enumerate(subreddit_list):
     i = subreddit_index % 2
