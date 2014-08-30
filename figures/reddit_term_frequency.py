@@ -1,3 +1,5 @@
+from __future__ import division
+
 import os
 import math
 
@@ -44,7 +46,7 @@ for subreddit_index, subreddit in enumerate(subreddit_list):
 
                 article = goose.extract(raw_html=html_text)
 
-                for term in word_tokenize(article.cleaned_text, remove_urls=True):
+                for term in word_tokenize(article.cleaned_text, remove_urls=True, stopwords=[]):
                     term_index.add_term_occurrence(term, path)
 
         print('Saving for future pre-loading...')
@@ -53,17 +55,25 @@ for subreddit_index, subreddit in enumerate(subreddit_list):
     # Document Frequency is more relevant than Term Frequency for the task at hand
     term_counter = Counter()
     for term in term_index.terms():
-        term_counter[term] = term_index.get_document_frequency(term)
+        term_counter[term] = term_index.get_total_term_frequency(term)
 
     print(term_counter.most_common(20))
 
     n = min(len(term_counter), 5000)
 
-    axes[i, j].set_xlim(0, n)
-    axes[i, j].set_title(subreddit)
-    axes[i, j].fill_between(xrange(n), [b for (a, b) in term_counter.most_common(n)])
+    axes[i, j].set_xscale('log')
+    axes[i, j].set_yscale('log')
 
-figure.canvas.set_window_title('subreddits')
+    axes[i, j].set_xlabel('rank')
+    axes[i, j].set_ylabel('term frequency')
+    # axes[i, j].set_xlim(0, n)
+    axes[i, j].set_title(subreddit)
+
+    points = [b for (a, b) in term_counter.most_common(n)]
+    axes[i, j].scatter(range(n), points, edgecolors='none')
+    axes[i, j].plot(range(1, n), [points[0] / x for x in range(1, n)], color='r', linewidth='2.0', label='1/x')
+
+figure.canvas.set_window_title('Term Frequency for Subreddits')
 
 plt.tight_layout()
 plt.show()
