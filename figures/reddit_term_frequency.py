@@ -28,10 +28,11 @@ for subreddit_index, subreddit in enumerate(subreddit_list):
     goose = Goose(config)
 
     term_index = HashedIndex()
+    file_name = '.cache/%s.json.bz2' % subreddit
 
-    if os.path.exists('%s.json.bz2' % subreddit):
+    if os.path.exists(file_name):
         print('Found a JSON encoded index file for %s' % subreddit)
-        term_index.load('%s.json.bz2' % subreddit, compressed=True)
+        term_index.load(file_name, compressed=True)
     else:
         for page_index, path in enumerate(load_data_source(data_path, subreddit, 0)):
             abs_path = os.path.join(pages_path, path)
@@ -47,7 +48,7 @@ for subreddit_index, subreddit in enumerate(subreddit_list):
                     term_index.add_term_occurrence(term, path)
 
         print('Saving for future pre-loading...')
-        term_index.save('%s.json.bz2' % subreddit, compressed=True)
+        term_index.save(file_name, compressed=True)
 
     # Document Frequency is more relevant than Term Frequency for the task at hand
     term_counter = Counter()
