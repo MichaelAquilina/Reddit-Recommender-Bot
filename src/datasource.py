@@ -54,18 +54,21 @@ def get_path_from_url(target_dir, url):
 
 
 # TODO: Allow to return the title used for the post
-def load_data_source(data_path, subreddit, page_samples):
+def load_data_source(data_path, subreddit, page_samples, seed=None):
     """
     Generates a dictionary of labeled and unlabelled pages from a Reddit
     Data Source as specified by the specification on the github Wiki.
     :param data_path: path to a Reddit Data Source.
     :param subreddit: labeled subreddit which is to be targeted.
     :param page_samples: number of random unlabelled page samples to use.
+    :param seed: seed for the pseudo random generator.
     :return: dictionary of (label, path)
     """
     pages_dir = os.path.join(data_path, 'pages')
     subreddits_dir = os.path.join(data_path, 'subreddits')
     sr_path = os.path.join(subreddits_dir, subreddit)
+
+    random.seed(seed)
 
     # Dictionary of all available instances
     data = {}
