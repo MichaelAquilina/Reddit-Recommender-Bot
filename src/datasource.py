@@ -54,7 +54,7 @@ def get_path_from_url(target_dir, url):
 
 
 # TODO: Allow to return the title used for the post
-def load_data_source(data_path, subreddit, page_samples, seed=None):
+def load_data_source(data_path, subreddit, page_samples, seed=None, relative=True):
     """
     Generates a dictionary of labeled and unlabelled pages from a Reddit
     Data Source as specified by the specification on the github Wiki.
@@ -62,6 +62,7 @@ def load_data_source(data_path, subreddit, page_samples, seed=None):
     :param subreddit: labeled subreddit which is to be targeted.
     :param page_samples: number of random unlabelled page samples to use.
     :param seed: seed for the pseudo random generator.
+    :param relative: relative or absolute paths.
     :return: dictionary of (label, path)
     """
     pages_dir = os.path.join(data_path, 'pages')
@@ -82,12 +83,13 @@ def load_data_source(data_path, subreddit, page_samples, seed=None):
             # Only interested in link posts (but they all should ok)
             if post['kind'] == 't3':
                 url_path = get_path_from_url(pages_dir, post['data']['url'])
-                rel_path = os.path.relpath(url_path, pages_dir)
-                data[rel_path] = subreddit
+                if relative:
+                    url_path = os.path.relpath(url_path, pages_dir)
+                data[url_path] = subreddit
 
     # Add random sample from pages directory
-    remaining = set(search_files(pages_dir, relative=True)) - set(data.keys())
-    for rel_path in random.sample(remaining, page_samples):
-        data[rel_path] = None   # Unlabelled data
+    remaining = set(search_files(pages_dir, relative=relative)) - set(data.keys())
+    for url_path in random.sample(remaining, page_samples):
+        data[url_path] = None   # Unlabelled data
 
     return data
