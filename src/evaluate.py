@@ -86,6 +86,9 @@ if __name__ == '__main__':
             recall[index] = recall_score(label_vector[test], y_pred)
             f1[index] = f1_score(label_vector[test], y_pred)
 
+        print('Precision', precision.mean())
+        print('Recall', recall.mean())
+
         x.append(recall.mean())
         y.append(precision.mean())
 
