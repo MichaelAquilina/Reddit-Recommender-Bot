@@ -27,7 +27,6 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    index_path = args.output_path
     data_path = args.data_path
     pages_path = os.path.join(data_path, 'pages')
 
@@ -37,18 +36,20 @@ if __name__ == '__main__':
     # all of word_concepts seem highly sensitive to the values passed
     parameters = {
         'data_path': data_path,
-        'subreddit': 'python',
+        'subreddit': 'programming',
         'n_samples': 600,
         'concepts': 8,
         'word_concepts': {
             'n': 20,
             'm': 30,
-            'min_tfidf': 0.8,
+            'min_tfidf': 1.0,
             'alpha': 0.8,
-            'r': 15,
+            'r': 10,
             'second_order': True,
         }
     }
+
+    index_path = '/home/michaela/Development/boc_%s_sr.json' % parameters['subreddit']
 
     print(parameters)
 
@@ -102,6 +103,7 @@ if __name__ == '__main__':
         # Save the generated data to a JSON file
         with open(index_path, 'w') as fp:
             json.dump({
+                'Parameters': parameters,
                 'Concepts': list(concepts),
                 'Results': results,
                 'Labels': data_labels,
@@ -153,7 +155,7 @@ if __name__ == '__main__':
     precision = np.zeros(n)
     recall = np.zeros(n)
     f1 = np.zeros(n)
-    cm = np.zeros((2, 1))
+    cm = np.zeros((2, 2))
 
     pages = np.array([a for (a, b) in results.items()])
 
@@ -164,20 +166,21 @@ if __name__ == '__main__':
 
     classifier = None
     for index, (train, test) in enumerate(kf):
-        # from sklearn.svm import SVC
-        # classifier = SVC(kernel='linear', C=0.8)
-        from pebl import PEBL
-        classifier = PEBL(C=0.8, kernel='linear')
-        classifier.pages = pages[train]
-        classifier.fit(feature_matrix[train], label_vector[train])
+        from sklearn.svm import SVC
+        classifier = SVC(kernel='linear', C=0.8)
+        # from pebl import PEBL
+        # classifier = PEBL(C=0.8, kernel='linear')
+        # classifier.pages = pages[train]
 
-        # Only predict for positive instances, there are no such thing as "negative" examples
+        classifier.fit(feature_matrix[train], label_vector[train])
         y_pred = classifier.predict(feature_matrix[test])
 
         # Store the measures obtained
         precision[index] = precision_score(label_vector[test], y_pred)
         recall[index] = recall_score(label_vector[test], y_pred)
         f1[index] = f1_score(label_vector[test], y_pred)
+
+        cm += confusion_matrix(label_vector[test], y_pred)
 
     # Average scores across the K folds
     print()
@@ -187,3 +190,7 @@ if __name__ == '__main__':
     print('Precision: ', precision.mean())
     print('Recall: ', recall.mean())
     print('F1: ', f1.mean())
+
+    print()
+    print('Confusion Matrix')
+    print(cm)

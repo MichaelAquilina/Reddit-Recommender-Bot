@@ -37,8 +37,7 @@ if __name__ == '__main__':
     parameters = {
         'samples': 800,
         'subreddit': 'python',
-        'min_frequency': 0.05,
-        'max_frequency': 1.00,
+        'min_frequency': 2,
         'stemmer': str(_stemmer),
         'data_path': data_path,
         'mode': 'tfidf',
@@ -139,10 +138,8 @@ if __name__ == '__main__':
 
     classifier = None
     for index, (train, test) in enumerate(kf):
-        # from sklearn.svm import SVC
-        # classifier = SVC(kernel='linear', C=0.8)
-        from pebl import PEBL
-        classifier = PEBL(C=0.8)
+        from sklearn.svm import SVC
+        classifier = SVC(kernel='linear', C=0.8)
 
         classifier.fit(X[train], y[train])
         y_pred = classifier.predict(X[test])
