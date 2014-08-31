@@ -163,6 +163,10 @@ class WikiIndex(object):
         with a Counter larger than min_counter are returned. Returned
         results are sorted in descending order by Counter.
         """
+        # Using TfidfValues or TermOccurrences should make a difference because
+        # in relation to the same term they *all* have the same inverse document
+        # frequency. This method does however benefit from normalisation of the
+        # document length which could be aiding somewhat in retrieval performance.
         self._cur.execute("""
             SELECT PageID
             FROM TfidfValues
@@ -382,6 +386,8 @@ class WikiIndex(object):
             outgoing = link_matrix.sum(axis=0)
 
             weights = np.asarray([sr.weight for sr in results])
+
+            # Consider changing as incoming == 0 are already removed below
             weights[(incoming + outgoing < 2)] = 0
 
             norm_weights = weights * incoming
