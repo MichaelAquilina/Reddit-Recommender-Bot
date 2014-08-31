@@ -65,11 +65,9 @@ def test_wiki_index(cache_name, label, color, sample_set, sample_sizes, word_con
 
     plt.figure(1)
     plt.plot(sample_sizes, dimensions, label=label, color=color, **plot_params)
-    plt.scatter(sample_sizes, dimensions, color=color, **scatter_params)
 
     plt.figure(2)
     plt.plot(sample_sizes, runtimes, label=label, color=color, **plot_params)
-    plt.scatter(sample_sizes, runtimes, color=color, **scatter_params)
 
     return dimensions, runtimes
 
@@ -121,11 +119,9 @@ def test_hashed_index(cache_name, label, color, sample_set, sample_sizes, tokeni
 
     plt.figure(1)
     plt.plot(sample_sizes, dimensions, label=label, color=color, **plot_params)
-    plt.scatter(sample_sizes, dimensions, color=color, **scatter_params)
 
     plt.figure(2)
     plt.plot(sample_sizes, runtimes, label=label, color=color, **plot_params)
-    plt.scatter(sample_sizes, runtimes, color=color, **scatter_params)
 
     return dimensions, runtimes
 
@@ -133,9 +129,9 @@ if __name__ == '__main__':
 
     plot_params = {
         'linewidth': 2,
-    }
-    scatter_params = {
-        's': 40,  # Size of the markers
+        'marker': 'o',
+        'markeredgecolor': 'none',
+        'markersize': 8,
     }
 
     # Create the figures and set their size in inches
