@@ -71,7 +71,8 @@ for subreddit_index, subreddit in enumerate(subreddit_list):
 
     points = [b for (a, b) in term_counter.most_common(n)]
     axes[i, j].scatter(range(n), points, edgecolors='none')
-    axes[i, j].plot(range(1, n), [points[0] / x for x in range(1, n)], color='r', linewidth='2.0', label='1/x')
+    axes[i, j].plot(range(1, n), [points[0] / x for x in range(1, n)], color='r', linewidth='2.0', label='~1/x')
+    axes[i, j].legend()
 
 figure.canvas.set_window_title('Term Frequency for Subreddits')
 

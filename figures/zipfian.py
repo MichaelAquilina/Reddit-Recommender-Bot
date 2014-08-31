@@ -18,16 +18,17 @@ n = len(word_counter)
 # Generate the coordinates for plotting
 y = [b for (a, b) in word_counter.most_common()]
 
-plt.figure(1, figsize=(15, 7))
-
-plt.scatter(range(n), y, edgecolors='none')
-plt.plot(range(1, n), [y[0] / x for x in range(1, n)], color='red', linewidth='2.0', label='1/x')
+plt.figure(1, figsize=(12, 7))
 
 plt.yscale('log')
 plt.xscale('log')
 
 plt.xlabel('rank')
 plt.ylabel('term frequency')
+
+plt.scatter(range(n), y, edgecolors='none')
+plt.plot(range(1, n), [y[0] / x for x in range(1, n)], color='red', linewidth='2.0', label='~1/x')
+plt.legend()
 
 plt.title('Zipfian Distribution')
 plt.tight_layout()
