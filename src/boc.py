@@ -45,7 +45,7 @@ def generate_feature_matrix(wiki, data, n_concepts=10, **word_concept_params):
         cutoff = abs_path.find('pages/')
         rel_path = abs_path[cutoff + 6:]
 
-        logging.info('%d: http://%s' % (index, rel_path[:-3]))
+        logging.info('\n%d: http://%s' % (index, rel_path[:-3]))
         article = goose.extract(raw_html=html_text)
 
         if len(article.cleaned_text) > 500:
