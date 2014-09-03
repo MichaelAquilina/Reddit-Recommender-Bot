@@ -24,14 +24,17 @@ from textparser import NullStemmer
 from index.wikiindex import WikiIndex
 
 
-def evaluate_boc(data, n_folds, threshold_range):
+def evaluate_boc(data, n_folds, threshold_range, boc_params):
     x = []
     y = []
 
     db_params = load_db_params('wsd.db.json')
     wiki = WikiIndex(**db_params)
 
-    file_name = '.cache/%s_boc_r=45;n=20.json.bz2' % subreddit
+    # Generate cache name based on parameter value combination
+    str_params = ';'.join(['%s=%s' % (a, b) for (a, b) in boc_params.items()])
+    file_name = '.cache/%s_boc_%s.json.bz2' % (subreddit, str_params)
+
     if os.path.exists(file_name):
         print('Found a cached copy of %s' % file_name)
         with bz2.BZ2File(file_name, 'r') as fp:
@@ -41,7 +44,7 @@ def evaluate_boc(data, n_folds, threshold_range):
         label_vector = np.asarray(data['label_vector'])
     else:
         print('Generating feature matrix for %s' % file_name)
-        feature_matrix, label_vector = boc.generate_feature_matrix(wiki, data, 10, **{'n': 20, 'r': 45})
+        feature_matrix, label_vector = boc.generate_feature_matrix(wiki, data, 10, **boc_params)
         with bz2.BZ2File(file_name, 'w') as fp:
             json.dump({
                 'feature_matrix': feature_matrix.tolist(),
@@ -129,7 +132,7 @@ if __name__ == '__main__':
     logging.basicConfig(format='%(message)s')
 
     # Constants that should become parameters
-    subreddit = 'technology'
+    subreddit = 'python'
     data_path = '/home/michaela/Development/Reddit-Testing-Data'
 
     # Load appropriate pages from data source
@@ -141,16 +144,20 @@ if __name__ == '__main__':
     }
 
     # Set up the precision recall graph
-    plt.title('Precision-Recall for %s' % subreddit)
+    plt.title('Precision-Recall for \'%s\' subreddit' % subreddit)
     plt.xlabel('Recall')
     plt.ylabel('Precision')
 
     thresholds = np.arange(-10, 5, 0.4)
 
     print('Evaluating Bag of Words')
-    plt.plot(*evaluate_bow(data, 4, thresholds), color='b', marker='o', **marker_params)
+    plt.plot(*evaluate_bow(data, 4, thresholds), label='BoW', color='b', marker='o', **marker_params)
 
     print('Evaluating Bag of Concepts')
-    plt.plot(*evaluate_boc(data, 4, thresholds), color='g', marker='v', **marker_params)
+    plt.plot(*evaluate_boc(data, 4, thresholds, {'n': 20, 'r': 45}), label='BoC', color='g', marker='v', **marker_params)
 
+    # print('Evaluating Bag of Concepts 2')
+    # plt.plot(*evaluate_boc(data, 4, thresholds, {'n': 20, 'r': 45}), label='BoC', color='g', marker='v', **marker_params)
+
+    plt.legend(loc='lower left')
     plt.show()
