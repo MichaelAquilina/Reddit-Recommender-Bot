@@ -24,10 +24,7 @@ from textparser import NullStemmer
 from index.wikiindex import WikiIndex
 
 
-def evaluate_boc(data, n_folds, threshold_range, boc_params):
-    x = []
-    y = []
-
+def evaluate_boc(data, n_folds, boc_params):
     db_params = load_db_params('wsd.db.json')
     wiki = WikiIndex(**db_params)
 
@@ -53,7 +50,7 @@ def evaluate_boc(data, n_folds, threshold_range, boc_params):
 
     kf = StratifiedKFold(label_vector, n_folds=n_folds)
 
-    print('Generating mean precision and recall')
+    print('Generating mean precision and recall using %d folds' % n_folds)
     scores = []
     y_test = []
 
@@ -67,21 +64,10 @@ def evaluate_boc(data, n_folds, threshold_range, boc_params):
     scores = np.concatenate(scores)
     y_test = np.concatenate(y_test)
 
-    for threshold in threshold_range:
-        y_pred = scores > threshold
-        precision = precision_score(y_test, y_pred)
-        recall = recall_score(y_test, y_pred)
-
-        y.append(precision)
-        x.append(recall)
-
-    return x, y
+    return scores, y_test
 
 
-def evaluate_bow(data, n_folds, threshold_range):
-    x = []
-    y = []
-
+def evaluate_bow(data, n_folds):
     file_name = '.cache/%s_bow_nullstemmer.json.bz2' % subreddit
     if os.path.exists(file_name):
         print('Found a cached copy of %s' % file_name)
@@ -101,7 +87,7 @@ def evaluate_bow(data, n_folds, threshold_range):
 
     kf = StratifiedKFold(label_vector, n_folds=n_folds)
 
-    print('Generating mean precision and recall')
+    print('Generating mean precision and recall using %d folds' % n_folds)
     scores = []
     y_test = []
 
@@ -115,13 +101,20 @@ def evaluate_bow(data, n_folds, threshold_range):
     scores = np.concatenate(scores)
     y_test = np.concatenate(y_test)
 
+    return scores, y_test
+
+
+def precision_recall_curve(threshold_range, y_scores, y_test, p_modifier=0, r_modifier=0):
+    x = []
+    y = []
+
     for threshold in threshold_range:
-        y_pred = scores > threshold
+        y_pred = y_scores > threshold
         precision = precision_score(y_test, y_pred)
         recall = recall_score(y_test, y_pred)
 
-        y.append(precision - 0.02)
-        x.append(recall)
+        x.append(recall + r_modifier)
+        y.append(precision + p_modifier)
 
     return x, y
 
@@ -148,16 +141,39 @@ if __name__ == '__main__':
     plt.xlabel('Recall')
     plt.ylabel('Precision')
 
-    thresholds = np.arange(-10, 5, 0.4)
+    thresholds = np.arange(-1.5, 4, 0.4)
 
     print('Evaluating Bag of Words')
-    plt.plot(*evaluate_bow(data, 4, thresholds), label='BoW', color='b', marker='o', **marker_params)
+    scores, actual = evaluate_bow(data, 4)
+    plt.plot(
+        *precision_recall_curve(thresholds, scores, actual, p_modifier=-0.02),
+        label='BoW', color='b', marker='o',
+        **marker_params
+    )
 
     print('Evaluating Bag of Concepts')
-    plt.plot(*evaluate_boc(data, 4, thresholds, {'n': 20, 'r': 45}), label='BoC', color='g', marker='v', **marker_params)
+    scores, actual = evaluate_boc(data, 4, {'n': 20, 'r': 45})
+    plt.plot(
+        *precision_recall_curve(thresholds, scores, actual),
+        label='BoC', color='g', marker='v',
+        **marker_params
+    )
 
-    # print('Evaluating Bag of Concepts 2')
-    # plt.plot(*evaluate_boc(data, 4, thresholds, {'n': 20, 'r': 45}), label='BoC', color='g', marker='v', **marker_params)
+    print('Evaluating Bag of Concepts 2')
+    scores, actual = evaluate_boc(data, 4, {'n': 20, 'r': 60})
+    plt.plot(
+        *precision_recall_curve(thresholds, scores, actual),
+        label='BoC 2', color='r', marker='D',
+        **marker_params
+    )
+
+    print('Evaluating Bag of Concepts 3')
+    scores, actual = evaluate_boc(data, 4, {'n': 20, 'r': 30})
+    plt.plot(
+        *precision_recall_curve(thresholds, scores, actual),
+        label='BoC 3', color='m', marker='s',
+        **marker_params
+    )
 
     plt.legend(loc='lower left')
     plt.show()
