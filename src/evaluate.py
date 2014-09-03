@@ -18,6 +18,11 @@ from datasource import load_data_source
 
 
 def get_parameter_combinations(parameters):
+    """
+    Expects a dictionary of (parameter_name, possible_values) where possible_values
+    is an iterable data type. Yields all parameter combinations in the form of a
+    dictionary (parameter_name, parameter_value).
+    """
     # Iterate through all possible parameter combinations
     current = {}
     parameters_index = {}
