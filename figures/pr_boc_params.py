@@ -1,3 +1,8 @@
+"""
+Performs a precision-recall evaluation of the bag of concepts with respect to varying its parameters.
+Currently only varies n and r
+"""
+
 from __future__ import division, print_function
 
 import os
@@ -95,6 +100,7 @@ def evaluate_boc(data, parameters, n_folds):
             classifier = SVC(kernel='linear', C=0.8)
             classifier.fit(feature_matrix[train], label_vector[train])
             y_pred = classifier.predict(feature_matrix[test])
+            print(classifier.decision_function(feature_matrix[test]))
 
             # Store the measures obtained
             precision[index] = precision_score(label_vector[test], y_pred)
