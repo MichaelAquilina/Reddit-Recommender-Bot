@@ -293,6 +293,10 @@ class WikiIndex(object):
         """
         Returns a list of word concepts associated with the text ranked in descending order by
         how similar to the original text the concepts are.
+        :param m number of top terms to use for the query vector
+        :param alpha weight assigned to second order ranking
+        :param r number of pages to retrieve per term query
+        :param n number of top terms to use for page retrieval
         """
         term_list = Counter(word_tokenize(text, stopwords=stopwords))
         query_norm = math.log(1 + sum(term_list.values()))
