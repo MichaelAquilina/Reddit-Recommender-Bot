@@ -18,7 +18,7 @@ n = len(word_counter)
 # Generate the coordinates for plotting
 y = [b for (a, b) in word_counter.most_common()]
 
-plt.figure(1, figsize=(12, 7))
+plt.figure(1, figsize=(12, 5))
 
 plt.yscale('log')
 plt.xscale('log')
