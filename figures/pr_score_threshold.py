@@ -106,9 +106,19 @@ if __name__ == '__main__':
     logging.getLogger().setLevel(logging.INFO)
     logging.basicConfig(format='%(message)s')
 
+    import argparse
+    parser = argparse.ArgumentParser(description='Generates a PR and ROC Curve for the given subreddit')
+    parser.add_argument('subreddit')
+    parser.add_argument('save_path')
+    parser.add_argument('data_path')
+    parser.add_argument('--show', action='store_true')
+
+    args = parser.parse_args()
+
     # Constants that should become parameters
-    subreddit = 'python'
-    data_path = '/home/michaela/Development/Reddit-Testing-Data'
+    subreddit = args.subreddit
+    save_path = args.save_path
+    data_path = args.data_path
 
     # Load appropriate pages from data source
     data = load_data_source(data_path, subreddit, page_samples=600, seed=0, relative=False)
@@ -188,7 +198,13 @@ if __name__ == '__main__':
     plt.figure(1)
     plt.legend(loc='lower left')
     plt.tight_layout()
+    plt.savefig(os.path.join(save_path, 'precision_recall_curve_%s.png' % subreddit))
 
     plt.figure(2)
     plt.legend(loc='lower right')
-    plt.show()
+    plt.tight_layout()
+    plt.savefig(os.path.join(save_path, 'roc_curve_%s.png' % subreddit))
+
+    # Only show the figures if specified
+    if args.show:
+        plt.show()
