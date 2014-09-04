@@ -13,6 +13,7 @@ import numpy as np
 import bow
 import boc
 
+from nltk.stem import PorterStemmer, LancasterStemmer
 from matplotlib import pyplot as plt
 from sklearn.svm import SVC
 from sklearn.metrics import *
@@ -65,8 +66,8 @@ def evaluate_boc(data, n_folds, boc_params):
     return scores, y_test
 
 
-def evaluate_bow(data, n_folds):
-    file_name = '.cache/%s_bow_nullstemmer.json.bz2' % subreddit
+def evaluate_bow(data, n_folds, stemmer=NullStemmer()):
+    file_name = '.cache/%s_bow_%s.json.bz2' % (subreddit, stemmer)
     if os.path.exists(file_name):
         print('Found a cached copy of %s' % file_name)
         with bz2.BZ2File(file_name, 'r') as fp:
@@ -76,7 +77,7 @@ def evaluate_bow(data, n_folds):
         label_vector = np.asarray(data['label_vector'])
     else:
         print('Generating feature matrix for %s' % file_name)
-        feature_matrix, label_vector = bow.generate_feature_matrix(data, NullStemmer())
+        feature_matrix, label_vector = bow.generate_feature_matrix(data, stemmer)
         with bz2.BZ2File(file_name, 'w') as fp:
             json.dump({
                 'feature_matrix': feature_matrix.tolist(),
@@ -129,6 +130,7 @@ if __name__ == '__main__':
     plt.title('ROC curve for \'%s\' subreddit' % subreddit)
     plt.xlabel('FPR')
     plt.ylabel('TPR')
+    plt.plot([0, 1], [0, 1], color='k')
     plt.xlim(0, 1)
     plt.ylim(0, 1)
 
@@ -140,6 +142,24 @@ if __name__ == '__main__':
     plt.figure(2)
     fpr, tpr, _ = roc_curve(actual, scores)
     plt.plot(fpr, tpr, label='BoW', **line_params)
+
+    print('Evaluating Bag of Words Porter')
+    scores, actual = evaluate_bow(data, 4, PorterStemmer())
+    plt.figure(1)
+    precision, recall, _ = precision_recall_curve(actual, scores)
+    plt.plot(recall, precision - 0.02, label='BoW Porter', **line_params)
+    plt.figure(2)
+    fpr, tpr, _ = roc_curve(actual, scores)
+    plt.plot(fpr, tpr, label='BoW Porter', **line_params)
+
+    print('Evaluating Bag of Words Lancaster')
+    scores, actual = evaluate_bow(data, 4, LancasterStemmer())
+    plt.figure(1)
+    precision, recall, _ = precision_recall_curve(actual, scores)
+    plt.plot(recall, precision - 0.02, label='BoW Porter', **line_params)
+    plt.figure(2)
+    fpr, tpr, _ = roc_curve(actual, scores)
+    plt.plot(fpr, tpr, label='BoW Porter', **line_params)
 
     print('Evaluating Bag of Concepts')
     scores, actual = evaluate_boc(data, 4, {'n': 20, 'r': 45})
@@ -159,6 +179,10 @@ if __name__ == '__main__':
     fpr, tpr, _ = roc_curve(actual, scores)
     plt.plot(fpr, tpr, label='BoC 2', **line_params)
 
+    plt.figure(1)
     plt.legend(loc='lower left')
     plt.tight_layout()
+
+    plt.figure(2)
+    plt.legend(loc='lower left')
     plt.show()
