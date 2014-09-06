@@ -110,14 +110,18 @@ if __name__ == '__main__':
     parser.add_argument('subreddit')
     parser.add_argument('save_path')
     parser.add_argument('data_path')
+    parser.add_argument('models', nargs='+')
     parser.add_argument('--show', action='store_true')
 
     args = parser.parse_args()
 
-    # Constants that should become parameters
     subreddit = args.subreddit
     save_path = args.save_path
     data_path = args.data_path
+    n_folds = 4
+
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
 
     # Load appropriate pages from data source
     data = load_data_source(data_path, subreddit, page_samples=600, seed=0, relative=False)
@@ -143,41 +147,39 @@ if __name__ == '__main__':
     plt.xlim(0, 1)
     plt.ylim(0, 1)
 
-    print('Evaluating Bag of Words')
-    scores, actual = evaluate_bow(data, 4)
-    plt.figure(1)
-    aucpr = average_precision_score(actual, scores)
-    precision, recall, _ = precision_recall_curve(actual, scores)
-    plt.plot(recall, precision - 0.02, label='BoW (AUCPR=%.2f)' % aucpr, color='b', **line_params)
+    # Generate the PR and ROC curves for the specified models
+    for model in args.models:
+        print('Evaluating %s' % model)
 
-    plt.figure(2)
-    auc = roc_auc_score(actual, scores)
-    fpr, tpr, _ = roc_curve(actual, scores)
-    plt.plot(fpr, tpr, label='BoW (AUC=%.2f)' % auc, color='b', **line_params)
+        params = model.split(';')
+        model_type = params[0]
+        model_params = params[1:]
 
-    print('Evaluating Bag of Concepts')
-    scores, actual = evaluate_boc(data, 4, {'n': 20, 'r': 45, 'n_concepts': 15})
-    plt.figure(1)
-    aucpr = average_precision_score(actual, scores)
-    precision, recall, _ = precision_recall_curve(actual, scores)
-    plt.plot(recall, precision, label='BoC (AUCPR=%.2f)' % aucpr, color='g', **line_params)
+        # Parse model parameters
+        params = {}
+        for mp in model_params:
+            (key, value) = mp.split('=')
+            params[key] = int(value)
 
-    plt.figure(2)
-    auc = roc_auc_score(actual, scores)
-    fpr, tpr, _ = roc_curve(actual, scores)
-    plt.plot(fpr, tpr, label='BoC (AUC=%.2f)' % auc, color='g', **line_params)
+        if model_type.lower() == 'bow':
+            model_type = 'BoW'
+            scores, actual = evaluate_bow(data, n_folds)
+        elif model_type.lower() == 'boc':
+            model_type = 'BoC'
+            scores, actual = evaluate_boc(data, n_folds, params)
+        else:
+            logging.error('Unknown model type: %s', model)
+            continue
 
-    print('Evaluating Bag of Concepts 2')
-    scores, actual = evaluate_boc(data, 4, {'n': 20, 'r': 30, 'n_concepts': 15})
-    plt.figure(1)
-    aucpr = average_precision_score(actual, scores)
-    precision, recall, _ = precision_recall_curve(actual, scores)
-    plt.plot(recall, precision, label='BoC 2 (AUCPR=%.2f)' % aucpr, color='r', **line_params)
+        plt.figure(1)
+        aucpr = average_precision_score(actual, scores)
+        precision, recall, _ = precision_recall_curve(actual, scores)
+        plt.plot(recall, precision, label='%s (AUCPR=%.2f)' % (model_type, aucpr), **line_params)
 
-    plt.figure(2)
-    auc = roc_auc_score(actual, scores)
-    fpr, tpr, _ = roc_curve(actual, scores)
-    plt.plot(fpr, tpr, label='BoC 2 (AUC=%.2f)' % auc, color='r', **line_params)
+        plt.figure(2)
+        auc = roc_auc_score(actual, scores)
+        fpr, tpr, _ = roc_curve(actual, scores)
+        plt.plot(fpr, tpr, label='%s (AUC=%.2f)' % (model_type, auc), **line_params)
 
     plt.figure(1)
     plt.legend(loc='lower left')
