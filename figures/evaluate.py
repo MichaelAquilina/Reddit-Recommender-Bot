@@ -111,6 +111,7 @@ if __name__ == '__main__':
     parser.add_argument('save_path')
     parser.add_argument('data_path')
     parser.add_argument('models', nargs='+')
+    parser.add_argument('--n-folds', type=int, default=4)
     parser.add_argument('--show', action='store_true')
 
     args = parser.parse_args()
@@ -118,7 +119,7 @@ if __name__ == '__main__':
     subreddit = args.subreddit
     save_path = args.save_path
     data_path = args.data_path
-    n_folds = 4
+    n_folds = args.n_folds
 
     if not os.path.exists(save_path):
         os.makedirs(save_path)
