@@ -13,7 +13,6 @@ import numpy as np
 import bow
 import boc
 
-from nltk.stem import PorterStemmer, LancasterStemmer
 from matplotlib import pyplot as plt
 from sklearn.svm import SVC
 from sklearn.metrics import *
@@ -42,7 +41,7 @@ def evaluate_boc(data, n_folds, boc_params):
         label_vector = np.asarray(data['label_vector'])
     else:
         print('Generating feature matrix for %s' % file_name)
-        feature_matrix, label_vector = boc.generate_feature_matrix(wiki, data, 10, **boc_params)
+        feature_matrix, label_vector = boc.generate_feature_matrix(wiki, data, **boc_params)
         with bz2.BZ2File(file_name, 'w') as fp:
             json.dump({
                 'feature_matrix': feature_matrix.tolist(),
@@ -133,7 +132,7 @@ if __name__ == '__main__':
     plt.xlabel('Recall')
     plt.ylabel('Precision')
     plt.ylim(0.0, 1.05)
-    plt.xlim(0.01, 1.0)  # precision can be undefined for 0
+    plt.xlim(0.0, 1.0)  # precision can be undefined for 0
 
     # Set up the ROC graph
     plt.figure(2)
@@ -147,50 +146,35 @@ if __name__ == '__main__':
     print('Evaluating Bag of Words')
     scores, actual = evaluate_bow(data, 4)
     plt.figure(1)
+    aucpr = average_precision_score(actual, scores)
     precision, recall, _ = precision_recall_curve(actual, scores)
-    plt.plot(recall, precision - 0.02, label='BoW', color='b', **line_params)
-    plt.figure(2)
+    plt.plot(recall, precision - 0.02, label='BoW (AUCPR=%.2f)' % aucpr, color='b', **line_params)
 
+    plt.figure(2)
     auc = roc_auc_score(actual, scores)
     fpr, tpr, _ = roc_curve(actual, scores)
     plt.plot(fpr, tpr, label='BoW (AUC=%.2f)' % auc, color='b', **line_params)
 
-    # print('Evaluating Bag of Words Porter')
-    # scores, actual = evaluate_bow(data, 4, PorterStemmer())
-    # plt.figure(1)
-    # precision, recall, _ = precision_recall_curve(actual, scores)
-    # plt.plot(recall, precision - 0.02, label='BoW Porter', color='c', **line_params)
-    # plt.figure(2)
-    # fpr, tpr, _ = roc_curve(actual, scores)
-    # plt.plot(fpr, tpr, label='BoW Porter', color='c', **line_params)
-    #
-    # print('Evaluating Bag of Words Lancaster')
-    # scores, actual = evaluate_bow(data, 4, LancasterStemmer())
-    # plt.figure(1)
-    # precision, recall, _ = precision_recall_curve(actual, scores)
-    # plt.plot(recall, precision - 0.02, label='BoW Porter', color='m', **line_params)
-    # plt.figure(2)
-    # fpr, tpr, _ = roc_curve(actual, scores)
-    # plt.plot(fpr, tpr, label='BoW Porter', color='m', **line_params)
-
     print('Evaluating Bag of Concepts')
-    scores, actual = evaluate_boc(data, 4, {'n': 20, 'r': 45})
+    scores, actual = evaluate_boc(data, 4, {'n': 20, 'r': 45, 'n_concepts': 15})
     plt.figure(1)
+    aucpr = average_precision_score(actual, scores)
     precision, recall, _ = precision_recall_curve(actual, scores)
-    plt.plot(recall, precision, label='BoC', color='g', **line_params)
-    plt.figure(2)
+    plt.plot(recall, precision, label='BoC (AUCPR=%.2f)' % aucpr, color='g', **line_params)
 
+    plt.figure(2)
     auc = roc_auc_score(actual, scores)
     fpr, tpr, _ = roc_curve(actual, scores)
     plt.plot(fpr, tpr, label='BoC (AUC=%.2f)' % auc, color='g', **line_params)
 
     print('Evaluating Bag of Concepts 2')
-    scores, actual = evaluate_boc(data, 4, {'n': 20, 'r': 30})
+    scores, actual = evaluate_boc(data, 4, {'n': 20, 'r': 30, 'n_concepts': 15})
     plt.figure(1)
+    aucpr = average_precision_score(actual, scores)
     precision, recall, _ = precision_recall_curve(actual, scores)
-    plt.plot(recall, precision, label='BoC 2', color='r', **line_params)
-    plt.figure(2)
+    plt.plot(recall, precision, label='BoC 2 (AUCPR=%.2f)' % aucpr, color='r', **line_params)
 
+    plt.figure(2)
     auc = roc_auc_score(actual, scores)
     fpr, tpr, _ = roc_curve(actual, scores)
     plt.plot(fpr, tpr, label='BoC 2 (AUC=%.2f)' % auc, color='r', **line_params)
