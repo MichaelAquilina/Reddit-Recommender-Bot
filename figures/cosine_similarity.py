@@ -1,10 +1,16 @@
 from __future__ import division
 
 import math
+import numpy as np
 
+from numpy.linalg import norm
 from collections import namedtuple
 from matplotlib import pyplot as plt
 from matplotlib.patches import Arc
+
+
+def cosine_sim(d1, d2):
+    return np.dot(d1, d2) / (norm(d1) * norm(d2))
 
 
 # http://stackoverflow.com/questions/25227100/best-way-to-plot-an-angle-between-two-lines-in-matplotlib/25228427#25228427
@@ -34,6 +40,8 @@ def get_angle_plot(line1, line2, offset=1, color=None, origin=(0, 0), linewidth=
 
 point = namedtuple('point', ['x', 'y'])
 
+plt.figure(1, figsize=(10, 5))
+
 plt.ylim([0, 5])
 plt.xlim([0, 7])
 
@@ -58,8 +66,20 @@ ax.text(d[0].x + 0.1, d[0].y + 0.1, 'd1', horizontalalignment='left', verticalal
 ax.text(d[1].x + 0.1, d[1].y + 0.1, 'd2', horizontalalignment='left', verticalalignment='bottom')
 ax.text(d[2].x + 0.1, d[2].y + 0.1, 'd3', horizontalalignment='left', verticalalignment='bottom')
 
+ax.text(
+    5, 4,
+    'sim(d1, d2)=%.2f\nsim(d1, d3)=%.2f\nsim(d2, d3)=%.2f' % (
+        cosine_sim([4.5, 3], [6, 2]),
+        cosine_sim([4.5, 3], [1, 4]),
+        cosine_sim([6, 2], [1, 4])
+    ),
+    fontweight='bold'
+)
+
 ax.add_patch(arc12)
 ax.add_patch(arc13)
+
+print(cosine_sim([4.5, 3], [6, 2]), cosine_sim([6, 2], [1, 4]))
 
 plt.tight_layout()
 plt.gcf().canvas.set_window_title('Cosine Similarity')
