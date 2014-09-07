@@ -12,7 +12,7 @@ from datasource import load_data_source
 from index.hashedindex import HashedIndex
 
 data_path = '/home/michaela/Development/Reddit-Testing-Data'
-subreddit_list = ['python', 'science', 'programming', 'technology']
+subreddit_list = ['python', 'physics', 'linux', 'technology']
 
 rows = int(math.ceil(len(subreddit_list) / 2.0))
 
