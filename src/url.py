@@ -14,7 +14,7 @@ class Url(object):
         else:
             self.path = self.path.rstrip('/')
 
-        if 'www.' in self.hostname:
+        if self.hostname and 'www.' in self.hostname:
             self.hostname = self.hostname.replace('www.', '')
 
     def geturl(self):
