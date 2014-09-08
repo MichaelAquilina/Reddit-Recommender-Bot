@@ -289,7 +289,7 @@ class WikiIndex(object):
         page_name = page_name.replace(' ', '_')
         webbrowser.open('http://en.wikipedia.org/wiki/%s' % urllib.quote(page_name))
 
-    def word_concepts(self, text, title=None, n=15, m=25, alpha=0.5, min_tfidf=0.5, r=40, second_order=True):
+    def word_concepts(self, text, title=None, n=15, m=25, alpha=0.5, min_tfidf=0.5, r=40, second_order='augmented'):
         """
         Returns a list of word concepts associated with the text ranked in descending order by
         how similar to the original text the concepts are.
@@ -383,25 +383,29 @@ class WikiIndex(object):
             similarity = np.dot(page_vector, query_vector) / (norm(page_vector) * query_vector_norm)
             results.append(SearchResult(page_id, page_name, page_vector, similarity))
 
-        if results and second_order:
+        if results and second_order != 'none':
             # Second order ranking stuff
             link_matrix = self.generate_normalised_link_matrix([sr.page_id for sr in results], pages_list_results, mode='single')
+            weights = np.asarray([sr.weight for sr in results])
             incoming = link_matrix.sum(axis=1)
             outgoing = link_matrix.sum(axis=0)
 
-            weights = np.asarray([sr.weight for sr in results])
+            if second_order == 'augmented':
 
-            # Consider changing as incoming == 0 are already removed below
-            weights[(incoming + outgoing < 2)] = 0
+                # Consider changing as incoming == 0 are already removed below
+                weights[(incoming + outgoing < 2)] = 0
 
-            norm_weights = weights * incoming
+                norm_weights = weights * incoming
 
-            nonzero = outgoing > 0
-            norm_weights[nonzero] /= outgoing[nonzero]
+                nonzero = outgoing > 0
+                norm_weights[nonzero] /= outgoing[nonzero]
 
-            A = alpha * np.dot(link_matrix, norm_weights)
-            A *= weights ** 2
-            A += (1 - alpha) * weights
+                A = alpha * np.dot(link_matrix, norm_weights)
+                A *= weights ** 2
+                A += (1 - alpha) * weights
+            elif second_order == 'original':
+                A = alpha * np.dot(link_matrix, weights)
+                A += weights
 
             # Assign newly calculated weights
             for i in xrange(len(results)):
