@@ -20,7 +20,7 @@ from sklearn.cross_validation import StratifiedKFold
 
 from utils import load_db_params
 from datasource import load_data_source
-from textparser import NullStemmer
+from textparser import NullStemmer, isnumeric
 from index.wikiindex import WikiIndex
 
 
@@ -160,13 +160,23 @@ if __name__ == '__main__':
         params = {}
         for mp in model_params:
             (key, value) = mp.split('=')
-            params[key] = int(value)
+            if isnumeric(value):
+                params[key] = int(value)
+            else:
+                params[key] = value
+
+        label = None
+        if 'label' in params:
+            label = params['label']
+            label = label.replace('%eq%', '=')
+            label = label.replace('_', ' ')
+            del(params['label'])
 
         if model_type.lower() == 'bow':
-            model_type = 'BoW'
+            model_type = 'BoW' if label is None else label
             scores, actual = evaluate_bow(data, n_folds)
         elif model_type.lower() == 'boc':
-            model_type = 'BoC'
+            model_type = 'BoC' if label is None else label
             scores, actual = evaluate_boc(data, n_folds, params)
         else:
             logging.error('Unknown model type: %s', model)
