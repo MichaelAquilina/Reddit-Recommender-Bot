@@ -12,13 +12,13 @@ from datasource import load_data_source
 from index.hashedindex import HashedIndex
 
 data_path = '/home/michaela/Development/Reddit-Testing-Data'
-subreddit_list = ['python', 'physics', 'linux', 'technology']
+subreddit_list = ['python', 'physics', 'linux']
 
 rows = int(math.ceil(len(subreddit_list) / 2.0))
 
-figure, axes = plt.subplots(rows, 2, figsize=(15, 8))
-
 for subreddit_index, subreddit in enumerate(subreddit_list):
+    plt.figure(subreddit_index, figsize=(10, 10))
+
     i = subreddit_index % 2
     j = subreddit_index / 2
 
@@ -61,20 +61,27 @@ for subreddit_index, subreddit in enumerate(subreddit_list):
 
     n = min(len(term_counter), 5000)
 
-    axes[i, j].set_xscale('log')
-    axes[i, j].set_yscale('log')
+    plt.xscale('log')
+    plt.yscale('log')
 
-    axes[i, j].set_xlabel('rank')
-    axes[i, j].set_ylabel('term frequency')
+    for tick in plt.gca().xaxis.get_major_ticks():
+        tick.label.set_fontsize(20)
+        tick.set_pad(16)
+
+    for tick in plt.gca().yaxis.get_major_ticks():
+        tick.label.set_fontsize(20)
+        tick.set_pad(16)
+
+    plt.xlabel('rank', fontsize=30)
+    plt.ylabel('term frequency', fontsize=30)
     # axes[i, j].set_xlim(0, n)
-    axes[i, j].set_title(subreddit)
+    plt.title(subreddit, fontsize=30)
 
     points = [b for (a, b) in term_counter.most_common(n)]
-    axes[i, j].scatter(range(n), points, edgecolors='none')
-    axes[i, j].plot(range(1, n), [points[0] / x for x in range(1, n)], color='r', linewidth='2.0', label='~1/x')
-    axes[i, j].legend()
+    plt.scatter(range(n), points, edgecolors='none')
+    plt.plot(range(1, n), [points[0] / x for x in range(1, n)], color='r', linewidth='2.0', label='~1/x')
+    plt.legend(fontsize=20)
+    plt.tight_layout()
 
-figure.canvas.set_window_title('Term Frequency for Subreddits')
-
-plt.tight_layout()
-plt.show()
+    plt.savefig('/home/michaela/Research/Thesis/%s_tf.png' % subreddit)
+    plt.clf()
