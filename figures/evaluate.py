@@ -17,6 +17,7 @@ from matplotlib import pyplot as plt
 from sklearn.svm import SVC
 from sklearn.metrics import *
 from sklearn.cross_validation import StratifiedKFold
+from nltk.stem import LancasterStemmer, PorterStemmer
 
 from utils import load_db_params
 from datasource import load_data_source
@@ -132,15 +133,15 @@ if __name__ == '__main__':
     }
 
     # Set up the precision recall graph
-    plt.figure(1)
+    plt.figure(1, figsize=(8, 6.5))
     plt.title('Precision-Recall for \'%s\' subreddit' % subreddit)
     plt.xlabel('Recall')
     plt.ylabel('Precision')
-    plt.ylim(0.0, 1.05)
     plt.xlim(0.0, 1.0)  # precision can be undefined for 0
+    min_precision = 1.0
 
     # Set up the ROC graph
-    plt.figure(2)
+    plt.figure(2, figsize=(8, 6.5))
     plt.title('ROC curve for \'%s\' subreddit' % subreddit)
     plt.xlabel('FPR')
     plt.ylabel('TPR')
@@ -173,8 +174,19 @@ if __name__ == '__main__':
             del(params['label'])
 
         if model_type.lower() == 'bow':
+            stemmer = NullStemmer()
+            if 'stemmer' in params:
+                if params['stemmer'] == 'lancaster':
+                    stemmer = LancasterStemmer()
+                elif params['stemmer'] == 'porter':
+                    stemmer = PorterStemmer()
+                elif params['stemmer'] == 'null':
+                    stemmer = NullStemmer()
+                else:
+                    raise ValueError('Unknown stemmer: %s' % params['stemmer'])
+
             model_type = 'BoW' if label is None else label
-            scores, actual = evaluate_bow(data, n_folds)
+            scores, actual = evaluate_bow(data, n_folds, stemmer)
         elif model_type.lower() == 'boc':
             model_type = 'BoC' if label is None else label
             scores, actual = evaluate_boc(data, n_folds, params)
@@ -185,6 +197,7 @@ if __name__ == '__main__':
         plt.figure(1)
         aucpr = average_precision_score(actual, scores)
         precision, recall, _ = precision_recall_curve(actual, scores)
+        min_precision = min(min_precision, min(precision))
         plt.plot(recall, precision, label='%s (AUCPR=%.2f)' % (model_type, aucpr), **line_params)
 
         plt.figure(2)
@@ -193,6 +206,7 @@ if __name__ == '__main__':
         plt.plot(fpr, tpr, label='%s (AUC=%.2f)' % (model_type, auc), **line_params)
 
     plt.figure(1)
+    plt.ylim(min_precision, 1.02)
     plt.legend(loc='lower left')
     plt.tight_layout()
     plt.savefig(os.path.join(save_path, 'precision_recall_curve_%s.png' % subreddit))
