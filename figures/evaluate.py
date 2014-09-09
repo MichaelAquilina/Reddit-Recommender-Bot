@@ -114,6 +114,7 @@ if __name__ == '__main__':
     parser.add_argument('models', nargs='+')
     parser.add_argument('--n-folds', type=int, default=4)
     parser.add_argument('--show', action='store_true')
+    parser.add_argument('--seed', default=0, type=int)
 
     args = parser.parse_args()
 
@@ -126,7 +127,7 @@ if __name__ == '__main__':
         os.makedirs(save_path)
 
     # Load appropriate pages from data source
-    data = load_data_source(data_path, subreddit, page_samples=600, seed=0, relative=False)
+    data = load_data_source(data_path, subreddit, page_samples=600, seed=args.seed, relative=False)
 
     line_params = {
         'linewidth': 1.5,
