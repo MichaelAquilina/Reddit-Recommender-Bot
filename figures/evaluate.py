@@ -128,7 +128,7 @@ if __name__ == '__main__':
     data = load_data_source(data_path, subreddit, page_samples=600, seed=0, relative=False)
 
     line_params = {
-        'linewidth': 2.0,
+        'linewidth': 1.5,
     }
 
     # Set up the precision recall graph
@@ -161,7 +161,7 @@ if __name__ == '__main__':
         for mp in model_params:
             (key, value) = mp.split('=')
             if isnumeric(value):
-                params[key] = int(value)
+                params[key] = float(value) if '.' in value else int(value)
             else:
                 params[key] = value
 
