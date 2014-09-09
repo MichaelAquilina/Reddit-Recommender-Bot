@@ -56,6 +56,9 @@ def generate_feature_matrix(wiki, data, n_concepts=10, **word_concept_params):
             if search_results:
                 results[abs_path] = [(sr.page_id, sr.weight) for sr in search_results[:n_concepts]]
 
+                # Remove any concepts which have a weight of 0
+                results[abs_path] = filter(lambda x: x[1] > 0, results[abs_path])
+
                 for search_result in search_results[:n_concepts]:
                     concepts.add(search_result.page_id)
 
