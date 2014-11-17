@@ -62,7 +62,7 @@ In order to run any code related to Bag of Concepts you first need to index a Wi
 
 You should download the `pages-articles.xml.bz2` file (approx 11GB as of August 2014)
 
-Once downloaded you need to setup a MySQL database. Assuming you create a databse named "WikiIndex" then create a file in the src directory named `db.json` with the following contents:
+Once downloaded you need to setup a MySQL database. Assuming you create a database named "WikiIndex" then create a file in the src directory named `db.json` with the following contents:
 
     {
         'host': 'localhost',
@@ -73,12 +73,12 @@ Once downloaded you need to setup a MySQL database. Assuming you create a databs
 
 Change the above parameters according to your database setup.
 
-Once the Wikipedia dump has been downloaded and the relevant databse setup you need to run the wiki setup script to create the database index. Typically this would be done as follows:
+Once the Wikipedia dump has been downloaded and the relevant database setup you need to run the wiki setup script to create the database index. Typically this would be done as follows:
 
     python wiki_setup.py pages-articles.xml.bz2 --engine MYISAM
 
 
-This process takes a very long time (up to 28 hours on my SSD) due to the parsing of 16 million articles of text and saving them to disk as a databse.
+This process takes a very long time (up to 28 hours on my SSD) due to the parsing of 16 million articles of text and saving them to disk as a database.
 
 Once the process is completed then all Bag of Concepts methods should work as expected.
 
